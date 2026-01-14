@@ -1,0 +1,126 @@
+2026-01-10 22:14:49.377711+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'As you people use Instagram or YouTube regularly, you might\\2019ve come acros... (2659)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-10 22:14:51.368122+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'As you people use Instagram or YouTube regularly, you might\\2019ve come acros... (2659)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-10 22:14:52.176518+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'As you people use Instagram or YouTube regularly, you might\\2019ve come acros... (2659)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-10 22:15:02.494373+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'As you people use Instagram or YouTube regularly, you might\\2019ve come acros... (2659)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 12:33:36.494699+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Don''t attach yourself to this\\000a\\000aNever spend too much time on anything... (2052)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 12:33:42.003307+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Don''t attach yourself to this\\000a\\000aNever spend too much time on anything... (2052)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 12:34:19.778198+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Don''t attach yourself to this\\000a\\000aNever spend too much time on anything... (2052)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 12:34:36.352227+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Don''t attach yourself to this\\000a\\000aNever spend too much time on anything... (2052)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 12:36:30.823116+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Don''t attach yourself to this\\000a\\000aNever spend too much time on anything... (2052)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,mood,title,updated_at,user_id,visibility,id) values (?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:39:10.202977+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:39:13.446101+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:40:10.705645+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:40:16.064169+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:45:09.689463+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:45:44.805261+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:46:32.142516+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:53:32.168529+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:54:27.891766+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:02.624921+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:03.228376+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:12.354481+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:14.446683+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:14.868428+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:15.233005+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:15.570180+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:15.922723+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:16.274102+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:16.614552+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:16.977701+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:17.328356+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:17.674123+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-11 23:55:20.676702+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 00:03:11.397306+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 00:03:18.224944+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 00:06:44.072517+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 00:06:46.774716+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 00:06:51.760123+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'In beyond Good and Evil, Nietzsche mentions the following aphorism.\\000a\\000a... (2428)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 21:23:41.182274+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Those who build hotels, three stars-five stars, never get to sleep in them, w... (3600)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 21:23:45.925580+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Those who build hotels, three stars-five stars, never get to sleep in them, w... (3600)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 21:24:06.705912+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Those who build hotels, three stars-five stars, never get to sleep in them, w... (3600)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 21:24:24.058005+05:30 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Those who build hotels, three stars-five stars, never get to sleep in them, w... (3600)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
+2026-01-12 21:24:34.379009+05:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "CONTENT CHARACTER VARYING(2000)": "U&'Those who build hotels, three stars-five stars, never get to sleep in them, w... (3600)"; SQL statement:
+insert into journal_entry (analysis_confidence,analysis_emotion,analysis_intensity,content,created_at,detailed_analysis,mood,subjectivity,textblob_polarity,title,updated_at,user_id,vader_compound,visibility,id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,default) [22001-232]
