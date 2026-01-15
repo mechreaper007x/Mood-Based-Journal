@@ -9,7 +9,9 @@ services:
   - type: web
     name: backend
     runtime: docker
-    rootDir: backend
+    # rootDir: backend  <-- Removing this to be explicit with context paths instead
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
     plan: free
     envVars:
       - key: SPRING_DATASOURCE_URL
