@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "python-mcp": {
+      "command": ".\\count-r-server\\.venv\\Scripts\\uvicorn.exe",
+      "args": [
+        "moodjournal_mcp:app",
+        "--reload",
+        "--port",
+        "9000",
+        "--app-dir",
+        "count-r-server"
+      ],
+      "httpUrl": "http://localhost:9000"
+    },
+    "java-moodjournal": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "cd moodjournal && mvnw.cmd spring-boot:run"
+      ],
+      "httpUrl": "http://localhost:9092"
+    }
+  }
+}
