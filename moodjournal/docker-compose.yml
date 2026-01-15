@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Spring Boot Backend
+  backend:
+    build: .
+    container_name: moodjournal-backend
+    ports:
+      - "9092:9092"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_MAIL_PASSWORD=${RESEND_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - TEXTBLOB_MICROSERVICE_URL=http://nlp-service:5001
+    volumes:
+      - ./data:/app/data  # Persist H2 database
+    depends_on:
+      nlp-service:
+        condition: service_healthy
+    networks:
+      - moodjournal-network
+    restart: unless-stopped
+
+  # React Frontend with Nginx
+  frontend:
+    build: ./frontend
+    container_name: moodjournal-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - moodjournal-network
+    restart: unless-stopped
+
+  # Python NLP Service
+  nlp-service:
+    build: ./nlp-service
+    container_name: moodjournal-nlp
+    ports:
+      - "5001:5001"
+    networks:
+      - moodjournal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+networks:
+  moodjournal-network:
+    driver: bridge
+
+volumes:
+  h2-data:

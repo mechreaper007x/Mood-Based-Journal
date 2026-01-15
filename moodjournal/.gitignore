@@ -1,0 +1,45 @@
+# Application Properties (contains secrets)
+application.properties
+src/main/resources/application.properties
+
+# Environment files (NEVER commit these!)
+.env
+*.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+**/venv/
+**/.venv/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Build artifacts
+target/
+*.jar
+*.war
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files (H2 database)
+data/*.db
+data/*.lock.db
+data/*.trace.db
