@@ -1,0 +1,65 @@
+services:
+  - name: backend
+    docker:
+      build:
+        dockerfile: moodjournal/moodjournal/backend/Dockerfile
+        context: moodjournal/moodjournal/backend
+    instance_type: free
+    regions:
+      - fra
+    env:
+      - key: PORT
+        value: "9092"
+      - key: NLP_SERVICE_URL
+        value: "http://nlp-service:5001"
+      - key: SPRING_DATASOURCE_URL
+        value: "jdbc:postgresql://..."  # Update with your DB URL
+      - key: SPRING_DATASOURCE_USERNAME
+        value: "mooduser"
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: "changeme"
+      - key: GOOGLE_API_KEY
+        value: "changeme"
+      - key: JWT_SECRET
+        value: "changeme"
+    ports:
+      - port: 9092
+        protocol: http
+    routes:
+      - path: /api
+        port: 9092
+
+  - name: frontend
+    docker:
+      build:
+        dockerfile: moodjournal/moodjournal/frontend/Dockerfile
+        context: moodjournal/moodjournal/frontend
+    instance_type: free
+    regions:
+      - fra
+    env:
+      - key: PORT
+        value: "80"
+      - key: VITE_API_URL
+        value: "/" # Proxy logic usually handles this, or point to backend URL
+    ports:
+      - port: 80
+        protocol: http
+    routes:
+      - path: /
+        port: 80
+
+  - name: nlp-service
+    docker:
+      build:
+        dockerfile: moodjournal/moodjournal/nlp-service/Dockerfile
+        context: moodjournal/moodjournal/nlp-service
+    instance_type: free
+    regions:
+      - fra
+    env:
+      - key: PORT
+        value: "5001"
+    ports:
+      - port: 5001
+        protocol: http
