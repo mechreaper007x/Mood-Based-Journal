@@ -9,8 +9,7 @@ services:
   - type: web
     name: backend
     runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder relative to repo root
-    rootDir: moodjournal/backend
+    rootDir: moodjournal/moodjournal/backend
     dockerfilePath: Dockerfile
     dockerContext: .
     plan: free
@@ -40,8 +39,7 @@ services:
   - type: web
     name: nlp-service
     runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder
-    rootDir: moodjournal/nlp-service
+    rootDir: moodjournal/moodjournal/nlp-service
     plan: free
     envVars:
       - key: PORT
@@ -51,8 +49,7 @@ services:
   - type: web
     name: frontend
     runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder
-    rootDir: moodjournal/frontend
+    rootDir: moodjournal/moodjournal/frontend
     plan: free
     envVars:
       - key: PORT
