@@ -1,0 +1,53 @@
+# Docker build ignore file
+# Prevents unnecessary files from being copied to Docker build context
+
+# Dependencies (installed fresh in container)
+node_modules/
+**/node_modules/
+**/venv/
+**/.venv/
+
+# Build artifacts
+target/
+dist/
+build/
+*.jar
+*.war
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Environment & secrets
+.env
+*.env
+!.env.example
+
+# Documentation (not needed at runtime)
+*.md
+!README.md
+
+# Logs & temp files
+*.log
+logs/
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development database
+data/*.db
+data/*.lock.db
+data/*.trace.db
+
+# Tests
+src/test/
