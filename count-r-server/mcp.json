@@ -1,8 +1,0 @@
-{
-  "servers": {
-    "moodjournal": {
-      "command": "uvicorn",
-      "args": ["main:app", "--reload", "--port", "9000"]
-    }
-  }
-}
