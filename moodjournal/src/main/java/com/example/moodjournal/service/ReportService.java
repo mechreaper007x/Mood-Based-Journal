@@ -2,6 +2,8 @@ package com.example.moodjournal.service;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -91,7 +93,11 @@ public class ReportService {
 
                 for (JournalEntry entry : entries) {
                     try {
-                        String dateStr = entry.getCreatedAt() != null ? entry.getCreatedAt().format(formatter) : "-";
+                        String dateStr = "-";
+                        if (entry.getCreatedAt() != null) {
+                            LocalDateTime ldt = LocalDateTime.ofInstant(entry.getCreatedAt(), ZoneId.systemDefault());
+                            dateStr = ldt.format(formatter);
+                        }
                         String titleStr = entry.getTitle() != null ? entry.getTitle() : "Untitled";
                         String moodStr = entry.getMood() != null ? entry.getMood().toString() : "N/A";
                         String stressStr = entry.getStressLevel() != null ? String.valueOf(entry.getStressLevel())

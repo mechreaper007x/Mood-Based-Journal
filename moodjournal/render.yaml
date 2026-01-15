@@ -1,0 +1,53 @@
+databases:
+  - name: moodjournal-db
+    databaseName: moodjournal
+    user: mooduser
+    plan: free
+
+services:
+  # Spring Boot Backend
+  - type: web
+    name: backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: moodjournal-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: moodjournal-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: moodjournal-db
+          property: password
+      - key: NLP_SERVICE_URL
+        value: http://nlp-service:5001
+      - key: GOOGLE_API_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 9092
+
+  # Python NLP Service
+  - type: web
+    name: nlp-service
+    runtime: docker
+    rootDir: nlp-service
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5001
+
+  # React Frontend
+  - type: web
+    name: frontend
+    runtime: docker
+    rootDir: frontend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 80

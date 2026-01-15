@@ -19,6 +19,7 @@ __pycache__/
 *.py[cod]
 **/venv/
 **/.venv/
+*.egg-info/
 
 # IDE
 .idea/
@@ -30,6 +31,7 @@ __pycache__/
 target/
 *.jar
 *.war
+*.class
 
 # Logs
 *.log
@@ -43,3 +45,6 @@ Thumbs.db
 data/*.db
 data/*.lock.db
 data/*.trace.db
+
+# Large Models
+lib/stanford-corenlp-*.jar
