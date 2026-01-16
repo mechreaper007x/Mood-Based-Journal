@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = 'http://localhost:9092';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9092';
 
 // TIPI Questions for Big 5
 const TIPI_QUESTIONS = [
