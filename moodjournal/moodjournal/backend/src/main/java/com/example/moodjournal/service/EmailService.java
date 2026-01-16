@@ -2,7 +2,7 @@ package com.example.moodjournal.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,14 +19,17 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    private final ObjectProvider<JavaMailSender> mailSenderProvider;
 
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
+
+    public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider) {
+        this.mailSenderProvider = mailSenderProvider;
+    }
 
     /**
      * Sends a password reset email to the user.
@@ -46,7 +49,12 @@ public class EmailService {
         log.info("║ Link: {}", resetLink);
         log.info("╚══════════════════════════════════════════════════════════════╝");
 
-        if (emailEnabled && mailSender != null) {
+        if (emailEnabled) {
+            JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+            if (mailSender == null) {
+                log.warn("Email is enabled but JavaMailSender is not configured - skipping send");
+                return;
+            }
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
                 // IMPORTANT: Resend free tier ONLY allows sending from 'onboarding@resend.dev'
