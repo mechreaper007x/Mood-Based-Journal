@@ -2,6 +2,7 @@ package com.example.moodjournal.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
  * Email service for sending password reset and other notification emails.
  * 
  * Uses JavaMailSender to send emails via SMTP (Resend).
+ * Email functionality is optional - app will start without mail config.
  */
 @Service
 public class EmailService {
@@ -25,6 +27,7 @@ public class EmailService {
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
+    @Autowired(required = false)
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
@@ -47,7 +50,7 @@ public class EmailService {
         log.info("║ Link: {}", resetLink);
         log.info("╚══════════════════════════════════════════════════════════════╝");
 
-        if (emailEnabled) {
+        if (emailEnabled && mailSender != null) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
                 // IMPORTANT: Resend free tier ONLY allows sending from 'onboarding@resend.dev'
