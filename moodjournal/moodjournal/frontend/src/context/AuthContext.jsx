@@ -5,7 +5,9 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9092';
+// Get API base URL - env var should be full URL like https://xxx.onrender.com (without /api)
+// Local dev uses localhost:9092
+const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:9092';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -14,7 +16,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkProfileComplete = async (token) => {
     try {
-      const response = await fetch(`${API_URL}/api/profile/complete`, {
+      const response = await fetch(`${API_BASE}/api/profile/complete`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

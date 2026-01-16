@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9092';
+// Get API base URL - env var should be full URL like https://xxx.onrender.com (without /api)
+// Local dev uses localhost:9092
+const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:9092';
 
 // TIPI Questions for Big 5
 const TIPI_QUESTIONS = [
@@ -136,7 +138,7 @@ const Onboarding = () => {
       };
       delete payload.tipiResponses;
 
-      const response = await fetch(`${API_URL}/api/profile`, {
+      const response = await fetch(`${API_BASE}/api/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +150,7 @@ const Onboarding = () => {
       if (!response.ok) throw new Error('Failed to save profile');
 
       // Mark as complete
-      await fetch(`${API_URL}/api/profile/complete`, {
+      await fetch(`${API_BASE}/api/profile/complete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       });
