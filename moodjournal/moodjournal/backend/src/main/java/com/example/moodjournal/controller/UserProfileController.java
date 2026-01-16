@@ -55,10 +55,19 @@ public class UserProfileController {
      * Check if profile is complete
      */
     @GetMapping("/complete")
-    public ResponseEntity<Map<String, Boolean>> isProfileComplete(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserId(userDetails);
-        boolean complete = userProfileService.isProfileComplete(userId);
-        return ResponseEntity.ok(Map.of("isComplete", complete));
+    public ResponseEntity<?> isProfileComplete(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            if (userDetails == null) {
+                return ResponseEntity.status(401).body(Map.of("error", "Not authenticated", "isComplete", false));
+            }
+            Long userId = getUserId(userDetails);
+            boolean complete = userProfileService.isProfileComplete(userId);
+            return ResponseEntity.ok(Map.of("isComplete", complete));
+        } catch (Exception e) {
+            log.error("Error checking profile complete: {}", e.getMessage());
+            // Return false instead of 500 - this is a new user without a profile
+            return ResponseEntity.ok(Map.of("isComplete", false));
+        }
     }
 
     /**
