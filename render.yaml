@@ -36,17 +36,6 @@ services:
       - key: PORT
         value: 9092
 
-  # Python NLP Service
-  - type: web
-    name: nlp-service
-    runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder
-    rootDir: moodjournal/moodjournal/nlp-service
-    plan: free
-    envVars:
-      - key: PORT
-        value: 5001
-
   # React Frontend
   - type: web
     name: frontend
