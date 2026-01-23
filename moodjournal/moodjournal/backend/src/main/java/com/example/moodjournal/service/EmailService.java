@@ -8,6 +8,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+
 /**
  * Email service for sending password reset and other notification emails.
  * 
@@ -27,8 +29,29 @@ public class EmailService {
     @Value("${app.email.enabled:false}")
     private boolean emailEnabled;
 
+    @Value("${spring.mail.host:NOT_SET}")
+    private String mailHost;
+
+    @Value("${spring.mail.password:NOT_SET}")
+    private String mailPassword;
+
     public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider) {
         this.mailSenderProvider = mailSenderProvider;
+    }
+
+    @PostConstruct
+    public void init() {
+        log.info("╔══════════════════════════════════════════════════════════════╗");
+        log.info("║           EMAIL SERVICE CONFIGURATION                        ║");
+        log.info("╠══════════════════════════════════════════════════════════════╣");
+        log.info("║ Email Enabled: {}", emailEnabled);
+        log.info("║ Frontend URL: {}", frontendUrl);
+        log.info("║ SMTP Host: {}", mailHost);
+        log.info("║ SMTP Password: {}", mailPassword != null && mailPassword.length() > 5
+                ? mailPassword.substring(0, 5) + "****"
+                : "NOT_SET");
+        log.info("║ JavaMailSender Available: {}", mailSenderProvider.getIfAvailable() != null);
+        log.info("╚══════════════════════════════════════════════════════════════╝");
     }
 
     /**
@@ -72,7 +95,14 @@ public class EmailService {
                 mailSender.send(message);
                 log.info("Password reset email sent successfully to {}", toEmail);
             } catch (Exception e) {
-                log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
+                log.error("╔══════════════════════════════════════════════════════════════╗");
+                log.error("║           EMAIL SEND FAILED                                  ║");
+                log.error("╠══════════════════════════════════════════════════════════════╣");
+                log.error("║ To: {}", toEmail);
+                log.error("║ Error: {}", e.getMessage());
+                log.error("║ Cause: {}", e.getCause() != null ? e.getCause().getMessage() : "N/A");
+                log.error("╚══════════════════════════════════════════════════════════════╝");
+                log.error("Full stack trace:", e);
             }
         }
     }
