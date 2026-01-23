@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Spring Boot Backend
   backend:
-    build: .
+    build: ./backend
     container_name: moodjournal-backend
     ports:
       - "9092:9092"
@@ -13,11 +13,30 @@ services:
       - SPRING_MAIL_PASSWORD=${RESEND_API_KEY}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - TEXTBLOB_MICROSERVICE_URL=http://nlp-service:5001
-    volumes:
-      - ./data:/app/data  # Persist H2 database
+      # Database Configuration for Docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/moodjournal
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
-      nlp-service:
-        condition: service_healthy
+      - db
+      # - nlp-service # Uncomment if nlp-service is available
+    networks:
+      - moodjournal-network
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: moodjournal-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=moodjournal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - moodjournal-network
     restart: unless-stopped
@@ -35,24 +54,24 @@ services:
     restart: unless-stopped
 
   # Python NLP Service
-  nlp-service:
-    build: ./nlp-service
-    container_name: moodjournal-nlp
-    ports:
-      - "5001:5001"
-    networks:
-      - moodjournal-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 30s
+  # nlp-service:
+  #   build: ./nlp-service
+  #   container_name: moodjournal-nlp
+  #   ports:
+  #     - "5001:5001"
+  #   networks:
+  #     - moodjournal-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+  #     interval: 30s
+  #     timeout: 3s
+  #     retries: 3
+  #     start_period: 30s
 
 networks:
   moodjournal-network:
     driver: bridge
 
 volumes:
-  h2-data:
+  postgres-data:
