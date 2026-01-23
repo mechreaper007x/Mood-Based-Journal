@@ -62,8 +62,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (username, email, password, age) => {
-    await api.post('/auth/register', { username, email, password, age });
-    return true;
+    const response = await api.post('/auth/register', { username, email, password, age });
+    const { token, user: userData } = response.data;
+    
+    // Store token and user data just like login
+    localStorage.setItem('token', token);
+    const userObj = userData?.email ? userData : { username, email };
+    localStorage.setItem('user', JSON.stringify(userObj));
+    setUser(userObj);
+    
+    // Check profile status after registration
+    await checkProfileComplete(token);
+    
+    return userObj;
   };
 
   const logout = () => {
