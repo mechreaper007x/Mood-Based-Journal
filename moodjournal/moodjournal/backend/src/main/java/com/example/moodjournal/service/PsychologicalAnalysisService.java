@@ -93,16 +93,14 @@ public class PsychologicalAnalysisService {
         }
     }
 
+    private static final List<String> CRISIS_KEYWORDS = List.of(
+            "suicide", "kill myself", "want to die", "end it all", "hurt myself");
+
     private boolean checkCrisisKeywords(String content) {
         if (content == null)
             return false;
         String lower = content.toLowerCase();
-        // Basic list - in production this should be a comprehensive library or service
-        return lower.contains("suicide") ||
-                lower.contains("kill myself") ||
-                lower.contains("want to die") ||
-                lower.contains("end it all") ||
-                lower.contains("hurt myself");
+        return CRISIS_KEYWORDS.stream().anyMatch(lower::contains);
     }
 
     /**
