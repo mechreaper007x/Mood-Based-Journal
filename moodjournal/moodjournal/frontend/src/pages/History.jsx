@@ -249,6 +249,56 @@ const History = () => {
                         </div>
                       )}
 
+                      {/* NEW: Primary Emotion (ISEAR) & Nuance Tags (GoEmotions) */}
+                      {(entry.primaryEmotion || entry.nuanceTags) && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {entry.primaryEmotion && (
+                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                              🎭 {entry.primaryEmotion}
+                            </span>
+                          )}
+                          {entry.nuanceTags && (() => {
+                            try {
+                              const tags = typeof entry.nuanceTags === 'string' 
+                                ? JSON.parse(entry.nuanceTags) 
+                                : entry.nuanceTags;
+                              return Array.isArray(tags) && tags.map((tag, i) => (
+                                <span key={i} className="px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                  {tag}
+                                </span>
+                              ));
+                            } catch { return null; }
+                          })()}
+                        </div>
+                      )}
+
+                      {/* NEW: VAD Scores (EmoBank) */}
+                      {entry.vadScores && (
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="text-gray-500">VAD:</span>
+                          <span className={`px-2 py-0.5 rounded ${
+                            entry.vadScores.valence >= 0.6 ? 'bg-green-500/20 text-green-400' :
+                            entry.vadScores.valence <= 0.4 ? 'bg-red-500/20 text-red-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            V: {(entry.vadScores.valence * 100).toFixed(0)}%
+                          </span>
+                          <span className={`px-2 py-0.5 rounded ${
+                            entry.vadScores.arousal >= 0.7 ? 'bg-orange-500/20 text-orange-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            A: {(entry.vadScores.arousal * 100).toFixed(0)}%
+                          </span>
+                          <span className={`px-2 py-0.5 rounded ${
+                            entry.vadScores.dominance >= 0.6 ? 'bg-blue-500/20 text-blue-400' :
+                            entry.vadScores.dominance <= 0.4 ? 'bg-amber-500/20 text-amber-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            D: {(entry.vadScores.dominance * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
+
                       {/* Cognitive Distortions */}
                       {entry.cognitiveDistortions && (
                         <div className="flex items-center gap-2 flex-wrap">

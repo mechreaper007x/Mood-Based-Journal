@@ -17,17 +17,33 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EntryAnalysisResult {
 
-    private String dominantEmotion;
+    // ISEAR (Primary Emotion)
+    private String primaryEmotion;
 
-    private Map<String, Integer> emotionBreakdown; // anger, happiness, sadness, anxiety, calmness
+    // GoEmotions (Nuance Tags)
+    private List<String> nuanceTags;
 
-    private List<String> cognitiveDistortions; // all-or-nothing, catastrophizing, mind-reading, etc.
+    // EmoBank (VAD Scores)
+    private VADScores vadScores;
 
-    private String emotionalTrajectory; // improving, declining, stable
+    // Derived Risk Score (1-10) - Calculated from Valence/Arousal
+    private Integer riskScore;
 
-    private Integer riskScore; // 1-10 mental health concern level
+    // Legacy/Compatible fields (can be derived or removed later)
+    private Map<String, Integer> emotionBreakdown;
+    private List<String> cognitiveDistortions;
+    private String emotionalTrajectory;
+    private List<String> personalizedSuggestions;
 
-    private List<String> personalizedSuggestions; // based on archetype and profile
+    private String narrativeInsight; // The "insight" from new prompt
 
-    private String narrativeInsight; // 2-3 sentence professional analysis
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VADScores {
+        private Double valence;
+        private Double arousal;
+        private Double dominance;
+    }
 }

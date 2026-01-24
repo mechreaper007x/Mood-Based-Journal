@@ -31,6 +31,7 @@ public class JournalEntryService {
   private final ObjectMapper objectMapper;
   private final PsychologicalAnalysisService psychAnalysisService;
   private final AlertService alertService;
+  private final EnsembleRiskService ensembleRiskService;
 
   public JournalEntryService(
       JournalEntryRepository entryRepo,
@@ -38,13 +39,15 @@ public class JournalEntryService {
       GeminiService geminiService,
       ObjectMapper objectMapper,
       PsychologicalAnalysisService psychAnalysisService,
-      AlertService alertService) {
+      AlertService alertService,
+      EnsembleRiskService ensembleRiskService) {
     this.entryRepo = entryRepo;
     this.userRepo = userRepo;
     this.geminiService = geminiService;
     this.objectMapper = objectMapper;
     this.psychAnalysisService = psychAnalysisService;
     this.alertService = alertService;
+    this.ensembleRiskService = ensembleRiskService;
   }
 
   public JournalEntry create(Long userId, JournalEntry entry) {
@@ -53,12 +56,23 @@ public class JournalEntryService {
         .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
     entry.setUser(user);
 
+    // Quick pre-screening with lexicon (fast, no AI)
+    var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
+    if (quickScreen.isCrisis) {
+      log.warn("CRISIS detected in quick screen! Keywords: {}", quickScreen.detectedKeywords);
+      entry.setRiskScore(quickScreen.riskScore);
+    }
+
     // Only analyze if mood is NOT already set (to prevent duplicate API calls)
     if (entry.getMood() == null) {
       log.info("No mood provided, running profile-aware analysis...");
-      analyzeAndSetMood(userId, entry);
+      analyzeAndSetMood(userId, entry, quickScreen);
     } else {
       log.info("Mood already provided from frontend: {}, skipping analysis", entry.getMood());
+      // Still apply ensemble risk if quick screen detected something
+      if (quickScreen.isHighRisk) {
+        entry.setRiskScore(Math.max(entry.getRiskScore() != null ? entry.getRiskScore() : 0, quickScreen.riskScore));
+      }
     }
 
     JournalEntry saved = entryRepo.save(entry);
@@ -73,9 +87,11 @@ public class JournalEntryService {
     return saved;
   }
 
-  private void analyzeAndSetMood(Long userId, JournalEntry entry) {
+  private void analyzeAndSetMood(Long userId, JournalEntry entry, EnsembleRiskService.QuickScreenResult quickScreen) {
     log.info("=== Starting profile-aware analysis for entry ===");
     log.info("Content preview: {}", entry.getContent().substring(0, Math.min(100, entry.getContent().length())));
+    log.info("Quick screen: risk={} highRisk={} keywords={}", quickScreen.riskScore, quickScreen.isHighRisk,
+        quickScreen.detectedKeywords);
 
     try {
       // Use the new profile-aware analysis service
@@ -89,11 +105,11 @@ public class JournalEntryService {
       }
 
       // Set dominant emotion
-      if (result.getDominantEmotion() != null) {
-        entry.setAnalysisEmotion(result.getDominantEmotion());
-        Mood mood = mapEmotionToMood(result.getDominantEmotion().toLowerCase());
+      if (result.getPrimaryEmotion() != null) {
+        entry.setAnalysisEmotion(result.getPrimaryEmotion());
+        Mood mood = mapEmotionToMood(result.getPrimaryEmotion().toLowerCase());
         entry.setMood(mood);
-        log.info("Dominant emotion: {} -> Mood: {}", result.getDominantEmotion(), mood);
+        log.info("Primary emotion: {} -> Mood: {}", result.getPrimaryEmotion(), mood);
       } else {
         entry.setMood(Mood.NEUTRAL);
       }
@@ -102,7 +118,27 @@ public class JournalEntryService {
       if (result.getCognitiveDistortions() != null && !result.getCognitiveDistortions().isEmpty()) {
         entry.setCognitiveDistortions(String.join(",", result.getCognitiveDistortions()));
       }
-      entry.setRiskScore(result.getRiskScore());
+
+      // ENSEMBLE RISK SCORING: Combine AI + Lexicon scores
+      int aiRiskScore = result.getRiskScore() != null ? result.getRiskScore() : -1;
+      Map<String, Double> aiVadScores = null;
+      if (result.getVadScores() != null) {
+        aiVadScores = Map.of(
+            "valence", result.getVadScores().getValence() != null ? result.getVadScores().getValence() : 0.5,
+            "arousal", result.getVadScores().getArousal() != null ? result.getVadScores().getArousal() : 0.5,
+            "dominance", result.getVadScores().getDominance() != null ? result.getVadScores().getDominance() : 0.5);
+      }
+
+      EnsembleRiskService.EnsembleResult ensembleResult = ensembleRiskService.analyzeRisk(entry.getContent(),
+          aiRiskScore, aiVadScores);
+
+      // Use ensemble risk score (MAX of AI and lexicon for safety)
+      entry.setRiskScore(ensembleResult.finalRiskScore);
+      log.info("Ensemble risk: final={} (AI={}, lexicon={}) source={} crisisKeywords={}",
+          ensembleResult.finalRiskScore, ensembleResult.aiRiskScore,
+          ensembleResult.lexiconRiskScore, ensembleResult.riskSource,
+          ensembleResult.detectedCrisisKeywords);
+
       entry.setEmotionalTrajectory(result.getEmotionalTrajectory());
 
       // Store suggestions as JSON
@@ -267,8 +303,9 @@ public class JournalEntryService {
           if (!entry.getUser().getId().equals(userId)) {
             throw new NoSuchElementException("Entry not found");
           }
-          // Re-run profile-aware analysis
-          analyzeAndSetMood(userId, entry);
+          // Re-run profile-aware analysis with quick screen
+          var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
+          analyzeAndSetMood(userId, entry, quickScreen);
           return entryRepo.save(entry);
         })
         .orElseThrow(() -> new NoSuchElementException("Entry not found"));

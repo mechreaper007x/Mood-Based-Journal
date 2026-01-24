@@ -28,7 +28,7 @@ public class UserService {
     @Transactional
     public User register(User user) {
         // Check for duplicate username
-        if (user.getDisplayName() != null && userRepository.findByUsername(user.getDisplayName()).isPresent()) {
+        if (user.getUsername() != null && userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username is already taken");
         }
 

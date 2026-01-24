@@ -69,12 +69,13 @@ public class PsychologicalAnalysisService {
             log.info(">>> Profile-aware analysis response: {}", cleanJson);
 
             EntryAnalysisResult result = parseAnalysisResult(cleanJson);
-            
+
             // OVERRIDE: If keywords were found, enforce minimum risk score
             if (hasCrisisKeywords && (result.getRiskScore() == null || result.getRiskScore() < 9)) {
                 log.warn(">>> Overriding AI Risk Score ({} -> 9) due to keyword detection.", result.getRiskScore());
                 result.setRiskScore(9);
-                result.setNarrativeInsight(result.getNarrativeInsight() + " [Safety Alert: Crisis resources triggered.]");
+                result.setNarrativeInsight(
+                        result.getNarrativeInsight() + " [Safety Alert: Crisis resources triggered.]");
             }
 
             log.info(">>> Parsed result: distortions={}, risk={}, trajectory={}",
@@ -85,21 +86,23 @@ public class PsychologicalAnalysisService {
             EntryAnalysisResult fallback = getDefaultResult();
             if (hasCrisisKeywords) {
                 fallback.setRiskScore(9);
-                fallback.setNarrativeInsight("We noticed you might be going through a difficult moment. Please reach out for help.");
+                fallback.setNarrativeInsight(
+                        "We noticed you might be going through a difficult moment. Please reach out for help.");
             }
             return fallback;
         }
     }
 
     private boolean checkCrisisKeywords(String content) {
-        if (content == null) return false;
+        if (content == null)
+            return false;
         String lower = content.toLowerCase();
         // Basic list - in production this should be a comprehensive library or service
-        return lower.contains("suicide") || 
-               lower.contains("kill myself") || 
-               lower.contains("want to die") || 
-               lower.contains("end it all") ||
-               lower.contains("hurt myself");
+        return lower.contains("suicide") ||
+                lower.contains("kill myself") ||
+                lower.contains("want to die") ||
+                lower.contains("end it all") ||
+                lower.contains("hurt myself");
     }
 
     /**
@@ -108,51 +111,41 @@ public class PsychologicalAnalysisService {
     private String buildAnalysisPrompt(UserProfileDTO profile, Long userId, JournalEntry entry) {
         StringBuilder prompt = new StringBuilder();
 
-        prompt.append("""
-                You are a clinical psychologist providing a personalized analysis of a journal entry.
-                Your role is to identify emotional patterns, detect cognitive distortions, and provide
-                tailored insights based on the person's psychological profile.
+        // 1. Role Definition
+        prompt.append("You are an advanced psychological analysis engine using the Ensemble Risk Engine model.\n");
+        prompt.append("Your task is to analyze the following journal entry for emotional nuance and latent risk.\n\n");
 
-                """);
-
-        // Add profile context if available
+        // 2. Profile Context (with Empathy Profile)
         if (profile != null) {
-            prompt.append("=== USER PSYCHOLOGICAL PROFILE ===\n");
-            prompt.append(String.format("Big Five Personality:\n"));
-            prompt.append(String.format("  - Extraversion: %d/7\n",
-                    profile.getExtraversion() != null ? profile.getExtraversion() : 4));
-            prompt.append(String.format("  - Agreeableness: %d/7\n",
-                    profile.getAgreeableness() != null ? profile.getAgreeableness() : 4));
-            prompt.append(String.format("  - Conscientiousness: %d/7\n",
-                    profile.getConscientiousness() != null ? profile.getConscientiousness() : 4));
-            prompt.append(String.format("  - Emotional Stability: %d/7\n",
+            prompt.append("=== USER PROFILE ===\n");
+            prompt.append(String.format("Big Five Traits: O=%d, C=%d, E=%d, A=%d, N=%d\n",
+                    profile.getOpenness() != null ? profile.getOpenness() : 4,
+                    profile.getConscientiousness() != null ? profile.getConscientiousness() : 4,
+                    profile.getExtraversion() != null ? profile.getExtraversion() : 4,
+                    profile.getAgreeableness() != null ? profile.getAgreeableness() : 4,
                     profile.getEmotionalStability() != null ? profile.getEmotionalStability() : 4));
-            prompt.append(
-                    String.format("  - Openness: %d/7\n\n", profile.getOpenness() != null ? profile.getOpenness() : 4));
-
-            prompt.append(String.format("Psychological Archetype: %s (secondary: %s)\n\n",
+            prompt.append(String.format("Archetype: %s (secondary: %s)\n",
                     profile.getPrimaryArchetype() != null ? profile.getPrimaryArchetype() : "unknown",
                     profile.getSecondaryArchetype() != null ? profile.getSecondaryArchetype() : "unknown"));
 
-            prompt.append(String.format("Empathy Profile:\n"));
-            prompt.append(String.format("  - Cognitive: %d/10\n",
+            // Empathy Profile (The good stuff you wanted)
+            prompt.append("Empathy Profile:\n");
+            prompt.append(String.format("  - Cognitive Empathy: %d/10 (Understanding others' minds)\n",
                     profile.getCognitiveEmpathy() != null ? profile.getCognitiveEmpathy() : 5));
-            prompt.append(String.format("  - Affective: %d/10\n",
+            prompt.append(String.format("  - Affective Empathy: %d/10 (Feeling others' emotions)\n",
                     profile.getAffectiveEmpathy() != null ? profile.getAffectiveEmpathy() : 5));
-            prompt.append(String.format("  - Compassionate: %d/10\n\n",
+            prompt.append(String.format("  - Compassionate Empathy: %d/10 (Urge to help)\n",
                     profile.getCompassionateEmpathy() != null ? profile.getCompassionateEmpathy() : 5));
 
             if (profile.getCurrentStressors() != null && !profile.getCurrentStressors().isEmpty()) {
-                prompt.append(String.format("Known Stressors: %s\n\n", profile.getCurrentStressors()));
+                prompt.append(String.format("Current Stressors: %s\n", profile.getCurrentStressors()));
             }
-        } else {
-            prompt.append("(No profile data available - provide general analysis)\n\n");
         }
 
-        // Add recent emotional trajectory
+        // 3. Add recent emotional trajectory
         prompt.append(buildRecentHistoryContext(userId));
 
-        // Add current entry details
+        // 4. Add current entry details
         prompt.append("=== CURRENT JOURNAL ENTRY ===\n");
         prompt.append(String.format("Title: %s\n", entry.getTitle()));
 
@@ -173,11 +166,11 @@ public class PsychologicalAnalysisService {
         }
         prompt.append(String.format("\nContent:\n%s\n\n", entry.getContent()));
 
-        // Analysis instructions
+        // 5. MERGED Output Format (Old Working Fields + New ISEAR/GoEmotions/VAD)
         prompt.append(
                 """
                         === ANALYSIS INSTRUCTIONS ===
-                        Analyze this entry considering the person's profile and provide:
+                        Analyze this entry considering the person's profile and provide ALL of the following:
 
                         1. EMOTION BREAKDOWN: Percentages for anger, happiness, sadness, anxiety, calmness (must sum to 100)
                         2. DOMINANT EMOTION: The primary emotion expressed
@@ -194,6 +187,14 @@ public class PsychologicalAnalysisService {
                         6. PERSONALIZED SUGGESTIONS: 2-3 specific suggestions based on their archetype and profile
                         7. NARRATIVE INSIGHT: 2-3 sentence professional analysis
 
+                        --- NEW: SCIENTIFIC EXTENSIONS ---
+                        8. PRIMARY EMOTION (ISEAR): Pick EXACTLY ONE from [JOY, FEAR, ANGER, SADNESS, DISGUST, SHAME, GUILT]
+                        9. NUANCE TAGS (GoEmotions): Pick top 1-3 specific tags (e.g., 'admiration', 'annoyance', 'caring', 'disappointment', 'grief', 'nervousness', 'relief', 'remorse')
+                        10. VAD SCORES (EmoBank):
+                           - valence (0.0 to 1.0) -> Positivity/Negativity (0=Misery, 1=Ecstasy)
+                           - arousal (0.0 to 1.0) -> Intensity/Energy (0=Sleepy, 1=Panic/Excitement)
+                           - dominance (0.0 to 1.0) -> Control/Agency (0=Helpless, 1=In Control)
+
                         Return ONLY valid JSON, no markdown:
                         {
                           "dominantEmotion": "string",
@@ -202,7 +203,10 @@ public class PsychologicalAnalysisService {
                           "emotionalTrajectory": "improving|declining|stable",
                           "riskScore": 1-10,
                           "personalizedSuggestions": ["suggestion1", "suggestion2"],
-                          "narrativeInsight": "2-3 sentence analysis"
+                          "narrativeInsight": "2-3 sentence analysis",
+                          "primaryEmotion": "JOY|FEAR|ANGER|SADNESS|DISGUST|SHAME|GUILT",
+                          "nuanceTags": ["pride", "relief"],
+                          "vadScores": { "valence": 0.9, "arousal": 0.6, "dominance": 0.8 }
                         }
                         """);
 
@@ -247,15 +251,44 @@ public class PsychologicalAnalysisService {
                     json, new TypeReference<Map<String, Object>>() {
                     });
 
+            // Parse VAD Scores (new field)
+            EntryAnalysisResult.VADScores vad = new EntryAnalysisResult.VADScores(0.5, 0.5, 0.5);
+            if (result.get("vadScores") instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> vadMap = (Map<String, Object>) result.get("vadScores");
+                vad = EntryAnalysisResult.VADScores.builder()
+                        .valence(getDouble(vadMap, "valence", 0.5))
+                        .arousal(getDouble(vadMap, "arousal", 0.5))
+                        .dominance(getDouble(vadMap, "dominance", 0.5))
+                        .build();
+            }
+
+            // Get AI's risk score (but we can validate/override with VAD later)
+            int aiRiskScore = getInt(result, "riskScore", 3);
+
+            // Calculate VAD-based risk as backup/validation
+            double vadCalculatedRisk = (1.0 - vad.getValence()) * vad.getArousal() * 10.0;
+            int vadRiskScore = Math.max(1, Math.min(10, (int) Math.round(vadCalculatedRisk)));
+
+            // Ensemble: Use higher of AI risk or VAD risk (safety first)
+            int finalRiskScore = Math.max(aiRiskScore, vadRiskScore);
+
             return EntryAnalysisResult.builder()
-                    .dominantEmotion(getString(result, "dominantEmotion", "neutral"))
+                    // Scientific fields from new prompt
+                    .primaryEmotion(getString(result, "primaryEmotion",
+                            getString(result, "dominantEmotion", "NEUTRAL")))
+                    .nuanceTags(getStringList(result, "nuanceTags"))
+                    .vadScores(vad)
+
+                    // Legacy/compatible fields
                     .emotionBreakdown(parseEmotionBreakdown(result))
                     .cognitiveDistortions(getStringList(result, "cognitiveDistortions"))
                     .emotionalTrajectory(getString(result, "emotionalTrajectory", "stable"))
-                    .riskScore(getInt(result, "riskScore", 3))
+                    .riskScore(finalRiskScore)
                     .personalizedSuggestions(getStringList(result, "personalizedSuggestions"))
                     .narrativeInsight(getString(result, "narrativeInsight", "Analysis complete."))
                     .build();
+
         } catch (Exception e) {
             log.error("Failed to parse analysis result: {}", e.getMessage());
             return getDefaultResult();
@@ -276,6 +309,28 @@ public class PsychologicalAnalysisService {
             }
         }
         return breakdown;
+    }
+
+    private Double getDouble(Map<String, Object> map, String key, double defaultVal) {
+        Object val = map.get(key);
+        if (val instanceof Number)
+            return ((Number) val).doubleValue();
+        return defaultVal;
+    }
+
+    // Legacy: Map new "PRIMARY_EMOTION" to old "dominantEmotion" (lowercase)
+    private String convertPrimaryToDominant(String primary) {
+        return primary != null ? primary.toLowerCase() : "neutral";
+    }
+
+    // Legacy: Generate fake breakdown map for frontend compatibility
+    private Map<String, Integer> generateLegacyBreakdown(String primary, EntryAnalysisResult.VADScores vad) {
+        Map<String, Integer> map = new HashMap<>();
+        // Simple logic: Give 70% to primary, distribute rest
+        String key = primary != null ? primary.toLowerCase() : "neutral";
+        map.put(key, 70);
+        map.put("other", 30);
+        return map;
     }
 
     private String getString(Map<String, Object> map, String key, String defaultVal) {
@@ -307,7 +362,7 @@ public class PsychologicalAnalysisService {
         defaultBreakdown.put("anger", 0);
 
         return EntryAnalysisResult.builder()
-                .dominantEmotion("neutral")
+                .primaryEmotion("neutral")
                 .emotionBreakdown(defaultBreakdown)
                 .cognitiveDistortions(new ArrayList<>())
                 .emotionalTrajectory("stable")

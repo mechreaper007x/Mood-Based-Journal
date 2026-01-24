@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.moodjournal.dto.ForgotPasswordRequest;
+import com.example.moodjournal.dto.RegisterRequest;
 import com.example.moodjournal.dto.ResetPasswordRequest;
 import com.example.moodjournal.model.User;
 import com.example.moodjournal.service.PasswordResetService;
@@ -55,8 +56,16 @@ public class UserController {
 
     @CrossOrigin
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
+            // Convert DTO to User entity
+            User user = User.builder()
+                    .username(request.getUsername())
+                    .email(request.getEmail())
+                    .password(request.getPassword())
+                    .age(request.getAge())
+                    .build();
+
             User registeredUser = userService.register(user);
 
             final UserDetails userDetails = userDetailsService.loadUserByUsername(registeredUser.getEmail());

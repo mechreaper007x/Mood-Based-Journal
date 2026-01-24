@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { BedDouble, Brain, Flame, Mic, MicOff, Save, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CrisisModal from '../components/CrisisModal';
 import api from '../lib/axios';
 
 const CONTEXT_TAGS = [
