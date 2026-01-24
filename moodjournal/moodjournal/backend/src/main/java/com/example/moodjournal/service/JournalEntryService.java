@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.moodjournal.dto.EntryAnalysisResult;
 import com.example.moodjournal.dto.UpdateJournalEntryRequest;
@@ -50,6 +51,7 @@ public class JournalEntryService {
     this.ensembleRiskService = ensembleRiskService;
   }
 
+  @Transactional
   public JournalEntry create(Long userId, JournalEntry entry) {
     User user = userRepo
         .findById(userId)
@@ -297,6 +299,7 @@ public class JournalEntryService {
     return entryRepo.countMoodsByUserId(userId);
   }
 
+  @Transactional
   public JournalEntry reanalyzeEntry(Long id, Long userId) {
     return entryRepo.findById(id)
         .map(entry -> {
@@ -338,6 +341,7 @@ public class JournalEntryService {
         });
   }
 
+  @Transactional
   public JournalEntry update(
       Long id,
       Long userId,
@@ -375,6 +379,7 @@ public class JournalEntryService {
         .orElseThrow(() -> new NoSuchElementException("JournalEntry not found"));
   }
 
+  @Transactional
   public JournalEntry updateJournal(Long id, JournalEntry updatedEntry) {
     return entryRepo
         .findById(id)
@@ -388,6 +393,7 @@ public class JournalEntryService {
         .orElseThrow(() -> new NoSuchElementException("JournalEntry not found"));
   }
 
+  @Transactional
   public void delete(Long id, Long userId) {
     entryRepo
         .findById(id)

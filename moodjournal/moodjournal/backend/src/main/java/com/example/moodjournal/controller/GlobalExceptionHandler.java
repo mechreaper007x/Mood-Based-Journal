@@ -3,6 +3,7 @@ package com.example.moodjournal.controller;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,12 @@ public class GlobalExceptionHandler {
             }
         }
         return new ResponseEntity<>(Map.of("error", "Malformed JSON request"), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, String>> handleNoSuchElement(NoSuchElementException ex) {
+        return new ResponseEntity<>(Map.of("error", ex.getMessage() != null ? ex.getMessage() : "Resource not found"),
+                HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
