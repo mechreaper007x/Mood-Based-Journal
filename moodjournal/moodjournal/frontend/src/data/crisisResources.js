@@ -39,6 +39,26 @@ export const CRISIS_RESOURCES = {
       description: 'Emotional support helpline (Delhi)',
       hours: 'Mon-Fri, 2pm-10pm; Sat-Sun, 10am-10pm'
     }
+  ],
+  international: [
+    {
+      name: 'Emergency (US/Canada)',
+      number: '988',
+      description: 'Suicide & Crisis Lifeline',
+      hours: '24/7'
+    },
+    {
+      name: 'NHS 111 (UK)',
+      number: '111',
+      description: 'Non-emergency medical help',
+      hours: '24/7'
+    },
+    {
+      name: 'Emergency (EU)',
+      number: '112',
+      description: 'Universal European Emergency Number',
+      hours: '24/7'
+    }
   ]
 };
 

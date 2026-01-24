@@ -64,8 +64,8 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
               <Phone className="w-4 h-4" />
               Talk to Someone Now
             </h3>
-            <div className="space-y-2">
-              {CRISIS_RESOURCES.india.map((resource, idx) => (
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+              {[...CRISIS_RESOURCES.india, ...(CRISIS_RESOURCES.international || [])].map((resource, idx) => (
                 <div key={idx} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
                   <div className="flex justify-between items-start">
                     <div>

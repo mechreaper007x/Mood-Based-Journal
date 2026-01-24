@@ -101,21 +101,21 @@ public class AIController {
                     log.warn("AI service returned error: {}", json.get("error"));
                     // Return a fallback quote
                     return ResponseEntity.ok(Map.of(
-                            "quote", "The journey of a thousand miles begins with a single step.",
-                            "author", "Lao Tzu"));
+                            "quote", "You are stronger than you know. Take it one breath at a time.",
+                            "author", "Unknown"));
                 }
                 return ResponseEntity.ok(json);
             } catch (JsonProcessingException e) {
                 log.error("Error parsing AI response: {}", response, e);
                 return ResponseEntity.ok(Map.of(
-                        "quote", "The only way to do great work is to love what you do.",
-                        "author", "Steve Jobs"));
+                        "quote", "Healing comes in waves. It's okay to not be okay today.",
+                        "author", "Unknown"));
             }
         } catch (Exception e) {
             log.error("Unexpected error in dailyQuote", e);
             return ResponseEntity.ok(Map.of(
-                    "quote", "In the middle of difficulty lies opportunity.",
-                    "author", "Albert Einstein"));
+                    "quote", "Your feelings are valid, and this moment will pass.",
+                    "author", "Unknown"));
         }
     }
 }

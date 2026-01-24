@@ -45,6 +45,13 @@ public class PsychologicalAnalysisService {
     public EntryAnalysisResult analyzeWithProfile(Long userId, JournalEntry entry) {
         log.info(">>> Starting profile-aware analysis for userId={}", userId);
 
+        // 1. DETERMINISTIC SAFETY CHECK (The "Red Line")
+        // We do not trust the AI with life-or-death classification.
+        boolean hasCrisisKeywords = checkCrisisKeywords(entry.getContent());
+        if (hasCrisisKeywords) {
+            log.warn("!!! CRISIS KEYWORDS DETECTED for userId={} !!!", userId);
+        }
+
         // Get user's profile
         Optional<UserProfileDTO> profileOpt = userProfileService.getProfileByUserId(userId);
         log.info(">>> Profile found: {}", profileOpt.isPresent());
@@ -62,13 +69,37 @@ public class PsychologicalAnalysisService {
             log.info(">>> Profile-aware analysis response: {}", cleanJson);
 
             EntryAnalysisResult result = parseAnalysisResult(cleanJson);
+            
+            // OVERRIDE: If keywords were found, enforce minimum risk score
+            if (hasCrisisKeywords && (result.getRiskScore() == null || result.getRiskScore() < 9)) {
+                log.warn(">>> Overriding AI Risk Score ({} -> 9) due to keyword detection.", result.getRiskScore());
+                result.setRiskScore(9);
+                result.setNarrativeInsight(result.getNarrativeInsight() + " [Safety Alert: Crisis resources triggered.]");
+            }
+
             log.info(">>> Parsed result: distortions={}, risk={}, trajectory={}",
                     result.getCognitiveDistortions(), result.getRiskScore(), result.getEmotionalTrajectory());
             return result;
         } catch (Exception e) {
             log.error(">>> Profile-aware analysis FAILED: {}", e.getMessage(), e);
-            return getDefaultResult();
+            EntryAnalysisResult fallback = getDefaultResult();
+            if (hasCrisisKeywords) {
+                fallback.setRiskScore(9);
+                fallback.setNarrativeInsight("We noticed you might be going through a difficult moment. Please reach out for help.");
+            }
+            return fallback;
         }
+    }
+
+    private boolean checkCrisisKeywords(String content) {
+        if (content == null) return false;
+        String lower = content.toLowerCase();
+        // Basic list - in production this should be a comprehensive library or service
+        return lower.contains("suicide") || 
+               lower.contains("kill myself") || 
+               lower.contains("want to die") || 
+               lower.contains("end it all") ||
+               lower.contains("hurt myself");
     }
 
     /**
