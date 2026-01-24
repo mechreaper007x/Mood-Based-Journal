@@ -19,6 +19,10 @@ const JournalEntry = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   
+  // Crisis modal state
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [detectedRiskScore, setDetectedRiskScore] = useState(0);
+  
   // Form state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -108,7 +112,7 @@ const JournalEntry = () => {
     setLoading(true);
     
     try {
-      await api.post('/journal', {
+      const response = await api.post('/journal', {
         title,
         content,
         contextTags,
@@ -117,13 +121,27 @@ const JournalEntry = () => {
         sleepQuality,
         triggerDescription: triggerDescription || null,
       });
-      navigate('/dashboard');
+      
+      // Check if response indicates high risk
+      const entry = response.data;
+      if (entry.riskScore && entry.riskScore >= 7) {
+        setDetectedRiskScore(entry.riskScore);
+        setShowCrisisModal(true);
+        // Don't navigate yet - wait for modal close
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error("Failed to save", error);
       alert("Failed to save: " + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleCrisisModalClose = () => {
+    setShowCrisisModal(false);
+    navigate('/dashboard');
   };
 
   // Slider component
@@ -307,6 +325,13 @@ const JournalEntry = () => {
           </div>
         </form>
       </motion.div>
+      
+      {/* Crisis Modal - shows when high risk detected */}
+      <CrisisModal 
+        isOpen={showCrisisModal} 
+        onClose={handleCrisisModalClose}
+        riskScore={detectedRiskScore}
+      />
     </div>
   );
 };
