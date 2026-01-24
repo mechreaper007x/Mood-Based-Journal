@@ -30,7 +30,7 @@ services:
       - key: NLP_SERVICE_URL
         value: http://nlp-service:5001
       - key: GOOGLE_API_KEY
-        generateValue: true
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: PORT
@@ -46,3 +46,8 @@ services:
     envVars:
       - key: PORT
         value: 80
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: backend
+          property: url

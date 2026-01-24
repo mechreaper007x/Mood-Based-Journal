@@ -15,7 +15,7 @@ public interface CachedQuestionSetRepository extends JpaRepository<CachedQuestio
      * Get a random cached question set.
      * Uses native query for random selection.
      */
-    @Query(value = "SELECT * FROM cached_question_set ORDER BY RAND() LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM cached_question_set ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
     Optional<CachedQuestionSet> findRandom();
 
     long count();
