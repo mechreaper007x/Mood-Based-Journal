@@ -2,3 +2,5 @@
 **/application.properties
 run_app_local.bat
 *.bat
+*.db
+*.trace.db
