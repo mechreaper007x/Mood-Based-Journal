@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Loader2, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, profileComplete } = useAuth();
@@ -71,13 +72,20 @@ const Login = () => {
             <div className="relative">
               <Lock className="absolute left-4 top-3.5 text-gray-500" size={20} />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-dark-input border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-primary-DEFAULT transition-colors"
+                className="w-full bg-dark-input border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white focus:outline-none focus:border-primary-DEFAULT transition-colors"
                 placeholder="••••••••"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-3.5 text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
             <div className="mt-2 text-right">
               <Link to="/forgot-password" className="text-sm text-primary-DEFAULT hover:underline">
