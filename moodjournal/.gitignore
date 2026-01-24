@@ -1,0 +1,30 @@
+# Basics
+.DS_Store
+*.log
+node_modules/
+dist/
+build/
+.gradle/
+out/
+target/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS
+Thumbs.db
+
+# Secrets & Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+application.properties
+application-secrets.properties
+
+# Backend specific
+moodjournal/backend/src/main/resources/application.properties
+**/target/

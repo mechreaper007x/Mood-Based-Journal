@@ -9,4 +9,4 @@ Get-Content -Path "..\.env" | ForEach-Object {
 }
 
 # Run the Spring Boot application
-./mvnw spring-boot:run
+.\mvnw.cmd spring-boot:run
