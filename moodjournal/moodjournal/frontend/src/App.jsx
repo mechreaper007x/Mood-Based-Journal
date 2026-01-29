@@ -14,6 +14,7 @@ import Onboarding from './pages/Onboarding';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
+import ViewEntry from './pages/ViewEntry';
 
 // Protected Route Component - redirects to onboarding if profile incomplete
 const ProtectedRoute = () => {
@@ -61,6 +62,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/entry" element={<JournalEntry />} />
+            <Route path="/entry/:id" element={<ViewEntry />} />
             <Route path="/journal" element={<History />} />
             <Route path="/assessment" element={<DeepAssessment />} />
             <Route path="/profile" element={<Profile />} />
