@@ -33,7 +33,7 @@ public class AlertController {
     private UserService userService;
 
     // Helper to get User ID
-    private Long getUserId(UserDetails userDetails) {
+    private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails == null) {
             throw new IllegalStateException("Not authenticated");
         }

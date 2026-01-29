@@ -30,7 +30,7 @@ public class AnalyticsController {
 
     // Helper to get User ID
     // Helper to get User ID
-    private Long getUserId(UserDetails userDetails) {
+    private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails instanceof com.example.moodjournal.model.User user) {
             return user.getId();
         }

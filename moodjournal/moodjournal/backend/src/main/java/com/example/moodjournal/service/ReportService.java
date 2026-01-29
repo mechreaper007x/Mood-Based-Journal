@@ -60,7 +60,7 @@ public class ReportService {
             document.add(Chunk.NEWLINE);
 
             // Fetch entries safely using ID
-            Long userId = (user != null) ? user.getId() : -1L;
+            java.util.UUID userId = (user != null) ? user.getId() : null;
             List<JournalEntry> entries = journalEntryRepository.findByUserId(userId);
 
             // Manual sort to fallback if DB sort fails or repository method is missing

@@ -22,6 +22,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import jakarta.persistence.Convert;
+import com.example.moodjournal.security.crypto.EncryptedStringConverter;
+
 @Entity
 @Table(name = "journal_entry")
 public class JournalEntry {
@@ -32,10 +35,12 @@ public class JournalEntry {
 
   @NotBlank(message = "Title cannot be empty")
   @Size(max = 100, message = "Title must be less than 100 characters")
+  @Convert(converter = EncryptedStringConverter.class)
   private String title;
 
   @Column(columnDefinition = "TEXT")
   @NotBlank(message = "Content cannot be empty")
+  @Convert(converter = EncryptedStringConverter.class)
   private String content;
 
   @Enumerated(EnumType.STRING)

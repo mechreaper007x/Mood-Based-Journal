@@ -86,7 +86,7 @@ public class AssessmentController {
      */
     @GetMapping("/history")
     public ResponseEntity<List<AssessmentSession>> getHistory(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUser(userDetails).getId();
+        java.util.UUID userId = getUser(userDetails).getId();
         List<AssessmentSession> sessions = sessionRepository.findByUserIdOrderByCompletedAtDesc(userId);
         return ResponseEntity.ok(sessions);
     }
@@ -131,7 +131,7 @@ public class AssessmentController {
         sessionRepository.save(session);
     }
 
-    private void updateUserProfile(Long userId, AnalyzedProfile analyzed) {
+    private void updateUserProfile(java.util.UUID userId, AnalyzedProfile analyzed) {
         UserProfileDTO profileDTO = userProfileService.getProfileByUserId(userId)
                 .orElse(UserProfileDTO.builder().build());
 

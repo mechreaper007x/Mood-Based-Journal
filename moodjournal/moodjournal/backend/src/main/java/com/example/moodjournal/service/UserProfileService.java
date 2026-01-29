@@ -29,7 +29,7 @@ public class UserProfileService {
      * Get profile for a user, or return empty if not exists
      */
     @Transactional(readOnly = true)
-    public Optional<UserProfileDTO> getProfileByUserId(Long userId) {
+    public Optional<UserProfileDTO> getProfileByUserId(java.util.UUID userId) {
         log.debug("Fetching profile for userId: {}", userId);
         Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(userId);
         log.debug("Profile found: {}", profileOpt.isPresent());
@@ -50,7 +50,7 @@ public class UserProfileService {
     /**
      * Check if a user has a completed profile
      */
-    public boolean isProfileComplete(Long userId) {
+    public boolean isProfileComplete(java.util.UUID userId) {
         return userProfileRepository.findByUserId(userId)
                 .map(profile -> Boolean.TRUE.equals(profile.getIsComplete()))
                 .orElse(false);
@@ -59,7 +59,7 @@ public class UserProfileService {
     /**
      * Check if profile exists for a user
      */
-    public boolean profileExists(Long userId) {
+    public boolean profileExists(java.util.UUID userId) {
         return userProfileRepository.existsByUserId(userId);
     }
 
@@ -67,7 +67,7 @@ public class UserProfileService {
      * Create or update user profile
      */
     @Transactional
-    public UserProfileDTO saveProfile(Long userId, UserProfileDTO dto) {
+    public UserProfileDTO saveProfile(java.util.UUID userId, UserProfileDTO dto) {
         log.info("Saving profile for userId: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -94,7 +94,7 @@ public class UserProfileService {
      * Mark profile as complete
      */
     @Transactional
-    public void markProfileComplete(Long userId) {
+    public void markProfileComplete(java.util.UUID userId) {
         userProfileRepository.findByUserId(userId)
                 .ifPresent(profile -> {
                     profile.setIsComplete(true);

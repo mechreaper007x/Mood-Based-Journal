@@ -12,21 +12,21 @@ import com.example.moodjournal.model.Visibility;
 
 // This interface defines the repository for JournalEntry entities.
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
-    List<JournalEntry> findByUserId(Long userId);
+    List<JournalEntry> findByUserId(java.util.UUID userId);
 
     List<JournalEntry> findByVisibility(Visibility visibility);
 
     List<JournalEntry> findByMoodAndVisibility(Mood mood, Visibility visibility);
 
     @Query("SELECT new com.example.moodjournal.dto.MoodCount(j.mood, COUNT(j)) FROM JournalEntry j WHERE j.user.id = :userId GROUP BY j.mood")
-    List<com.example.moodjournal.dto.MoodCount> countMoodsByUserId(Long userId);
+    List<com.example.moodjournal.dto.MoodCount> countMoodsByUserId(java.util.UUID userId);
 
     // Get recent entries for emotional trajectory analysis
-    List<JournalEntry> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<JournalEntry> findTop5ByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
     // Get top 10 for trajectory calculation
-    List<JournalEntry> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<JournalEntry> findTop10ByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
     // Get entries after a certain date for analytics
-    List<JournalEntry> findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(Long userId, Instant since);
+    List<JournalEntry> findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(java.util.UUID userId, Instant since);
 }

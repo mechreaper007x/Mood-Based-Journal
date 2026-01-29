@@ -42,7 +42,7 @@ public class PsychologicalAnalysisService {
     /**
      * Analyze a journal entry with full profile context.
      */
-    public EntryAnalysisResult analyzeWithProfile(Long userId, JournalEntry entry) {
+    public EntryAnalysisResult analyzeWithProfile(java.util.UUID userId, JournalEntry entry) {
         log.info(">>> Starting profile-aware analysis for userId={}", userId);
 
         // 1. DETERMINISTIC SAFETY CHECK (The "Red Line")
@@ -106,7 +106,7 @@ public class PsychologicalAnalysisService {
     /**
      * Build a comprehensive analysis prompt with profile context.
      */
-    private String buildAnalysisPrompt(UserProfileDTO profile, Long userId, JournalEntry entry) {
+    private String buildAnalysisPrompt(UserProfileDTO profile, java.util.UUID userId, JournalEntry entry) {
         StringBuilder prompt = new StringBuilder();
 
         // 1. Role Definition
@@ -214,7 +214,7 @@ public class PsychologicalAnalysisService {
     /**
      * Build context from recent journal entries for trajectory analysis.
      */
-    private String buildRecentHistoryContext(Long userId) {
+    private String buildRecentHistoryContext(java.util.UUID userId) {
         StringBuilder context = new StringBuilder();
         context.append("=== RECENT EMOTIONAL HISTORY ===\n");
 

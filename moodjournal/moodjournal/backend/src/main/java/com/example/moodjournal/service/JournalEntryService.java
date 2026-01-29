@@ -52,7 +52,7 @@ public class JournalEntryService {
   }
 
   @Transactional
-  public JournalEntry create(Long userId, JournalEntry entry) {
+  public JournalEntry create(java.util.UUID userId, JournalEntry entry) {
     User user = userRepo
         .findById(userId)
         .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
@@ -89,7 +89,8 @@ public class JournalEntryService {
     return saved;
   }
 
-  private void analyzeAndSetMood(Long userId, JournalEntry entry, EnsembleRiskService.QuickScreenResult quickScreen) {
+  private void analyzeAndSetMood(java.util.UUID userId, JournalEntry entry,
+      EnsembleRiskService.QuickScreenResult quickScreen) {
     log.info("=== Starting profile-aware analysis for entry ===");
     log.info("Content preview: {}", entry.getContent().substring(0, Math.min(100, entry.getContent().length())));
     log.info("Quick screen: risk={} highRisk={} keywords={}", quickScreen.riskScore, quickScreen.isHighRisk,
@@ -295,12 +296,12 @@ public class JournalEntryService {
     };
   }
 
-  public List<com.example.moodjournal.dto.MoodCount> getMoodStatistics(Long userId) {
+  public List<com.example.moodjournal.dto.MoodCount> getMoodStatistics(java.util.UUID userId) {
     return entryRepo.countMoodsByUserId(userId);
   }
 
   @Transactional
-  public JournalEntry reanalyzeEntry(Long id, Long userId) {
+  public JournalEntry reanalyzeEntry(Long id, java.util.UUID userId) {
     return entryRepo.findById(id)
         .map(entry -> {
           if (!entry.getUser().getId().equals(userId)) {
@@ -314,7 +315,7 @@ public class JournalEntryService {
         .orElseThrow(() -> new NoSuchElementException("Entry not found"));
   }
 
-  public List<JournalEntry> getByUser(Long userId) {
+  public List<JournalEntry> getByUser(java.util.UUID userId) {
     return entryRepo.findByUserId(userId);
   }
 
@@ -330,7 +331,7 @@ public class JournalEntryService {
     return entryRepo.findByVisibility(Visibility.PUBLIC_ANON);
   }
 
-  public Optional<JournalEntry> getById(Long id, Long userId) {
+  public Optional<JournalEntry> getById(Long id, java.util.UUID userId) {
     return entryRepo
         .findById(id)
         .map(entry -> {
@@ -344,7 +345,7 @@ public class JournalEntryService {
   @Transactional
   public JournalEntry update(
       Long id,
-      Long userId,
+      java.util.UUID userId,
       UpdateJournalEntryRequest updated) {
     return entryRepo
         .findById(id)
@@ -394,7 +395,7 @@ public class JournalEntryService {
   }
 
   @Transactional
-  public void delete(Long id, Long userId) {
+  public void delete(Long id, java.util.UUID userId) {
     entryRepo
         .findById(id)
         .ifPresentOrElse(

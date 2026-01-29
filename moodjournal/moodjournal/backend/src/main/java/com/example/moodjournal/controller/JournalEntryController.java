@@ -44,7 +44,7 @@ public class JournalEntryController {
         this.userService = userService;
     }
 
-    private Long getUserIdFromUserDetails(UserDetails userDetails) {
+    private java.util.UUID getUserIdFromUserDetails(UserDetails userDetails) {
         return userService.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new NoSuchElementException("User not found")).getId();
     }
@@ -55,7 +55,7 @@ public class JournalEntryController {
     public ResponseEntity<?> createEntry(@Valid @RequestBody CreateJournalEntryRequest req,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            Long userId = getUserIdFromUserDetails(userDetails);
+            java.util.UUID userId = getUserIdFromUserDetails(userDetails);
             JournalEntry entry = new JournalEntry();
             entry.setTitle(req.getTitle());
             entry.setContent(req.getContent());
@@ -116,13 +116,13 @@ public class JournalEntryController {
 
     @GetMapping
     public ResponseEntity<List<JournalEntry>> getAllEntries(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserIdFromUserDetails(userDetails);
+        java.util.UUID userId = getUserIdFromUserDetails(userDetails);
         return ResponseEntity.ok(service.getByUser(userId));
     }
 
     @GetMapping("/me")
     public ResponseEntity<List<JournalEntry>> myEntries(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserIdFromUserDetails(userDetails);
+        java.util.UUID userId = getUserIdFromUserDetails(userDetails);
         return ResponseEntity.ok(service.getByUser(userId));
     }
 
@@ -133,7 +133,7 @@ public class JournalEntryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<JournalEntry> get(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserIdFromUserDetails(userDetails);
+        java.util.UUID userId = getUserIdFromUserDetails(userDetails);
         return service.getById(id, userId).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -143,7 +143,7 @@ public class JournalEntryController {
     public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody UpdateJournalEntryRequest updated,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            Long userId = getUserIdFromUserDetails(userDetails);
+            java.util.UUID userId = getUserIdFromUserDetails(userDetails);
             log.info("Update request for id={} payload={{}}", id, updated);
             JournalEntry result = service.update(id, userId, updated);
             return ResponseEntity.ok(result);
@@ -163,7 +163,7 @@ public class JournalEntryController {
     @CrossOrigin
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserIdFromUserDetails(userDetails);
+        java.util.UUID userId = getUserIdFromUserDetails(userDetails);
         service.delete(id, userId);
         return ResponseEntity.noContent().build();
     }
@@ -171,7 +171,7 @@ public class JournalEntryController {
     @GetMapping("/stats")
     public ResponseEntity<List<com.example.moodjournal.dto.MoodCount>> getStats(
             @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserIdFromUserDetails(userDetails);
+        java.util.UUID userId = getUserIdFromUserDetails(userDetails);
         return ResponseEntity.ok(service.getMoodStatistics(userId));
     }
 
@@ -179,7 +179,7 @@ public class JournalEntryController {
     @PostMapping("/{id}/reanalyze")
     public ResponseEntity<?> reanalyze(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            Long userId = getUserIdFromUserDetails(userDetails);
+            java.util.UUID userId = getUserIdFromUserDetails(userDetails);
             JournalEntry updated = service.reanalyzeEntry(id, userId);
             return ResponseEntity.ok(updated);
         } catch (NoSuchElementException e) {

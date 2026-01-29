@@ -9,7 +9,7 @@ import com.example.moodjournal.model.UserProfile;
 
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
-    Optional<UserProfile> findByUserId(Long userId);
+    Optional<UserProfile> findByUserId(java.util.UUID userId);
 
-    boolean existsByUserId(Long userId);
+    boolean existsByUserId(java.util.UUID userId);
 }

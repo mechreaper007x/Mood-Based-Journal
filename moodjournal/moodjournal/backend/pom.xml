@@ -136,13 +136,19 @@
 			<version>2.0.3</version>
 		</dependency>
 
-		<!-- Bucket4j for Rate Limiting -->
+	<!-- Bucket4j for rate limiting -->
 		<dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
 			<version>8.10.1</version>
 		</dependency>
 
+		<!-- Bouncy Castle for Argon2id -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.77</version>
+		</dependency>
 	</dependencies>
 
 	<build>

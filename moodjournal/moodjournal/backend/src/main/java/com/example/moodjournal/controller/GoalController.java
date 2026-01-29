@@ -32,7 +32,7 @@ public class GoalController {
     @Autowired
     private UserService userService;
 
-    private Long getUserId(UserDetails userDetails) {
+    private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails instanceof User user) {
             return user.getId();
         }

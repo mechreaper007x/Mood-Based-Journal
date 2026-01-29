@@ -26,7 +26,7 @@ public class AnalyticsService {
     /**
      * Get mood counts per day for the given time range.
      */
-    public List<Map<String, Object>> getMoodTrend(Long userId, Instant since) {
+    public List<Map<String, Object>> getMoodTrend(java.util.UUID userId, Instant since) {
         List<JournalEntry> entries = journalEntryRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(
                 userId, since);
 
@@ -53,7 +53,7 @@ public class AnalyticsService {
     /**
      * Calculate emotional trajectory based on recent entries.
      */
-    public Map<String, Object> getEmotionalTrajectory(Long userId) {
+    public Map<String, Object> getEmotionalTrajectory(java.util.UUID userId) {
         List<JournalEntry> recent = journalEntryRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId);
 
         Map<String, Object> result = new HashMap<>();
@@ -119,7 +119,7 @@ public class AnalyticsService {
     /**
      * Get frequency of cognitive distortions.
      */
-    public Map<String, Integer> getDistortionFrequency(Long userId) {
+    public Map<String, Integer> getDistortionFrequency(java.util.UUID userId) {
         List<JournalEntry> entries = journalEntryRepository.findByUserId(userId);
 
         Map<String, Integer> frequency = new HashMap<>();
@@ -141,7 +141,7 @@ public class AnalyticsService {
     /**
      * Get risk score history over time.
      */
-    public List<Map<String, Object>> getRiskHistory(Long userId, Instant since) {
+    public List<Map<String, Object>> getRiskHistory(java.util.UUID userId, Instant since) {
         List<JournalEntry> entries = journalEntryRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(
                 userId, since);
 
@@ -160,7 +160,7 @@ public class AnalyticsService {
     /**
      * Get summary statistics.
      */
-    public Map<String, Object> getSummary(Long userId) {
+    public Map<String, Object> getSummary(java.util.UUID userId) {
         List<JournalEntry> allEntries = journalEntryRepository.findByUserId(userId);
 
         Map<String, Object> summary = new HashMap<>();

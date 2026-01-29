@@ -8,9 +8,9 @@ import com.example.moodjournal.model.Alert;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
 
-    List<Alert> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Alert> findByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
-    List<Alert> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(Long userId);
+    List<Alert> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(java.util.UUID userId);
 
-    long countByUserIdAndIsReadFalse(Long userId);
+    long countByUserIdAndIsReadFalse(java.util.UUID userId);
 }

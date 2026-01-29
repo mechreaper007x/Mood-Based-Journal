@@ -35,7 +35,7 @@ public class AlertService {
      * Called after journal entry analysis is complete.
      */
     @Transactional
-    public void checkAndGenerateAlerts(Long userId, JournalEntry entry) {
+    public void checkAndGenerateAlerts(java.util.UUID userId, JournalEntry entry) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null)
             return;
@@ -84,20 +84,20 @@ public class AlertService {
         alertRepository.save(alert);
     }
 
-    public List<Alert> getAlerts(Long userId) {
+    public List<Alert> getAlerts(java.util.UUID userId) {
         return alertRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public List<Alert> getUnreadAlerts(Long userId) {
+    public List<Alert> getUnreadAlerts(java.util.UUID userId) {
         return alertRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }
 
-    public long getUnreadCount(Long userId) {
+    public long getUnreadCount(java.util.UUID userId) {
         return alertRepository.countByUserIdAndIsReadFalse(userId);
     }
 
     @Transactional
-    public void markAsRead(Long alertId, Long userId) {
+    public void markAsRead(Long alertId, java.util.UUID userId) {
         alertRepository.findById(alertId).ifPresent(alert -> {
             if (alert.getUser().getId().equals(userId)) {
                 alert.setIsRead(true);
@@ -107,7 +107,7 @@ public class AlertService {
     }
 
     @Transactional
-    public void markAllAsRead(Long userId) {
+    public void markAllAsRead(java.util.UUID userId) {
         List<Alert> unread = alertRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
         unread.forEach(a -> a.setIsRead(true));
         alertRepository.saveAll(unread);

@@ -40,7 +40,7 @@ public class UserProfileController {
                 log.warn("getProfile called with null userDetails");
                 return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
             }
-            Long userId = getUserId(userDetails);
+            java.util.UUID userId = getUserId(userDetails);
             log.debug("Fetching profile for userId: {}", userId);
             return userProfileService.getProfileByUserId(userId)
                     .map(ResponseEntity::ok)
@@ -60,7 +60,7 @@ public class UserProfileController {
             if (userDetails == null) {
                 return ResponseEntity.status(401).body(Map.of("error", "Not authenticated", "isComplete", false));
             }
-            Long userId = getUserId(userDetails);
+            java.util.UUID userId = getUserId(userDetails);
             boolean complete = userProfileService.isProfileComplete(userId);
             return ResponseEntity.ok(Map.of("isComplete", complete));
         } catch (Exception e) {
@@ -77,7 +77,7 @@ public class UserProfileController {
     public ResponseEntity<UserProfileDTO> saveProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UserProfileDTO profileDTO) {
-        Long userId = getUserId(userDetails);
+        java.util.UUID userId = getUserId(userDetails);
         UserProfileDTO saved = userProfileService.saveProfile(userId, profileDTO);
         return ResponseEntity.ok(saved);
     }
@@ -87,13 +87,13 @@ public class UserProfileController {
      */
     @PostMapping("/complete")
     public ResponseEntity<Map<String, String>> markComplete(@AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = getUserId(userDetails);
+        java.util.UUID userId = getUserId(userDetails);
         userProfileService.markProfileComplete(userId);
         return ResponseEntity.ok(Map.of("message", "Profile marked as complete"));
     }
 
     // Helper to extract user ID from authentication
-    private Long getUserId(UserDetails userDetails) {
+    private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails == null) {
             log.error("getUserId called with null userDetails");
             throw new RuntimeException("Not authenticated - userDetails is null");

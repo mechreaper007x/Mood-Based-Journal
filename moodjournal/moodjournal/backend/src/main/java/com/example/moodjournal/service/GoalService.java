@@ -24,16 +24,16 @@ public class GoalService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<Goal> getGoals(Long userId) {
+    public List<Goal> getGoals(java.util.UUID userId) {
         return goalRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public List<Goal> getActiveGoals(Long userId) {
+    public List<Goal> getActiveGoals(java.util.UUID userId) {
         return goalRepository.findByUserIdAndIsCompletedFalseOrderByCreatedAtDesc(userId);
     }
 
     @Transactional
-    public Goal createGoal(Long userId, GoalRequest request) {
+    public Goal createGoal(java.util.UUID userId, GoalRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
@@ -51,7 +51,7 @@ public class GoalService {
     }
 
     @Transactional
-    public Goal updateGoal(Long goalId, Long userId, GoalRequest request) {
+    public Goal updateGoal(Long goalId, java.util.UUID userId, GoalRequest request) {
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new NoSuchElementException("Goal not found"));
 
@@ -81,7 +81,7 @@ public class GoalService {
     }
 
     @Transactional
-    public void deleteGoal(Long goalId, Long userId) {
+    public void deleteGoal(Long goalId, java.util.UUID userId) {
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new NoSuchElementException("Goal not found"));
 

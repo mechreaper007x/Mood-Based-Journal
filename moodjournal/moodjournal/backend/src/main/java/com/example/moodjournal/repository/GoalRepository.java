@@ -8,11 +8,11 @@ import com.example.moodjournal.model.Goal;
 
 public interface GoalRepository extends JpaRepository<Goal, Long> {
 
-    List<Goal> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Goal> findByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
-    List<Goal> findByUserIdAndIsCompletedFalseOrderByCreatedAtDesc(Long userId);
+    List<Goal> findByUserIdAndIsCompletedFalseOrderByCreatedAtDesc(java.util.UUID userId);
 
-    List<Goal> findByUserIdAndIsCompletedTrueOrderByCompletedAtDesc(Long userId);
+    List<Goal> findByUserIdAndIsCompletedTrueOrderByCompletedAtDesc(java.util.UUID userId);
 
-    long countByUserIdAndIsCompletedFalse(Long userId);
+    long countByUserIdAndIsCompletedFalse(java.util.UUID userId);
 }

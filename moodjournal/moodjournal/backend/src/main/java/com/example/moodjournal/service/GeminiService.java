@@ -34,6 +34,7 @@ public class GeminiService {
   private final Client client;
   private final AIResponseValidator validator;
   private final VADLexiconService lexiconService;
+  private final com.example.moodjournal.security.sanitization.InputSanitizer sanitizer;
 
   // Available models for rotation
   private static final List<String> AVAILABLE_MODELS = List.of(
@@ -55,10 +56,12 @@ public class GeminiService {
   public GeminiService(
       @Value("${google.api.key}") String apiKey,
       AIResponseValidator validator,
-      VADLexiconService lexiconService) {
+      VADLexiconService lexiconService,
+      com.example.moodjournal.security.sanitization.InputSanitizer sanitizer) {
     this.client = Client.builder().apiKey(apiKey).build();
     this.validator = validator;
     this.lexiconService = lexiconService;
+    this.sanitizer = sanitizer;
     log.info("GeminiService initialized with {} models for rotation and validation enabled",
         AVAILABLE_MODELS.size());
   }
@@ -68,7 +71,7 @@ public class GeminiService {
    */
   @Async("taskExecutor")
   public CompletableFuture<String> getEmotionBreakdown(String text) {
-    String sanitized = sanitizeInput(text);
+    String sanitized = sanitizer.sanitize(text);
     String prompt = PromptConstants.EMOTION_BREAKDOWN_PROMPT + sanitized;
 
     try {
@@ -115,7 +118,7 @@ public class GeminiService {
    * Validates response and falls back to lexicon on low confidence.
    */
   public String analyzeEmotions(String journalContent) {
-    String sanitized = sanitizeInput(journalContent);
+    String sanitized = sanitizer.sanitize(journalContent);
     String prompt = PromptConstants.EMOTION_BREAKDOWN_PROMPT + sanitized;
 
     try {
@@ -148,7 +151,7 @@ public class GeminiService {
    * Uses safety-first approach with lexicon backup.
    */
   public String assessRisk(String journalContent) {
-    String sanitized = sanitizeInput(journalContent);
+    String sanitized = sanitizer.sanitize(journalContent);
     String prompt = PromptConstants.RISK_ASSESSMENT_PROMPT + sanitized;
 
     try {
@@ -173,7 +176,7 @@ public class GeminiService {
    * Suggest mood category for journal entry.
    */
   public String suggestMood(String text) {
-    String sanitized = sanitizeInput(text);
+    String sanitized = sanitizer.sanitize(text);
     String prompt = PromptConstants.SUGGEST_MOOD_PROMPT + "\n\nJournal entry:\n" + sanitized;
 
     try {
@@ -197,7 +200,7 @@ public class GeminiService {
    * Generate a neutral, objective analysis of the journal content.
    */
   public String generateNeutralAnalysis(String text, String detectedEmotion) {
-    String sanitized = sanitizeInput(text);
+    String sanitized = sanitizer.sanitize(text);
     String prompt = String.format(PromptConstants.NEUTRAL_ANALYSIS_PROMPT,
         detectedEmotion != null ? detectedEmotion : "unknown",
         sanitized);
@@ -220,26 +223,6 @@ public class GeminiService {
   // ========================================================================
   // PRIVATE HELPER METHODS
   // ========================================================================
-
-  /**
-   * Sanitize input before sending to AI.
-   * Removes potential injection attacks and normalizes text.
-   */
-  private String sanitizeInput(String input) {
-    if (input == null)
-      return "";
-
-    return input
-        // Remove potential prompt injection attempts
-        .replaceAll("(?i)(ignore previous|disregard|forget|override)", "[redacted]")
-        // Remove URLs (could confuse AI)
-        .replaceAll("https?://\\S+", "[url]")
-        // Normalize whitespace
-        .replaceAll("\\s+", " ")
-        // Limit length to prevent context overflow
-        .substring(0, Math.min(input.length(), 2000))
-        .trim();
-  }
 
   /**
    * Generate fallback emotion breakdown using lexicon.

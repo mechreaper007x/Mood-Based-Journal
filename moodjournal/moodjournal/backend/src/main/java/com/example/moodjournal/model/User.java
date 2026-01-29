@@ -27,8 +27,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    @org.hibernate.annotations.UuidGenerator(style = org.hibernate.annotations.UuidGenerator.Style.TIME)
+    private java.util.UUID id;
 
     @Column(nullable = false, unique = true, length = 50)
     private String username;
@@ -68,11 +69,11 @@ public class User implements UserDetails {
         return true;
     }
 
-    public Long getId() {
+    public java.util.UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(java.util.UUID id) {
         this.id = id;
     }
 

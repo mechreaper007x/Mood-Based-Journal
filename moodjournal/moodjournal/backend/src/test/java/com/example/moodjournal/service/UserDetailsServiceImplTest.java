@@ -34,7 +34,7 @@ public class UserDetailsServiceImplTest {
     @BeforeEach
     void setUp() {
         user = new User();
-        user.setId(1L);
+        user.setId(java.util.UUID.randomUUID());
         user.setUsername("testuser");
         user.setEmail("test@example.com");
         user.setPassword("encodedPassword");

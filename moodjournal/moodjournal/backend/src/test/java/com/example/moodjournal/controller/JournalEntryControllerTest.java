@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -54,7 +53,7 @@ public class JournalEntryControllerTest {
     @BeforeEach
     void setUp() {
         user = new User();
-        user.setId(1L);
+        user.setId(java.util.UUID.randomUUID());
         user.setUsername("testuser");
         user.setEmail("testuser@example.com");
 
@@ -80,7 +79,7 @@ public class JournalEntryControllerTest {
         request.setTitle("Test Title 1");
         request.setContent("Test Content 1");
 
-        when(journalEntryService.create(anyLong(), any(JournalEntry.class))).thenReturn(journalEntry1);
+        when(journalEntryService.create(any(java.util.UUID.class), any(JournalEntry.class))).thenReturn(journalEntry1);
 
         mockMvc.perform(post("/api/journal").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +91,7 @@ public class JournalEntryControllerTest {
     @Test
     @WithMockUser(username = "testuser@example.com")
     void getAllJournalEntries_shouldReturnOk() throws Exception {
-        when(journalEntryService.getByUser(1L)).thenReturn(Arrays.asList(journalEntry1, journalEntry2));
+        when(journalEntryService.getByUser(user.getId())).thenReturn(Arrays.asList(journalEntry1, journalEntry2));
 
         mockMvc.perform(get("/api/journal/me"))
                 .andExpect(status().isOk())
@@ -103,7 +102,7 @@ public class JournalEntryControllerTest {
     @Test
     @WithMockUser(username = "testuser@example.com")
     void getJournalEntryById_whenEntryExists_shouldReturnOk() throws Exception {
-        when(journalEntryService.getById(1L, 1L)).thenReturn(Optional.of(journalEntry1));
+        when(journalEntryService.getById(1L, user.getId())).thenReturn(Optional.of(journalEntry1));
 
         mockMvc.perform(get("/api/journal/1"))
                 .andExpect(status().isOk())
@@ -113,7 +112,7 @@ public class JournalEntryControllerTest {
     @Test
     @WithMockUser(username = "testuser@example.com")
     void getJournalEntryById_whenEntryDoesNotExist_shouldReturnNotFound() throws Exception {
-        when(journalEntryService.getById(1L, 1L)).thenReturn(Optional.empty());
+        when(journalEntryService.getById(1L, user.getId())).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/journal/1"))
                 .andExpect(status().isNotFound());
@@ -128,7 +127,8 @@ public class JournalEntryControllerTest {
 
         journalEntry1.setTitle("Updated Title");
 
-        when(journalEntryService.update(anyLong(), anyLong(), any(UpdateJournalEntryRequest.class))).thenReturn(journalEntry1);
+        when(journalEntryService.update(any(), any(java.util.UUID.class), any(UpdateJournalEntryRequest.class)))
+                .thenReturn(journalEntry1);
 
         mockMvc.perform(put("/api/journal/1").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
