@@ -18,6 +18,11 @@ public class InputSanitizer {
             "(?i)(ignore previous instructions|system:|assistant:|user:|developed by|initial prompt)",
             Pattern.CASE_INSENSITIVE);
 
+    // Email pattern using possessive quantifiers (++) to prevent ReDoS
+    // Possessive quantifiers don't backtrack, preventing catastrophic backtracking
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "[a-zA-Z0-9._%+-]++@[a-zA-Z0-9.-]++\\.[a-zA-Z]{2,6}+");
+
     /**
      * Sanitizes input text for AI consumption.
      */
@@ -39,7 +44,8 @@ public class InputSanitizer {
         // 3. Basic PII redaction (Example: Email addresses)
         // Note: For a real app, use a dedicated library like Google DLC or Microsoft
         // Presidio
-        safe = safe.replaceAll("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}", "[EMAIL_REDACTED]");
+        // Using pre-compiled pattern with possessive quantifiers to prevent ReDoS
+        safe = EMAIL_PATTERN.matcher(safe).replaceAll("[EMAIL_REDACTED]");
 
         return safe;
     }
