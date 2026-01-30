@@ -29,19 +29,27 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, quoteRes, entriesRes] = await Promise.all([
+        // Use Promise.allSettled so one failure doesn't break everything
+        const [statsRes, quoteRes, entriesRes] = await Promise.allSettled([
             api.get('/journal/stats'),
             api.get('/ai/daily-quote'),
-            api.get('/journal') // Fetch all entries for the calendar
+            api.get('/journal')
         ]);
-        setStats(statsRes.data);
-        if (quoteRes.data) {
-            setQuote(quoteRes.data);
+        
+        // Handle each result independently
+        if (statsRes.status === 'fulfilled') {
+          setStats(statsRes.value.data);
         }
-        setEntries(entriesRes.data);
+        if (quoteRes.status === 'fulfilled' && quoteRes.value.data) {
+          setQuote(quoteRes.value.data);
+        } else {
+          setQuote({ text: "Reflect on your journey today.", author: "Inner Wisdom" });
+        }
+        if (entriesRes.status === 'fulfilled') {
+          setEntries(entriesRes.value.data);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
-        setQuote({ text: "Failed to load quote.", author: "System" });
       } finally {
         setLoading(false);
       }

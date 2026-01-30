@@ -138,21 +138,16 @@ const Onboarding = () => {
       };
       delete payload.tipiResponses;
 
-      const response = await fetch(`${API_BASE}/api/profile`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+      // Use api instance which includes CSRF token and withCredentials
+      const { default: api } = await import('../lib/axios');
+      
+      await api.post('/profile', payload, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (!response.ok) throw new Error('Failed to save profile');
-
       // Mark as complete
-      await fetch(`${API_BASE}/api/profile/complete`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+      await api.post('/profile/complete', null, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       // Update AuthContext state so ProtectedRoute knows profile is complete
@@ -160,7 +155,8 @@ const Onboarding = () => {
 
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      console.error('Profile save error:', err);
+      setError(err.response?.data?.error || err.message || 'Something went wrong');
     } finally {
       setLoading(false);
     }

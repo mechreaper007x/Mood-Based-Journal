@@ -22,23 +22,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
   private final UserDetailsService userDetailsService;
   private final JwtUtil jwtUtil;
   private static final Logger log = LoggerFactory.getLogger(
-    JwtRequestFilter.class
-  );
+      JwtRequestFilter.class);
 
   public JwtRequestFilter(
-    UserDetailsService userDetailsService,
-    JwtUtil jwtUtil
-  ) {
+      UserDetailsService userDetailsService,
+      JwtUtil jwtUtil) {
     this.userDetailsService = userDetailsService;
     this.jwtUtil = jwtUtil;
   }
 
   @Override
   protected void doFilterInternal(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    FilterChain chain
-  ) throws ServletException, IOException {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain) throws ServletException, IOException {
     log.info("Request URI: {}", request.getRequestURI());
     final String authorizationHeader = request.getHeader("Authorization");
 
@@ -55,33 +52,27 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       }
     }
 
-    if (
-      username != null && SecurityContextHolder.getContext().getAuthentication() == null
-    ) {
+    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       UserDetails userDetails = this.userDetailsService.loadUserByUsername(
-          username
-        );
+          username);
 
       boolean isTokenValid = jwtUtil.validateToken(jwt, userDetails.getUsername());
       log.info("Is token valid? {}", isTokenValid);
 
       if (isTokenValid) {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-          userDetails,
-          null,
-          userDetails.getAuthorities()
-        );
+            userDetails,
+            null,
+            userDetails.getAuthorities());
         usernamePasswordAuthenticationToken.setDetails(
-          new WebAuthenticationDetailsSource().buildDetails(request)
-        );
+            new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder
-          .getContext()
-          .setAuthentication(usernamePasswordAuthenticationToken);
+            .getContext()
+            .setAuthentication(usernamePasswordAuthenticationToken);
         log.info(
-          "User authenticated: {}, authorities: {}",
-          username,
-          userDetails.getAuthorities()
-        );
+            "User authenticated: {}, authorities: {}",
+            username,
+            userDetails.getAuthorities());
       }
     }
     chain.doFilter(request, response);

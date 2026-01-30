@@ -16,6 +16,18 @@ const api = axios.create({
   withCredentials: true, // Required for CSRF cookies to be sent/received
 });
 
+// Initialize CSRF token by making a GET request to receive the cookie
+// Call this once when the app loads (e.g., in App.jsx or main.jsx)
+export async function initializeCsrf() {
+  try {
+    // Make a simple GET request to a public endpoint to receive XSRF-TOKEN cookie
+    await api.get('/ai/daily-quote');
+  } catch (e) {
+    // Ignore errors - we just want the cookie
+    console.debug('CSRF cookie initialization attempted');
+  }
+}
+
 // Add a request interceptor to attach the JWT token and CSRF token
 api.interceptors.request.use(
   (config) => {
@@ -38,4 +50,3 @@ api.interceptors.request.use(
 );
 
 export default api;
-

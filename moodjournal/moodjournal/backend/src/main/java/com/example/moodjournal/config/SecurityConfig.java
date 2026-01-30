@@ -14,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -51,16 +50,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // CSRF token handler for SPA - allows reading token from request attributes
-        CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
-
         http
-                // Enable CSRF protection using Double Submit Cookie pattern
+                // Enable CSRF protection using Double Submit Cookie pattern for SPAs
+                // Uses SpaCsrfTokenRequestHandler from Spring Security 6 docs
                 // The XSRF-TOKEN cookie is readable by JavaScript (httpOnly=false)
-                // Frontend must send the token value in X-XSRF-TOKEN header
+                // Frontend sends the raw cookie value in X-XSRF-TOKEN header
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(csrfHandler)
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                         // Ignore CSRF for stateless auth endpoints (no session to protect yet)
                         .ignoringRequestMatchers(
                                 "/api/auth/register",

@@ -1,13 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import api from '../lib/axios';
+import api, { initializeCsrf } from '../lib/axios';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
-
-// Get API base URL - env var should be full URL like https://xxx.onrender.com (without /api)
-// Local dev uses localhost:9092
-const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:9092';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -16,24 +12,25 @@ export const AuthProvider = ({ children }) => {
 
   const checkProfileComplete = async (token) => {
     try {
-      const response = await fetch(`${API_BASE}/api/profile/complete`, {
+      // Use api instance to ensure withCredentials and CSRF handling
+      const response = await api.get('/profile/complete', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setProfileComplete(data.isComplete);
-        return data.isComplete;
-      }
-      setProfileComplete(false);
-      return false;
+      setProfileComplete(response.data.isComplete);
+      return response.data.isComplete;
     } catch (err) {
       console.error('Failed to check profile:', err);
-      setProfileComplete(false);
-      return false;
+      // On network errors, assume profile is complete to avoid blocking user
+      // Only a successful API response with isComplete:false should trigger onboarding
+      setProfileComplete(true);
+      return true;
     }
   };
 
   useEffect(() => {
+    // Initialize CSRF token on app load
+    initializeCsrf();
+    
     const token = localStorage.getItem('token');
     if (token) {
       const savedUser = localStorage.getItem('user');
