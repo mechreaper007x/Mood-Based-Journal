@@ -1,0 +1,241 @@
+﻿The Big Five Personality Test (BFPT) 
+Free, https://openpsychometrics.org/printable/big-five-personality-test.pdf 
+ 
+Pop Time Purpose Measures Scoring Notes 
+
+ 
+ 
+
+Older children 20 mins Personality Extroversion This is a 50-item tool. Can be helpful in 
+and up  Agreeableness  identifying 
+ Conscientiousness Person answers questions on a scale of 1- 5. leisure activities 
+
+Neuroticism  that align with 
+Openness to Experience 1 = Disagree personality, 
+ 2 = Slightly disagree identifying 
+*See scoring form for 3 = Neutral personality types 
+definitions of each 4 = Slightly agree that might be 
+personality type 5 = Agree influencing 
+
+ behavior, & 
+Complete the scoring string for each personality type at monitoring 
+the bottom of the form. Each personality type will have a changes in 
+score between 0-40. Higher scores equal stronger personality type 
+personality type. 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+BFPT Completed Example 
+ 
+
+The Big Five Personality Test 
+ 
+
+Retrieved from: https://openpsychometrics.org/printable/big-five-personality-test.pdf 
+ 
+
+Instructions: This is a personality test, it will help you understand why you act the way that you do and how your personality is structured. Circle 
+the number that indicates how much you disagree or agree with each statement. Begin each statement with “I….” 
+ 
+
+Question Disagree Slightly Neutral Slightly Agree 
+ disagree agree 
+1. Am the life of the party. 1 2 3 4 5 
+
+2. Feel little concern for others. 1 2 3 4 5 
+
+3. Am always prepared. 1 2 3 4 5 
+
+4. Get stressed out easily. 1 2 3 4 5 
+
+5. Have a rich vocabulary. 1 2 3 4 5 
+
+6. Don't talk a lot. 1 2 3 4 5 
+
+7. Am interested in people. 1 2 3 4 5 
+
+8. Leave my belongings around. 1 2 3 4 5 
+
+9. Am relaxed most of the time. 1 2 3 4 5 
+
+10. Have difficulty understanding abstract ideas. 1 2 3 4 5 
+
+11. Feel comfortable around people. 1 2 3 4 5 
+
+12. Insult people. 1 2 3 4 5 
+
+13. Pay attention to details. 1 2 3 4 5 
+
+14. Worry about things. 1 2 3 4 5 
+
+15. Have a vivid imagination. 1 2 3 4 5 
+
+
+
+Question Disagree Slightly Neutral Slightly Agree 
+ disagree agree 
+16. Keep in the background. 1 2 3 4 5 
+
+17. Sympathize with others' feelings. 1 2 3 4 5 
+
+18. Make a mess of things. 1 2 3 4 5 
+
+19. Seldom feel blue. 1 2 3 4 5 
+
+20. Am not interested in abstract ideas. 1 2 3 4 5 
+
+21. Start conversations. 1 2 3 4 5 
+
+22. Am not interested in other people's problems. 1 2 3 4 5 
+
+23. Get chores done right away. 1 2 3 4 5 
+
+24. Am easily disturbed. 1 2 3 4 5 
+
+25. Have excellent ideas. 1 2 3 4 5 
+
+26. Have little to say. 1 2 3 4 5 
+
+27. Have a soft heart. 1 2 3 4 5 
+
+28. Often forget to put things back in their proper place. 1 2 3 4 5 
+
+29. Get upset easily. 1 2 3 4 5 
+
+30. Do not have a good imagination. 1 2 3 4 5 
+
+31. Talk to a lot of different people at parties. 1 2 3 4 5 
+
+32. Am not really interested in others. 1 2 3 4 5 
+
+33. Like order. 1 2 3 4 5 
+
+34. Change my mood a lot. 1 2 3 4 5 
+
+35. Am quick to understand things. 1 2 3 4 5 
+
+36. Don't like to draw attention to myself. 1 2 3 4 5 
+
+
+
+Question Disagree Slightly Neutral Slightly Agree 
+ disagree agree 
+37. Take time out for others. 1 2 3 4 5 
+
+38. Shirk my duties. 1 2 3 4 5 
+
+39. Have frequent mood swings. 1 2 3 4 5 
+
+40. Use difficult words. 1 2 3 4 5 
+
+41. Don't mind being the center of attention. 1 2 3 4 5 
+
+42. Feel others' emotions. 1 2 3 4 5 
+
+43. Follow a schedule. 1 2 3 4 5 
+
+44. Get irritated easily. 1 2 3 4 5 
+
+45. Spend time reflecting on things. 1 2 3 4 5 
+
+46. Am quiet around strangers. 1 2 3 4 5 
+
+47. Make people feel at ease. 1 2 3 4 5 
+
+48. Am exacting in my work. 1 2 3 4 5 
+
+49. Often feel blue. 1 2 3 4 5 
+
+50. Am full of ideas. 1 2 3 4 5 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+Scoring Sheet 
+ 
+Instructions: Calculate your scores using the specific math string for each personality trait. The numbers in the parentheses are the item numbers. 
+The numbers in the parentheses tell you what score to write on the line. Each of these numbers correlate with the specific item number in the 
+test. For example, when you see “(6)” in the math string, this is a prompt for you to enter the number on the line that follows this with the 
+person’s answer choice for item #6. Be aware that there is addition and subtraction within all of the math strings. Each personality trait will have a 
+score between zero and forty.  
+ 
+Extroversion 
+Extroversion (E) is the personality trait of seeking fulfillment from sources outside the self or in community. High scorers tend to be very social 
+while low scorers prefer to work on their projects alone. 
+ 
+E = 20 + (1) _1__ - (6) __4_ + (11) __3_ - (16) _5__ + (21) _4__ - (26) _3__ + (31) _2__ - (36) _5__ + (41) _1__ - (46) _4__ = __10___ 
+ 
+ 
+Agreeableness 
+Agreeableness (A) reflects how much individuals adjust their behavior to suit others. High scorers are typically polite and like people. Low scorers 
+tend to 'tell it like it is'. 
+ 
+A = 14 - (2) _1__ + (7) _4__ - (12) _1__ + (17) _5__ - (22) _3__ + (27) _5__ - (32) _3__ + (37) _3__ + (42) _5__ + (47) _4__ = __32___ 
+ 
+Conscientiousness  
+Conscientiousness (C) is the personality trait of being honest and hardworking. High scorers tend to follow rules and prefer clean homes. Low 
+scorers may be messy and cheat others. 
+ 
+C = 14 + (3) _5__ - (8) _1__ + (13) _5__ - (18) _1__ + (23) _4__ - (28) _2__ + (33) _5__ - (38) _1__ + (43) _5__ + (48) _5__ = __38___ 
+ 
+Neuroticism  
+
+
+
+Neuroticism (N) is the personality trait of being emotional. High scorers tend to have high emotional reactions to stress. They may perceive 
+situations as threatening and be more likely to feel moody, depressed, angry, anxious, and experience mood swing.  Low scorers tend to be more 
+emotionally stable and less reactive to stress.  
+ 
+N = 38 - (4) _4__ + (9) _2__ - (14) _5__ + (19) _4__ - (24) _2__ - (29) _4__ - (34) _3__ - (39) _2__ - (44) _3__ - (49) _2__ = __19___ 
+ 
+Openness to Experience  
+Openness to Experience (O) is the personality trait of seeking new experiences and intellectual pursuits. High scores may day dream a lot (enjoy 
+thinking about new and different things). Low scorers tend to be very down to earth (more of a ‘hear and now’ thinker). Consequently, it is 
+thought that people with higher scores might be more creative, flexible, curious, and adventurous, whereas people with lower score might tend to 
+enjoy routines, predictability, and structure. 
+ 
+O = 8 + (5) _5__ - (10) _1__ + (15) _2__ - (20) _2__ + (25) _4__ - (30) _3__ + (35) _5__ + (40) _4__ + (45) _5__ + (50) _5__ = _32____ 
+ 
+ 
+ 
+ 
+Narrative Summary of Findings 
+
+ 
+
+Here’s an example of how you might document the above findings: 
+
+ 
+
+According to the Big Five Personality Test (BFPT), ct self-reports extremely low Extroversion 10/40, moderate Neuroticism 19/40, 
+
+and high Openness to Experience 32/40, Agreeableness 32/40 & Conscientiousness 38/40

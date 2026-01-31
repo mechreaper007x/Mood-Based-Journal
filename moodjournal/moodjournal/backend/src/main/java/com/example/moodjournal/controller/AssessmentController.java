@@ -1,6 +1,7 @@
 package com.example.moodjournal.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,12 @@ import com.example.moodjournal.dto.AssessmentSubmission;
 import com.example.moodjournal.dto.UserProfileDTO;
 import com.example.moodjournal.model.AssessmentResponseItem;
 import com.example.moodjournal.model.AssessmentSession;
+import com.example.moodjournal.model.JournalEntry;
 import com.example.moodjournal.model.User;
 import com.example.moodjournal.repository.AssessmentSessionRepository;
+import com.example.moodjournal.repository.JournalEntryRepository;
 import com.example.moodjournal.service.AssessmentService;
+import com.example.moodjournal.service.MistralService;
 import com.example.moodjournal.service.UserProfileService;
 import com.example.moodjournal.service.UserService;
 
@@ -47,6 +51,12 @@ public class AssessmentController {
     @Autowired
     private AssessmentSessionRepository sessionRepository;
 
+    @Autowired
+    private MistralService mistralService;
+
+    @Autowired
+    private JournalEntryRepository journalEntryRepository;
+
     /**
      * Generate 10 psychological assessment questions.
      */
@@ -54,6 +64,48 @@ public class AssessmentController {
     public ResponseEntity<List<AssessmentQuestion>> getQuestions() {
         List<AssessmentQuestion> questions = assessmentService.generateQuestions();
         return ResponseEntity.ok(questions);
+    }
+
+    /**
+     * Generate 3 personalized questions based on journal entries.
+     */
+    @GetMapping("/personalized-questions")
+    public ResponseEntity<List<Map<String, Object>>> getPersonalizedQuestions(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = getUser(userDetails);
+        List<JournalEntry> recentEntries = journalEntryRepository.findTop5ByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Map<String, Object>> questions = mistralService.generatePersonalizedQuestions(recentEntries);
+        return ResponseEntity.ok(questions);
+    }
+
+    /**
+     * Get EQ-60 progress (which batch is next).
+     */
+    @GetMapping("/eq-progress")
+    public ResponseEntity<Map<String, Object>> getEQProgress(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = getUser(userDetails);
+        // Get last assessment session to check EQ completion
+        List<AssessmentSession> sessions = sessionRepository.findByUserIdOrderByCompletedAtDesc(user.getId());
+
+        int nextBatch = 1;
+        int completionPercent = 0;
+
+        if (!sessions.isEmpty()) {
+            AssessmentSession lastSession = sessions.get(0);
+            Integer eqCompletion = lastSession.getEqCompletionPercent();
+            if (eqCompletion != null) {
+                completionPercent = eqCompletion;
+                if (eqCompletion >= 66) {
+                    nextBatch = 3;
+                } else if (eqCompletion >= 33) {
+                    nextBatch = 2;
+                }
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "nextBatch", nextBatch,
+                "completionPercent", completionPercent));
     }
 
     /**
@@ -112,6 +164,12 @@ public class AssessmentController {
                 .cognitiveEmpathy(profile.getCognitiveEmpathy())
                 .affectiveEmpathy(profile.getAffectiveEmpathy())
                 .compassionateEmpathy(profile.getCompassionateEmpathy())
+                .phq9Score(profile.getPhq9Score())
+                .phq9Severity(profile.getPhq9Severity())
+                .enneagramType(profile.getEnneagramType())
+                .enneagramWing(profile.getEnneagramWing())
+                .eqScore(profile.getEqScore())
+                .eqCompletionPercent(profile.getEqCompletionPercent())
                 .detectedStressors(
                         profile.getDetectedStressors() != null ? String.join(",", profile.getDetectedStressors())
                                 : null)
@@ -119,13 +177,15 @@ public class AssessmentController {
                 .build();
 
         // Add all Q&A pairs
-        for (var qa : submission.getResponses()) {
-            AssessmentResponseItem item = AssessmentResponseItem.builder()
-                    .questionNumber(qa.getQuestionId())
-                    .questionText(qa.getQuestion())
-                    .answerText(qa.getAnswer())
-                    .build();
-            session.addResponse(item);
+        if (submission.getResponses() != null) {
+            for (var qa : submission.getResponses()) {
+                AssessmentResponseItem item = AssessmentResponseItem.builder()
+                        .questionNumber(qa.getQuestionId())
+                        .questionText(qa.getQuestion())
+                        .answerText(qa.getAnswer())
+                        .build();
+                session.addResponse(item);
+            }
         }
 
         sessionRepository.save(session);

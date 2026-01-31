@@ -34,6 +34,18 @@ public class AnalyzedProfile {
     private Integer affectiveEmpathy;
     private Integer compassionateEmpathy;
 
+    // PHQ-9 Depression Screening
+    private Integer phq9Score;
+    private String phq9Severity;
+
+    // Enneagram Type
+    private Integer enneagramType;
+    private String enneagramWing;
+
+    // EQ-60 Empathy Quotient
+    private Integer eqScore;
+    private Integer eqCompletionPercent;
+
     // Detected Stressors
     private List<String> detectedStressors;
 
