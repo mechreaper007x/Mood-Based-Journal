@@ -59,13 +59,17 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                         // Ignore CSRF for stateless auth endpoints (no session to protect yet)
+                        // Journal/Assessment endpoints are JWT-protected (stateless), CSRF not needed
                         .ignoringRequestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
                                 "/api/auth/validate-reset-token",
-                                "/api/profile/**"))
+                                "/api/profile/**",
+                                "/api/journal/**",
+                                "/api/assessment/**",
+                                "/api/ai/**"))
                 .cors(cors -> cors.configurationSource(request -> {
                     org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
