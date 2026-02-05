@@ -46,6 +46,11 @@ public class EnsembleRiskService {
     private static final int CIRCUIT_BREAKER_THRESHOLD = 5;
     private final AtomicInteger consecutiveAIFailures = new AtomicInteger(0);
     private final AtomicBoolean aiCircuitBreakerOpen = new AtomicBoolean(false);
+    private final java.util.concurrent.atomic.AtomicLong lastFailureTime = new java.util.concurrent.atomic.AtomicLong(
+            0);
+
+    // 5 minutes cooldown
+    private static final long CIRCUIT_BREAKER_COOLDOWN_MS = 5 * 60 * 1000;
 
     public EnsembleRiskService(VADLexiconService vadLexiconService) {
         this.vadLexiconService = vadLexiconService;
@@ -120,6 +125,7 @@ public class EnsembleRiskService {
             if (failures >= CIRCUIT_BREAKER_THRESHOLD) {
                 // V10 Fix: Atomic transition
                 if (aiCircuitBreakerOpen.compareAndSet(false, true)) {
+                    lastFailureTime.set(System.currentTimeMillis());
                     logger.error("AI circuit breaker TRIPPED after {} consecutive failures", failures);
                 }
             }

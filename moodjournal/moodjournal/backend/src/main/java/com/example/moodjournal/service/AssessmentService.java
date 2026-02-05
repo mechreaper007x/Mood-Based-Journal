@@ -564,19 +564,25 @@ public class AssessmentService {
     private List<AssessmentQuestion> getFallbackQuestions() {
         return List.of(
                 new AssessmentQuestion(1,
-                        "Describe a moment when you felt truly alive and engaged. What were you doing?"),
-                new AssessmentQuestion(2, "How do you typically react when facing unexpected challenges or setbacks?"),
-                new AssessmentQuestion(3, "What qualities do you most admire in others, and why?"),
-                new AssessmentQuestion(4, "Describe your ideal way to spend a free day with no obligations."),
-                new AssessmentQuestion(5, "When you disagree with someone close to you, how do you usually handle it?"),
-                new AssessmentQuestion(6, "What recurring worries or thoughts occupy your mind most often?"),
-                new AssessmentQuestion(7, "How would your closest friend describe your personality in three words?"),
+                        "Describe a moment when you felt truly alive and engaged. What were you doing?", "GENERAL"),
+                new AssessmentQuestion(2, "How do you typically react when facing unexpected challenges or setbacks?",
+                        "GENERAL"),
+                new AssessmentQuestion(3, "What qualities do you most admire in others, and why?", "GENERAL"),
+                new AssessmentQuestion(4, "Describe your ideal way to spend a free day with no obligations.",
+                        "GENERAL"),
+                new AssessmentQuestion(5, "When you disagree with someone close to you, how do you usually handle it?",
+                        "GENERAL"),
+                new AssessmentQuestion(6, "What recurring worries or thoughts occupy your mind most often?", "GENERAL"),
+                new AssessmentQuestion(7, "How would your closest friend describe your personality in three words?",
+                        "GENERAL"),
                 new AssessmentQuestion(8,
-                        "Describe a decision you made that went against others' expectations. How did it feel?"),
+                        "Describe a decision you made that went against others' expectations. How did it feel?",
+                        "GENERAL"),
                 new AssessmentQuestion(9,
-                        "When someone you care about is going through difficulty, what's your instinct?"),
+                        "When someone you care about is going through difficulty, what's your instinct?", "GENERAL"),
                 new AssessmentQuestion(10,
-                        "What do you believe is your greatest personal strength and your biggest challenge?"));
+                        "What do you believe is your greatest personal strength and your biggest challenge?",
+                        "GENERAL"));
     }
 
     private AnalyzedProfile getDefaultProfile() {

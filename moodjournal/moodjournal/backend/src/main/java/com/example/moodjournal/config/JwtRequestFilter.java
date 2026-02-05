@@ -110,6 +110,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             userDetails.getAuthorities());
       }
     }
-    chain.doFilter(request, response);
+
   }
 }
