@@ -54,4 +54,13 @@ public class AnalyzedProfile {
 
     // Optional: Raw trait analysis
     private Map<String, String> traitAnalysis;
+
+    public void setPhq9Score(Integer score) {
+        if (score != null && (score < 0 || score > 27)) {
+            // Clamping instead of throwing to be resilient
+            this.phq9Score = Math.max(0, Math.min(27, score));
+        } else {
+            this.phq9Score = score;
+        }
+    }
 }

@@ -110,6 +110,9 @@ public class UserProfile {
 
     private LocalDateTime updatedAt;
 
+    @jakarta.persistence.Version
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

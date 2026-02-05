@@ -43,9 +43,6 @@ public class AssessmentController {
     private AssessmentService assessmentService;
 
     @Autowired
-    private UserProfileService userProfileService;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -111,23 +108,33 @@ public class AssessmentController {
     /**
      * Analyze submitted responses and update user profile.
      * Also saves the Q&A data to database for future reference.
+     * 
+     * V10 FIX: Removed @Transactional to prevent holding DB connection during AI
+     * call.
+     * Transaction is now handled inside assessmentService.saveAssessmentResults().
      */
     @PostMapping("/analyze")
     public ResponseEntity<AnalyzedProfile> analyzeResponses(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody AssessmentSubmission submission) {
 
-        // Analyze responses
+        User user = getUser(userDetails);
+
+        // 1. Analyze responses (Heavy AI operation - NO TRANSACTION)
         AnalyzedProfile profile = assessmentService.analyzeResponses(submission);
 
-        // Save session and update profile
+        // 2. Save session and update profile (Fast DB operation - TRANSACTIONAL)
         try {
-            User user = getUser(userDetails);
-            saveAssessmentSession(user, submission, profile);
-            updateUserProfile(user.getId(), profile);
+            assessmentService.saveAssessmentResults(user, submission, profile);
+
+            log.info("Assessment completed for user {}", user.getId());
+
         } catch (Exception e) {
-            // Log but don't fail - still return the analysis
-            log.error("Failed to save assessment session/profile for user: {}", e.getMessage(), e);
+            log.error("Failed to persist assessment: {}", e.getMessage(), e);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(AnalyzedProfile.builder()
+                            .insights("Analysis failed to save. Please try again.")
+                            .build());
         }
 
         return ResponseEntity.ok(profile);
@@ -149,72 +156,5 @@ public class AssessmentController {
         }
         return userService.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found: " + userDetails.getUsername()));
-    }
-
-    private void saveAssessmentSession(User user, AssessmentSubmission submission, AnalyzedProfile profile) {
-        AssessmentSession session = AssessmentSession.builder()
-                .user(user)
-                .extraversion(profile.getExtraversion())
-                .agreeableness(profile.getAgreeableness())
-                .conscientiousness(profile.getConscientiousness())
-                .emotionalStability(profile.getEmotionalStability())
-                .openness(profile.getOpenness())
-                .primaryArchetype(profile.getPrimaryArchetype())
-                .secondaryArchetype(profile.getSecondaryArchetype())
-                .cognitiveEmpathy(profile.getCognitiveEmpathy())
-                .affectiveEmpathy(profile.getAffectiveEmpathy())
-                .compassionateEmpathy(profile.getCompassionateEmpathy())
-                .phq9Score(profile.getPhq9Score())
-                .phq9Severity(profile.getPhq9Severity())
-                .enneagramType(profile.getEnneagramType())
-                .enneagramWing(profile.getEnneagramWing())
-                .eqScore(profile.getEqScore())
-                .eqCompletionPercent(profile.getEqCompletionPercent())
-                .detectedStressors(
-                        profile.getDetectedStressors() != null ? String.join(",", profile.getDetectedStressors())
-                                : null)
-                .insights(profile.getInsights())
-                .build();
-
-        // Add all Q&A pairs
-        if (submission.getResponses() != null) {
-            for (var qa : submission.getResponses()) {
-                AssessmentResponseItem item = AssessmentResponseItem.builder()
-                        .questionNumber(qa.getQuestionId())
-                        .questionText(qa.getQuestion())
-                        .answerText(qa.getAnswer())
-                        .build();
-                session.addResponse(item);
-            }
-        }
-
-        sessionRepository.save(session);
-    }
-
-    private void updateUserProfile(java.util.UUID userId, AnalyzedProfile analyzed) {
-        UserProfileDTO profileDTO = userProfileService.getProfileByUserId(userId)
-                .orElse(UserProfileDTO.builder().build());
-
-        profileDTO.setExtraversion(analyzed.getExtraversion());
-        profileDTO.setAgreeableness(analyzed.getAgreeableness());
-        profileDTO.setConscientiousness(analyzed.getConscientiousness());
-        profileDTO.setEmotionalStability(analyzed.getEmotionalStability());
-        profileDTO.setOpenness(analyzed.getOpenness());
-        profileDTO.setPrimaryArchetype(analyzed.getPrimaryArchetype());
-        profileDTO.setSecondaryArchetype(analyzed.getSecondaryArchetype());
-        profileDTO.setCognitiveEmpathy(analyzed.getCognitiveEmpathy());
-        profileDTO.setAffectiveEmpathy(analyzed.getAffectiveEmpathy());
-        profileDTO.setCompassionateEmpathy(analyzed.getCompassionateEmpathy());
-
-        if (analyzed.getDetectedStressors() != null) {
-            profileDTO.setCurrentStressors(new java.util.HashSet<>(analyzed.getDetectedStressors()));
-        }
-
-        // Ensure backend calculated fields are set if missing
-        if (profileDTO.getIsComplete() == null) {
-            profileDTO.setIsComplete(true);
-        }
-
-        userProfileService.saveProfile(userId, profileDTO);
     }
 }

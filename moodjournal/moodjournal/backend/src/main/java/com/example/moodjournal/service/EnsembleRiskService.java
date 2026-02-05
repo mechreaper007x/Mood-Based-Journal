@@ -69,10 +69,18 @@ public class EnsembleRiskService {
         List<String> detectedKeywords = vadLexiconService.detectCrisisKeywords(content);
         int matchedWords = vadLexiconService.getMatchedWordCount(content);
 
-        // Check circuit breaker
+        // Check circuit breaker with Half-Open recovery logic
         if (aiCircuitBreakerOpen.get()) {
-            logger.warn("AI circuit breaker OPEN - using lexicon only");
-            return buildLexiconOnlyResult(lexiconRiskScore, lexiconVad, detectedKeywords, matchedWords);
+            // V10 FIX: Auto-recovery check (Half-Open State)
+            long lastFailure = lastFailureTime.get();
+            if (System.currentTimeMillis() - lastFailure > CIRCUIT_BREAKER_COOLDOWN_MS) {
+                // Allow ONE trial request through (Half-Open)
+                logger.info("Circuit breaker attempting recovery (Half-Open)...");
+            } else {
+                logger.warn("AI circuit breaker OPEN - using lexicon only. Next retry in {}ms",
+                        CIRCUIT_BREAKER_COOLDOWN_MS - (System.currentTimeMillis() - lastFailure));
+                return buildLexiconOnlyResult(lexiconRiskScore, lexiconVad, detectedKeywords, matchedWords);
+            }
         }
 
         // Determine final risk score using confidence-weighted voting

@@ -139,7 +139,11 @@ public class ReportService {
         PdfPCell header = new PdfPCell();
         header.setBackgroundColor(Color.DARK_GRAY);
         header.setBorderWidth(1);
-        header.setPhrase(new Phrase(headerTitle, font));
+
+        // V13 FIX: Prevent XSS by escaping content
+        String safeTitle = org.springframework.web.util.HtmlUtils.htmlEscape(headerTitle);
+        header.setPhrase(new Phrase(safeTitle, font));
+
         header.setHorizontalAlignment(Element.ALIGN_CENTER);
         header.setVerticalAlignment(Element.ALIGN_MIDDLE);
         header.setPadding(5);

@@ -285,9 +285,6 @@ public class GeminiService {
    * Call Gemini API with model rotation and retry logic.
    */
   public String callGeminiWithRotation(String prompt) {
-    // apiLock removed for high-throughput (S1 fix)
-
-    // try { (removed orphan try block)
     Exception lastException = null;
     int startIndex = modelIndex.get();
     int modelCount = AVAILABLE_MODELS.size();
@@ -298,8 +295,9 @@ public class GeminiService {
       log.debug("Attempting Gemini API call with model: {} (attempt {}/{})",
           model, i + 1, modelCount);
 
+      GenerateContentResponse response = null; // V8 FIX: Explicit scoping
       try {
-        GenerateContentResponse response = client.models.generateContent(model, prompt, null);
+        response = client.models.generateContent(model, prompt, null);
         String text = response.text();
         log.debug("Successfully got response from model: {}", model);
 
@@ -318,11 +316,17 @@ public class GeminiService {
         } else {
           log.error("Error with model {}: {}", model, e.getMessage());
         }
+      } finally {
+        response = null; // V8 FIX: Help GC to reclaim large response objects immediately
+      }
 
+      // Backoff (outside try-catch to allow interrupt)
+      if (i < modelCount - 1) {
         try {
           Thread.sleep(200);
         } catch (InterruptedException ie) {
           Thread.currentThread().interrupt();
+          break;
         }
       }
     }
@@ -330,7 +334,6 @@ public class GeminiService {
     String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
     log.error("All {} models exhausted. Last error: {}", modelCount, errorMessage);
     throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
-
   }
 
   /**

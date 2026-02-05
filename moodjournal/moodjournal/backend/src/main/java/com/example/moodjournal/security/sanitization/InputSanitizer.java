@@ -31,21 +31,27 @@ public class InputSanitizer {
             return "";
         }
 
-        String safe = input;
+        // V9 FIX: Unicode normalization FIRST (NFKC)
+        String safe = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFKC);
+
+        // V9 FIX: Remove code block delimiters to prevent context escape
+        safe = safe.replaceAll("```[^`]*```", "[CODE_BLOCK_REMOVED]")
+                .replaceAll("~~~[^~]*~~~", "[CODE_BLOCK_REMOVED]");
 
         // 1. Strip potential prompt injection delimiters
         safe = INJECTION_PATTERN.matcher(safe).replaceAll("[Redacted Command]");
 
-        // 2. Limit length to prevent context flooding (e.g., 5000 chars)
+        // V9 FIX: Length limit BEFORE detailed processing to prevent resource
+        // exhaustion
         if (safe.length() > 5000) {
-            safe = safe.substring(0, 5000) + "... [Truncated]";
+            safe = safe.substring(0, 5000); // Do NOT append hints if truncated to avoid info leak
         }
 
-        // 3. Basic PII redaction (Example: Email addresses)
-        // Note: For a real app, use a dedicated library like Google DLC or Microsoft
-        // Presidio
-        // Using pre-compiled pattern with possessive quantifiers to prevent ReDoS
-        safe = EMAIL_PATTERN.matcher(safe).replaceAll("[EMAIL_REDACTED]");
+        // 3. Basic PII redaction
+        safe = EMAIL_PATTERN.matcher(safe).replaceAll("[EMAIL]");
+
+        // V9 FIX: Strip control characters
+        safe = safe.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]", "");
 
         return safe;
     }

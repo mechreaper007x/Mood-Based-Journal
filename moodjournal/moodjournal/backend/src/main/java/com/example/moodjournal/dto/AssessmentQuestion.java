@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class AssessmentQuestion {
     private Integer id;
     private String question;
+    private String scale;
 }

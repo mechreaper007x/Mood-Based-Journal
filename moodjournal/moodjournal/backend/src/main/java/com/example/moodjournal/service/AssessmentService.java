@@ -13,7 +13,12 @@ import org.springframework.stereotype.Service;
 import com.example.moodjournal.dto.AnalyzedProfile;
 import com.example.moodjournal.dto.AssessmentQuestion;
 import com.example.moodjournal.dto.AssessmentSubmission;
+import com.example.moodjournal.dto.UserProfileDTO;
+import com.example.moodjournal.model.AssessmentResponseItem;
+import com.example.moodjournal.model.AssessmentSession;
 import com.example.moodjournal.model.CachedQuestionSet;
+import com.example.moodjournal.model.User;
+import com.example.moodjournal.repository.AssessmentSessionRepository;
 import com.example.moodjournal.repository.CachedQuestionSetRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -35,6 +40,12 @@ public class AssessmentService {
 
     @Autowired
     private CachedQuestionSetRepository questionSetRepository;
+
+    @Autowired
+    private AssessmentSessionRepository sessionRepository;
+
+    @Autowired
+    private UserProfileService userProfileService;
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -91,6 +102,11 @@ public class AssessmentService {
                 - Non-judgmental and safe to answer honestly
                 - Revealing of deeper psychological patterns
                 - Varied in focus (some about past, present, relationships, self-perception)
+
+                IMPORTANT: You MUST generate exactly 10 questions.
+                For questions 1 through 9, they MUST correspond to Enneagram Types 1 through 9 in order.
+                ID 1 -> Type 1, ID 2 -> Type 2, ... ID 9 -> Type 9.
+                ID 10 -> General Reflection.
 
                 Return ONLY a JSON array, no markdown, no explanation:
                 [
@@ -205,7 +221,21 @@ public class AssessmentService {
      * PHQ-9 scoring: Sum all responses (0-27).
      */
     private int scorePHQ9(Map<Integer, Integer> responses) {
-        return responses.values().stream().mapToInt(v -> Math.max(0, Math.min(3, v))).sum();
+        if (responses == null || responses.isEmpty()) {
+            return 0; // Treat as 0 risk if empty/null instead of crashing
+        }
+
+        int sum = responses.values().stream()
+                .filter(java.util.Objects::nonNull)
+                .mapToInt(v -> {
+                    if (v < 0 || v > 3)
+                        return 0; // Ignore invalid values
+                    return v;
+                })
+                .sum();
+
+        // Max possible score is 27 (9 items * 3)
+        return Math.min(27, Math.max(0, sum));
     }
 
     /**
@@ -319,10 +349,17 @@ public class AssessmentService {
             // and using it here.
             // Given the constraints, we will improve the mapping by assuming ID 1 = Type 1.
 
-            int type = (entry.getKey() % 9);
+            // Score based on strict Prompt contract: ID 1 = Type 1, ..., ID 9 = Type 9.
+            // ID % 9 logic: 1%9=1, 9%9=0 -> need to map 0 to 9.
+            int id = entry.getKey();
+            int type = id % 9;
             if (type == 0)
-                type = 9; // Fix 0-indexed modulo to 1-9
-            typeCounts[type]++;
+                type = 9;
+
+            // Safety: Ensure type is within 1-9 range
+            if (type >= 1 && type <= 9) {
+                typeCounts[type]++;
+            }
         }
 
         // Find dominant type
@@ -551,5 +588,99 @@ public class AssessmentService {
                 .detectedStressors(List.of())
                 .insights("Unable to generate detailed analysis. Please try again.")
                 .build();
+    }
+
+    /**
+     * Transactional save of assessment results.
+     * Includes IDEMPOTENCY check to prevent duplicate submissions.
+     * Uses SERIALIZABLE isolation to prevent race conditions during the
+     * check-then-act.
+     */
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW, isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
+    public AssessmentSession saveAssessmentResults(User user, AssessmentSubmission submission,
+            AnalyzedProfile profile) {
+
+        // IDEMPOTENCY CHECK: Ensure no recent submission (within last 60 seconds)
+        Optional<AssessmentSession> lastSession = sessionRepository.findTopByUserIdOrderByCompletedAtDesc(user.getId());
+        if (lastSession.isPresent()) {
+            java.time.Instant now = java.time.Instant.now();
+            java.time.Instant lastTime = lastSession.get().getCompletedAt();
+            // If less than 60 seconds ago
+            if (lastTime != null && lastTime.plusSeconds(60).isAfter(now)) {
+                log.warn("Duplicate assessment submission avoided for user {}", user.getId());
+                return lastSession.get();
+            }
+        }
+
+        // Create new session
+        AssessmentSession session = AssessmentSession.builder()
+                .user(user)
+                .extraversion(profile.getExtraversion())
+                .agreeableness(profile.getAgreeableness())
+                .conscientiousness(profile.getConscientiousness())
+                .emotionalStability(profile.getEmotionalStability())
+                .openness(profile.getOpenness())
+                .primaryArchetype(profile.getPrimaryArchetype())
+                .secondaryArchetype(profile.getSecondaryArchetype())
+                .cognitiveEmpathy(profile.getCognitiveEmpathy())
+                .affectiveEmpathy(profile.getAffectiveEmpathy())
+                .compassionateEmpathy(profile.getCompassionateEmpathy())
+                .phq9Score(profile.getPhq9Score())
+                .phq9Severity(profile.getPhq9Severity())
+                .enneagramType(profile.getEnneagramType())
+                .enneagramWing(profile.getEnneagramWing())
+                .eqScore(profile.getEqScore())
+                .eqCompletionPercent(profile.getEqCompletionPercent())
+                .detectedStressors(
+                        profile.getDetectedStressors() != null ? String.join(",", profile.getDetectedStressors())
+                                : null)
+                .insights(profile.getInsights())
+                .build();
+
+        // Add all Q&A pairs
+        if (submission.getResponses() != null) {
+            for (var qa : submission.getResponses()) {
+                AssessmentResponseItem item = AssessmentResponseItem.builder()
+                        .questionNumber(qa.getQuestionId())
+                        .questionText(qa.getQuestion())
+                        .answerText(qa.getAnswer())
+                        .build();
+                session.addResponse(item);
+            }
+        }
+
+        AssessmentSession savedSession = sessionRepository.save(session);
+
+        // Update User Profile
+        updateUserProfile(user.getId(), profile);
+
+        return savedSession;
+    }
+
+    private void updateUserProfile(java.util.UUID userId, AnalyzedProfile analyzed) {
+        UserProfileDTO profileDTO = userProfileService.getProfileByUserId(userId)
+                .orElse(UserProfileDTO.builder().build());
+
+        profileDTO.setExtraversion(analyzed.getExtraversion());
+        profileDTO.setAgreeableness(analyzed.getAgreeableness());
+        profileDTO.setConscientiousness(analyzed.getConscientiousness());
+        profileDTO.setEmotionalStability(analyzed.getEmotionalStability());
+        profileDTO.setOpenness(analyzed.getOpenness());
+        profileDTO.setPrimaryArchetype(analyzed.getPrimaryArchetype());
+        profileDTO.setSecondaryArchetype(analyzed.getSecondaryArchetype());
+        profileDTO.setCognitiveEmpathy(analyzed.getCognitiveEmpathy());
+        profileDTO.setAffectiveEmpathy(analyzed.getAffectiveEmpathy());
+        profileDTO.setCompassionateEmpathy(analyzed.getCompassionateEmpathy());
+
+        if (analyzed.getDetectedStressors() != null) {
+            profileDTO.setCurrentStressors(new java.util.HashSet<>(analyzed.getDetectedStressors()));
+        }
+
+        // Ensure backend calculated fields are set if missing
+        if (profileDTO.getIsComplete() == null) {
+            profileDTO.setIsComplete(true);
+        }
+
+        userProfileService.saveProfile(userId, profileDTO);
     }
 }

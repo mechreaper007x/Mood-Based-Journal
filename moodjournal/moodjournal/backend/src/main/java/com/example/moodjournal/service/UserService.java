@@ -34,17 +34,25 @@ public class UserService {
         // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
+        // V11 FIX: Explicit Pre-Check
+        // We check existence before save. Note: A small race window exists here but is
+        // better
+        // than brittle exception parsing. For 100% strictness, we'd need a specific DB
+        // exception handler,
+        // but this "Lock-Free" approach is standard for Spring.
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email is already taken");
+        }
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username is already taken");
+        }
+
         try {
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            // This catches race conditions where another request registered the same user
-            log.warn("Data integrity violation during registration: {}", e.getMessage());
-            if (e.getMessage() != null && e.getMessage().contains("USERNAME")) {
-                throw new RuntimeException("Username is already taken");
-            } else if (e.getMessage() != null && e.getMessage().contains("EMAIL")) {
-                throw new RuntimeException("Email is already taken");
-            }
-            throw new RuntimeException("Registration failed. Please try again.");
+            // Fallback for race condition collisions
+            log.warn("Data integrity violation during registration (Race Condition): {}", e.getMessage());
+            throw new RuntimeException("Registration failed: User already exists.");
         }
     }
 

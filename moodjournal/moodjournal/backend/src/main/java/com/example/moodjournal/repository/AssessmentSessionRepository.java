@@ -14,4 +14,6 @@ public interface AssessmentSessionRepository extends JpaRepository<AssessmentSes
     List<AssessmentSession> findByUserOrderByCompletedAtDesc(User user);
 
     List<AssessmentSession> findByUserIdOrderByCompletedAtDesc(java.util.UUID userId);
+
+    java.util.Optional<AssessmentSession> findTopByUserIdOrderByCompletedAtDesc(java.util.UUID userId);
 }

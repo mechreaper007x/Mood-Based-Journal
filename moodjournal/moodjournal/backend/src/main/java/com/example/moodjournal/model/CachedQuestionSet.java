@@ -37,6 +37,9 @@ public class CachedQuestionSet {
 
     private Instant createdAt;
 
+    @jakarta.persistence.Version
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();

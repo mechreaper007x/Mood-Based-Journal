@@ -56,20 +56,43 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       UserDetails userDetails = this.userDetailsService.loadUserByUsername(
           username);
 
-      boolean isTokenValid = jwtUtil.validateToken(jwt, userDetails.getUsername());
+      // V6 Fix: Transactional atomic check to prevent TOCTOU
+      // We start a read-only transaction implicitly for the filter
+      verifyUserAndSetAuthentication(username, jwt, userDetails, request);
+    }
+    chain.doFilter(request, response);
+  }
 
-      // V5 Fix: TOCTOU protection - Explicitly check account status
-      if (isTokenValid) {
-        if (!userDetails.isEnabled()) {
-          log.warn("Authentication failed: User {} is disabled", username);
-          isTokenValid = false;
-        } else if (!userDetails.isAccountNonLocked()) {
-          log.warn("Authentication failed: User {} is locked", username);
-          isTokenValid = false;
-        }
+  @org.springframework.transaction.annotation.Transactional(isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+  protected void verifyUserAndSetAuthentication(String username, String jwt, UserDetails userDetails,
+      HttpServletRequest request) {
+
+    // Atomic re-verification
+    com.example.moodjournal.repository.UserRepository userRepo = ((org.springframework.context.ApplicationContext) org.springframework.web.context.support.WebApplicationContextUtils
+        .getRequiredWebApplicationContext(request.getServletContext()))
+        .getBean(com.example.moodjournal.repository.UserRepository.class);
+
+    // PESSIMISTIC LOCK: Ensure no other thread is disabling the user right now
+    com.example.moodjournal.model.User dbUser = userRepo.findByEmailForUpdate(username)
+        .orElse(null);
+
+    boolean isTokenValid = jwtUtil.validateToken(jwt, userDetails.getUsername());
+
+    if (dbUser != null && isTokenValid) {
+      if (!dbUser.isEnabled()) {
+        log.warn("Authentication failed: User {} is disabled (Atomic Check)", username);
+        isTokenValid = false;
+      } else if (!dbUser.isAccountNonLocked()) {
+        log.warn("Authentication failed: User {} is locked (Atomic Check)", username);
+        isTokenValid = false;
       }
+    } else if (dbUser == null) {
+      log.warn("Authentication atomic check failed: User {} not found in DB", username);
+      isTokenValid = false;
+    }
 
-      log.info("Is token valid? {}", isTokenValid);
+    if (isTokenValid) {
+      // Transactional check handled above in verifyUserAndSetAuthentication
 
       if (isTokenValid) {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(

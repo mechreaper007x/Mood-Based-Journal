@@ -1,0 +1,27 @@
+ Volume in drive C is OS
+ Volume Serial Number is 36BE-DC77
+
+ Directory of c:\Users\Savyasachi Mishra\Desktop\Mood based journal\moodjournal\moodjournal\backend
+
+05-02-2026  12:26 PM    <DIR>          .
+31-01-2026  07:55 PM    <DIR>          ..
+06-09-2025  01:51 PM    <DIR>          .mvn
+05-02-2026  12:21 PM    <DIR>          data
+16-01-2026  07:24 AM                66 debug_start.bat
+16-01-2026  05:27 PM               834 Dockerfile
+05-02-2026  12:24 PM             1,352 export_codebase.py
+06-09-2025  01:51 PM             1,669 HELP.md
+05-02-2026  12:26 PM                 0 list.txt
+06-09-2025  01:51 PM            11,790 mvnw
+06-09-2025  01:51 PM             8,292 mvnw.cmd
+30-01-2026  07:52 PM             5,153 pom.xml
+25-01-2026  12:41 AM               422 run_with_env.ps1
+06-09-2025  01:51 PM    <DIR>          src
+09-10-2025  08:57 PM        13,821,066 src.zip
+23-01-2026  07:25 PM            53,695 startup.log
+23-01-2026  07:25 PM                 0 startup_err.log
+23-01-2026  07:26 PM            11,031 startup_retry.log
+23-01-2026  07:25 PM                 0 startup_retry_err.log
+31-01-2026  09:04 PM    <DIR>          target
+              14 File(s)     13,915,370 bytes
+               6 Dir(s)  405,873,459,200 bytes free
