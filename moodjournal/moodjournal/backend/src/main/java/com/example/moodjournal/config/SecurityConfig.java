@@ -23,14 +23,8 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtRequestFilter jwtRequestFilter;
-
     @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://mood-based-journal-1.onrender.com}")
     private String allowedOrigins;
-
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
-        this.jwtRequestFilter = jwtRequestFilter;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -44,12 +38,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtRequestFilter jwtRequestFilter(
+            org.springframework.security.core.userdetails.UserDetailsService userDetailsService,
+            com.example.moodjournal.util.JwtUtil jwtUtil,
+            com.example.moodjournal.service.UserService userService) {
+        return new JwtRequestFilter(userDetailsService, jwtUtil, userService);
+    }
+
+    @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtRequestFilter jwtRequestFilter)
+            throws Exception {
         http
                 // Enable CSRF protection using Double Submit Cookie pattern for SPAs
                 // Uses SpaCsrfTokenRequestHandler from Spring Security 6 docs

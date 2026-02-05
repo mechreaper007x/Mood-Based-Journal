@@ -9,9 +9,14 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class AssessmentQuestion {
     private Integer id;
     private String question;
     private String scale;
+
+    public AssessmentQuestion(Integer id, String question, String scale) {
+        this.id = id;
+        this.question = question;
+        this.scale = scale;
+    }
 }

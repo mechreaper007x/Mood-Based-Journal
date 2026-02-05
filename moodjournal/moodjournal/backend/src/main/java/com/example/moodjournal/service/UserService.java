@@ -60,7 +60,41 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public boolean verifyAndAuthenticate(String username, String jwt,
+            org.springframework.security.core.userdetails.UserDetails userDetails,
+            Object authenticationDetails, com.example.moodjournal.util.JwtUtil jwtUtil) {
+
+        // 1. PESSIMISTIC LOCK: Ensure no other thread is disabling the user right now
+        // This transaction holds the lock until the method returns
+        Optional<User> dbUser = userRepository.findByEmailForUpdate(username);
+
+        boolean isValid = false;
+        if (dbUser.isPresent()) {
+            User user = dbUser.get();
+            if (!user.isEnabled()) {
+                log.warn("Authentication failed: User {} is disabled (Atomic Check)", username);
+            } else if (!user.isAccountNonLocked()) {
+                log.warn("Authentication failed: User {} is locked (Atomic Check)", username);
+            } else {
+                isValid = true;
+            }
+        } else {
+            log.warn("Authentication atomic check failed: User {} not found in DB", username);
+        }
+
+        // 2. Set Authentication while Lock is still held (Semantic Atomicity)
+        if (isValid && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+            org.springframework.security.authentication.UsernamePasswordAuthenticationToken authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+
+            authToken.setDetails(authenticationDetails);
+
+            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authToken);
+            log.info("User authenticated atomically: {}", username);
+            return true;
+        }
+
+        return false;
     }
 }
