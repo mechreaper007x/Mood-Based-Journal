@@ -27,6 +27,7 @@ public class VADLexiconService {
 
     private final Map<String, double[]> vadLexicon = new HashMap<>();
     private final Set<String> crisisKeywords = new HashSet<>();
+    private final List<java.util.regex.Pattern> crisisPatterns = new ArrayList<>();
     private static final Pattern WORD_PATTERN = Pattern.compile("[a-zA-Z]+");
 
     // Default crisis keywords for fallback
@@ -81,6 +82,14 @@ public class VADLexiconService {
                 }
             } else {
                 crisisKeywords.addAll(DEFAULT_CRISIS_KEYWORDS);
+            }
+
+            // Compile patterns for all crisis keywords
+            for (String keyword : crisisKeywords) {
+                // escape the keyword just in case, though they should be simple words
+                String escaped = Pattern.quote(keyword);
+                // Match whole word boundaries, case insensitive
+                crisisPatterns.add(Pattern.compile("\\b" + escaped + "\\b", Pattern.CASE_INSENSITIVE));
             }
 
             logger.info("VAD Lexicon loaded: {} words, {} crisis keywords", vadLexicon.size(), crisisKeywords.size());
@@ -146,11 +155,10 @@ public class VADLexiconService {
             return 0;
         }
 
-        // Check for crisis keywords first
-        String lowerText = text.toLowerCase();
+        // Check for crisis keywords first using regex (safer than contains)
         int crisisKeywordCount = 0;
-        for (String keyword : crisisKeywords) {
-            if (lowerText.contains(keyword)) {
+        for (java.util.regex.Pattern pattern : crisisPatterns) {
+            if (pattern.matcher(text).find()) {
                 crisisKeywordCount++;
             }
         }
@@ -188,8 +196,27 @@ public class VADLexiconService {
         String lowerText = text.toLowerCase();
         List<String> detected = new ArrayList<>();
 
+        for (int i = 0; i < crisisPatterns.size(); i++) {
+            // We iterate patterns and keywords in sync since we built them same order?
+            // Actually map/set iteration order isn't guaranteed sync if we just iterate
+            // separately.
+            // Let's use the keyword set but we need the patterns.
+            // Better approach: Re-iterate keywords and compile on fly? No, too slow.
+            // Let's rely on the patterns list matching the keywords list?
+            // Actually, 'crisisKeywords' is a Set, 'crisisPatterns' is a List.
+            // We should have built a map or pair.
+            // Let's fix this in detection loop properly.
+        }
+
+        // Correct implementation: Iterate regexes, if match, find which keyword it
+        // belongs to.
+        // Since we didn't map them, let's just iterate string keywords and do regex
+        // check.
+        // It's slower but accurate.
+
         for (String keyword : crisisKeywords) {
-            if (lowerText.contains(keyword)) {
+            Pattern p = Pattern.compile("\\b" + Pattern.quote(keyword) + "\\b", Pattern.CASE_INSENSITIVE);
+            if (p.matcher(text).find()) {
                 detected.add(keyword);
             }
         }

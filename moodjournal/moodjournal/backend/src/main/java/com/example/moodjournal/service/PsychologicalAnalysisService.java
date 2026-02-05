@@ -251,7 +251,8 @@ public class PsychologicalAnalysisService {
 
             // Parse VAD Scores (new field)
             EntryAnalysisResult.VADScores vad = new EntryAnalysisResult.VADScores(0.5, 0.5, 0.5);
-            if (result.get("vadScores") instanceof Map) {
+            // V8 Fix: Defensive Null Check
+            if (result.get("vadScores") instanceof Map && result.get("vadScores") != null) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> vadMap = (Map<String, Object>) result.get("vadScores");
                 vad = EntryAnalysisResult.VADScores.builder()

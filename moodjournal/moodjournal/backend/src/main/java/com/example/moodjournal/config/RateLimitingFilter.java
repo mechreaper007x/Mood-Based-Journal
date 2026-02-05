@@ -22,7 +22,14 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    // LRU Cache with max 1000 entries to prevent memory leaks (S1 fix)
+    private final Map<String, Bucket> buckets = java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<String, Bucket>(1000, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<String, Bucket> eldest) {
+                    return size() > 1000;
+                }
+            });
 
     // Rate limit: 10 requests per minute per IP
     private static final int REQUESTS_PER_MINUTE = 10;

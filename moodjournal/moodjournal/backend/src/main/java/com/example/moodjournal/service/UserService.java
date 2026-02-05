@@ -27,15 +27,9 @@ public class UserService {
 
     @Transactional
     public User register(User user) {
-        // Check for duplicate username
-        if (user.getUsername() != null && userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username is already taken");
-        }
-
-        // Check for duplicate email
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email is already taken");
-        }
+        // Race condition fix (V2): Removed "check-then-act" logic.
+        // We rely on the Database Unique Constraint and the below
+        // DataIntegrityViolationException catch block.
 
         // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));

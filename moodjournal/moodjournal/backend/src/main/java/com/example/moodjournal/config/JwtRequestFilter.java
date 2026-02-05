@@ -57,6 +57,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
           username);
 
       boolean isTokenValid = jwtUtil.validateToken(jwt, userDetails.getUsername());
+
+      // V5 Fix: TOCTOU protection - Explicitly check account status
+      if (isTokenValid) {
+        if (!userDetails.isEnabled()) {
+          log.warn("Authentication failed: User {} is disabled", username);
+          isTokenValid = false;
+        } else if (!userDetails.isAccountNonLocked()) {
+          log.warn("Authentication failed: User {} is locked", username);
+          isTokenValid = false;
+        }
+      }
+
       log.info("Is token valid? {}", isTokenValid);
 
       if (isTokenValid) {

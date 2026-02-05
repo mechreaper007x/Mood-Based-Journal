@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 
 import com.example.moodjournal.model.PasswordResetToken;
 import com.example.moodjournal.model.User;
@@ -95,7 +96,11 @@ public class PasswordResetService {
      * Resets the user's password using the provided token.
      * Returns true if successful.
      */
-    @Transactional
+    /**
+     * Resets the user's password using the provided token.
+     * Returns true if successful.
+     */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
 

@@ -32,6 +32,7 @@ public class AssessmentResponseItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private AssessmentSession session;
 
     private Integer questionNumber;

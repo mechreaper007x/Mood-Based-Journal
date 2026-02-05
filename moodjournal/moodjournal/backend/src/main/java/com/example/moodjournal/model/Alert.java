@@ -19,11 +19,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import jakarta.persistence.UniqueConstraint;
+
 /**
  * Mental health alerts for concerning patterns.
  */
 @Entity
-@Table(name = "alert")
+@Table(name = "alert", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "user_id", "type", "triggerEntryId" })
+})
 @Data
 @Builder
 @NoArgsConstructor

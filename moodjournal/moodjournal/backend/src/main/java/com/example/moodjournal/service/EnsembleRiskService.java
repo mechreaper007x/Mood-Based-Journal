@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Ensemble Risk Service - Combines multiple risk detection layers
@@ -44,7 +45,7 @@ public class EnsembleRiskService {
     // Circuit breaker: consecutive failures before disabling AI
     private static final int CIRCUIT_BREAKER_THRESHOLD = 5;
     private final AtomicInteger consecutiveAIFailures = new AtomicInteger(0);
-    private volatile boolean aiCircuitBreakerOpen = false;
+    private final AtomicBoolean aiCircuitBreakerOpen = new AtomicBoolean(false);
 
     public EnsembleRiskService(VADLexiconService vadLexiconService) {
         this.vadLexiconService = vadLexiconService;
@@ -69,7 +70,7 @@ public class EnsembleRiskService {
         int matchedWords = vadLexiconService.getMatchedWordCount(content);
 
         // Check circuit breaker
-        if (aiCircuitBreakerOpen) {
+        if (aiCircuitBreakerOpen.get()) {
             logger.warn("AI circuit breaker OPEN - using lexicon only");
             return buildLexiconOnlyResult(lexiconRiskScore, lexiconVad, detectedKeywords, matchedWords);
         }
@@ -93,7 +94,9 @@ public class EnsembleRiskService {
             // Confidence-weighted voting
             if (aiConfidence < LOW_CONFIDENCE_THRESHOLD) {
                 // Low AI confidence: weight lexicon at 80%, AI at 20%
-                finalRiskScore = (int) Math.round(lexiconRiskScore * 0.8 + aiRiskScore * 0.2);
+                // V4 Fix: Ensure bounded calculation
+                double weightedScore = lexiconRiskScore * 0.8 + aiRiskScore * 0.2;
+                finalRiskScore = (int) Math.round(Math.max(0, Math.min(10, weightedScore)));
                 riskSource = "WEIGHTED_LEXICON";
                 logger.info("Low AI confidence ({:.2f}), using weighted scoring: lexicon*0.8 + ai*0.2",
                         aiConfidence);
@@ -107,8 +110,10 @@ public class EnsembleRiskService {
             // AI unavailable - increment failure counter
             int failures = consecutiveAIFailures.incrementAndGet();
             if (failures >= CIRCUIT_BREAKER_THRESHOLD) {
-                aiCircuitBreakerOpen = true;
-                logger.error("AI circuit breaker TRIPPED after {} consecutive failures", failures);
+                // V10 Fix: Atomic transition
+                if (aiCircuitBreakerOpen.compareAndSet(false, true)) {
+                    logger.error("AI circuit breaker TRIPPED after {} consecutive failures", failures);
+                }
             }
 
             finalRiskScore = lexiconRiskScore;
@@ -172,7 +177,7 @@ public class EnsembleRiskService {
      * Reset the circuit breaker (for testing or manual reset).
      */
     public void resetCircuitBreaker() {
-        aiCircuitBreakerOpen = false;
+        aiCircuitBreakerOpen.set(false);
         consecutiveAIFailures.set(0);
         logger.info("AI circuit breaker reset");
     }
@@ -181,7 +186,7 @@ public class EnsembleRiskService {
      * Check if circuit breaker is open.
      */
     public boolean isCircuitBreakerOpen() {
-        return aiCircuitBreakerOpen;
+        return aiCircuitBreakerOpen.get();
     }
 
     // ========================================================================

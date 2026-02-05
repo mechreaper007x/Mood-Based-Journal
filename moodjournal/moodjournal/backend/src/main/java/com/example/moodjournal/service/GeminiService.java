@@ -285,53 +285,52 @@ public class GeminiService {
    * Call Gemini API with model rotation and retry logic.
    */
   public String callGeminiWithRotation(String prompt) {
-    apiLock.lock();
-    try {
-      Exception lastException = null;
-      int startIndex = modelIndex.get();
-      int modelCount = AVAILABLE_MODELS.size();
+    // apiLock removed for high-throughput (S1 fix)
 
-      for (int i = 0; i < modelCount; i++) {
-        int currentIndex = (startIndex + i) % modelCount;
-        String model = AVAILABLE_MODELS.get(currentIndex);
-        log.debug("Attempting Gemini API call with model: {} (attempt {}/{})",
-            model, i + 1, modelCount);
+    // try { (removed orphan try block)
+    Exception lastException = null;
+    int startIndex = modelIndex.get();
+    int modelCount = AVAILABLE_MODELS.size();
+
+    for (int i = 0; i < modelCount; i++) {
+      int currentIndex = (startIndex + i) % modelCount;
+      String model = AVAILABLE_MODELS.get(currentIndex);
+      log.debug("Attempting Gemini API call with model: {} (attempt {}/{})",
+          model, i + 1, modelCount);
+
+      try {
+        GenerateContentResponse response = client.models.generateContent(model, prompt, null);
+        String text = response.text();
+        log.debug("Successfully got response from model: {}", model);
+
+        // Atomic rotation (V7 fix)
+        modelIndex.getAndUpdate(current -> (current + 1) % modelCount);
+        return text != null ? text.trim() : "";
+      } catch (Exception e) {
+        lastException = e;
+        String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+
+        if (errorMsg.contains("429") || errorMsg.contains("rate") ||
+            errorMsg.contains("quota") || errorMsg.contains("resource_exhausted")) {
+          log.warn("Rate limit hit on model {}, trying next...", model);
+        } else if (errorMsg.contains("404") || errorMsg.contains("not found")) {
+          log.warn("Model {} not available (404), trying next...", model);
+        } else {
+          log.error("Error with model {}: {}", model, e.getMessage());
+        }
 
         try {
-          GenerateContentResponse response = client.models.generateContent(model, prompt, null);
-          String text = response.text();
-          log.debug("Successfully got response from model: {}", model);
-
-          modelIndex.set((currentIndex + 1) % modelCount);
-          return text != null ? text.trim() : "";
-        } catch (Exception e) {
-          lastException = e;
-          String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-          if (errorMsg.contains("429") || errorMsg.contains("rate") ||
-              errorMsg.contains("quota") || errorMsg.contains("resource_exhausted")) {
-            log.warn("Rate limit hit on model {}, trying next...", model);
-          } else if (errorMsg.contains("404") || errorMsg.contains("not found")) {
-            log.warn("Model {} not available (404), trying next...", model);
-          } else {
-            log.error("Error with model {}: {}", model, e.getMessage());
-          }
-
-          try {
-            Thread.sleep(200);
-          } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-          }
+          Thread.sleep(200);
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
         }
       }
-
-      String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
-      log.error("All {} models exhausted. Last error: {}", modelCount, errorMessage);
-      throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
-
-    } finally {
-      apiLock.unlock();
     }
+
+    String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
+    log.error("All {} models exhausted. Last error: {}", modelCount, errorMessage);
+    throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
+
   }
 
   /**
