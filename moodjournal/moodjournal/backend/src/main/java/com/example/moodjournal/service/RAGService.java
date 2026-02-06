@@ -21,7 +21,7 @@ import jakarta.annotation.PostConstruct;
 public class RAGService {
 
     private static final Logger log = LoggerFactory.getLogger(RAGService.class);
-    private static final String DATASET_PATH = "C:\\Users\\Savyasachi Mishra\\Desktop\\Mood based journal\\mistral_master_raw_dataset.csv";
+    private static final String DATASET_NAME = "mistral_master_raw_dataset.csv";
     private static final String CACHE_PATH = "rag_cache.dat";
 
     private final List<RAGDocument> documents = new ArrayList<>();
@@ -72,46 +72,52 @@ public class RAGService {
 
     private void loadFromCSV() {
         documents.clear();
-        try (BufferedReader br = new BufferedReader(new FileReader(DATASET_PATH))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line).append("\n");
+        try (InputStream is = getClass().getResourceAsStream("/" + DATASET_NAME)) {
+            if (is == null) {
+                log.error("CSV file not found in resources: {}", DATASET_NAME);
+                return;
             }
-            String fullText = sb.toString();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                String fullText = sb.toString();
 
-            // Simple CSV Parser logic (same as before)
-            boolean inQuotes = false;
-            StringBuilder field = new StringBuilder();
-            List<String> row = new ArrayList<>();
-            char[] chars = fullText.toCharArray();
+                // Simple CSV Parser logic (same as before)
+                boolean inQuotes = false;
+                StringBuilder field = new StringBuilder();
+                List<String> row = new ArrayList<>();
+                char[] chars = fullText.toCharArray();
 
-            for (int i = 0; i < chars.length; i++) {
-                char c = chars[i];
-                if (c == '\"') {
-                    if (i + 1 < chars.length && chars[i + 1] == '\"') {
-                        field.append('\"');
-                        i++;
-                    } else {
-                        inQuotes = !inQuotes;
-                    }
-                } else if (c == ',' && !inQuotes) {
-                    row.add(field.toString());
-                    field.setLength(0);
-                } else if ((c == '\n' || c == '\r') && !inQuotes) {
-                    if (field.length() > 0 || !row.isEmpty()) {
+                for (int i = 0; i < chars.length; i++) {
+                    char c = chars[i];
+                    if (c == '\"') {
+                        if (i + 1 < chars.length && chars[i + 1] == '\"') {
+                            field.append('\"');
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (c == ',' && !inQuotes) {
                         row.add(field.toString());
                         field.setLength(0);
+                    } else if ((c == '\n' || c == '\r') && !inQuotes) {
+                        if (field.length() > 0 || !row.isEmpty()) {
+                            row.add(field.toString());
+                            field.setLength(0);
+                        }
+                        if (!row.isEmpty()) {
+                            addDocumentFromRow(row);
+                            row.clear();
+                        }
+                    } else {
+                        field.append(c);
                     }
-                    if (!row.isEmpty()) {
-                        addDocumentFromRow(row);
-                        row.clear();
-                    }
-                } else {
-                    field.append(c);
                 }
+                log.info("Loaded {} raw documents from CSV.", documents.size());
             }
-            log.info("Loaded {} raw documents from CSV.", documents.size());
         } catch (IOException e) {
             log.error("Failed to load CSV: {}", e.getMessage());
         }
