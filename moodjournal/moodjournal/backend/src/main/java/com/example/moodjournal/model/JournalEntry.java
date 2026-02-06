@@ -33,14 +33,15 @@ public class JournalEntry {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @NotBlank(message = "Title cannot be empty")
-  @Size(max = 100, message = "Title must be less than 100 characters")
-  @Convert(converter = EncryptedStringConverter.class)
+  @jakarta.persistence.Column(nullable = false)
+  @jakarta.validation.constraints.NotBlank(message = "Title cannot be empty")
+  @jakarta.validation.constraints.Size(max = 100, message = "Title must be less than 100 characters")
+  @jakarta.persistence.Convert(converter = com.example.moodjournal.util.AttributeEncryptor.class)
   private String title;
 
-  @Column(columnDefinition = "TEXT")
-  @NotBlank(message = "Content cannot be empty")
-  @Convert(converter = EncryptedStringConverter.class)
+  @jakarta.persistence.Column(nullable = false, columnDefinition = "TEXT")
+  @jakarta.validation.constraints.NotBlank(message = "Content cannot be empty")
+  @jakarta.persistence.Convert(converter = com.example.moodjournal.util.AttributeEncryptor.class)
   private String content;
 
   @Enumerated(EnumType.STRING)

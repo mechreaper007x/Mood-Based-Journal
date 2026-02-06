@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.moodjournal.service.AIResponseValidator.ValidationResult;
 import com.example.moodjournal.util.PromptConstants;
 import com.google.genai.Client;
@@ -31,6 +33,15 @@ public class GeminiService {
 
   private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
 
+  private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
+
+  private final RestTemplate restTemplate;
+  private final ObjectMapper objectMapper;
+  private final AISecurityService aiSecurityService;
+
+  @Value("${google.api.key}")
+  private String geminiApiKey;
+
   private final Client client;
   private final AIResponseValidator validator;
   private final VADLexiconService lexiconService;
@@ -44,7 +55,6 @@ public class GeminiService {
       "gemma-3-27b-it",
       "gemma-3-12b-it",
       "gemma-3-4b-it",
-      "gemma-3-2b-it",
       "gemma-3-1b-it");
 
   // Round-robin counter for model selection
@@ -54,14 +64,19 @@ public class GeminiService {
   private final ReentrantLock apiLock = new ReentrantLock();
 
   public GeminiService(
-      @Value("${google.api.key}") String apiKey,
+      @Value("${google.api.key}") String rawApiKey,
       AIResponseValidator validator,
       VADLexiconService lexiconService,
-      com.example.moodjournal.security.sanitization.InputSanitizer sanitizer) {
-    this.client = Client.builder().apiKey(apiKey).build();
+      com.example.moodjournal.security.sanitization.InputSanitizer sanitizer,
+      RestTemplate restTemplate, ObjectMapper objectMapper, AISecurityService aiSecurityService) {
+    this.client = Client.builder().apiKey(rawApiKey).build();
+    this.geminiApiKey = rawApiKey;
     this.validator = validator;
     this.lexiconService = lexiconService;
     this.sanitizer = sanitizer;
+    this.restTemplate = restTemplate;
+    this.objectMapper = objectMapper;
+    this.aiSecurityService = aiSecurityService;
     log.info("GeminiService initialized with {} models for rotation and validation enabled",
         AVAILABLE_MODELS.size());
   }
@@ -117,9 +132,23 @@ public class GeminiService {
    * Analyze emotions in journal content using context-engineered prompts.
    * Validates response and falls back to lexicon on low confidence.
    */
-  public String analyzeEmotions(String journalContent) {
-    String sanitized = sanitizer.sanitize(journalContent);
-    String prompt = PromptConstants.EMOTION_BREAKDOWN_PROMPT + sanitized;
+  public String analyzeEmotions(String entryContent) {
+    // SECURITY: Pre-process and filter input
+    String safeContent = aiSecurityService.securePrompt(entryContent);
+
+    // If content was completely filtered (e.g. only PII), warn but proceed with
+    // empty or handle as error?
+    // securePrompt throws SecurityException if jailbreak detected.
+
+    String prompt = """
+        Analyze the following journal entry and return a JSON object with:
+        1. "DominantEmotion": The single most prominent emotion.
+        2. "SentimentScore": A number from -1 (negative) to 1 (positive).
+        3. "Keywords": A list of up to 5 key themes/topics.
+        4. "Suggestion": A brief, helpful suggestion for the user.
+
+        Entry: "%s"
+        """.formatted(safeContent); // Use sanitized content
 
     try {
       String response = callGeminiWithRotation(prompt);
@@ -131,18 +160,18 @@ public class GeminiService {
 
       if (!validation.isValid()) {
         log.warn("AI response validation failed: {}. Using fallback.", validation.getFailureReason());
-        return generateFallbackEmotionBreakdown(sanitized);
+        return generateFallbackEmotionBreakdown(safeContent);
       }
 
       if (validator.shouldFallbackToLexicon(validation.getConfidence())) {
-        log.info("AI confidence {} below threshold. Augmenting with lexicon.", validation.getConfidence());
-        // Still return AI response but log for audit
+        String enhancedResponse = lexiconService.enhanceAnalysis(entryContent, validation);
+        return aiSecurityService.secureResponse(enhancedResponse); // SECURITY: Output Filter
       }
 
-      return cleanResponse;
+      return aiSecurityService.secureResponse(cleanResponse); // SECURITY: Output Filter
     } catch (Exception e) {
       log.error("Gemini analysis failed: {}. Using fallback.", e.getMessage(), e);
-      return generateFallbackEmotionBreakdown(sanitized);
+      return aiSecurityService.secureResponse(generateFallbackEmotionBreakdown(safeContent)); // SECURITY: Output Filter
     }
   }
 
@@ -220,6 +249,23 @@ public class GeminiService {
     }
   }
 
+  /**
+   * Call Gemini API with model rotation and retry logic.
+   */
+  public String chat(String message) {
+    // SECURITY: Pre-process and filter input
+    String safeMessage = aiSecurityService.securePrompt(message);
+
+    String prompt = """
+        You are a helpful, empathetic mental health companion.
+        User says: "%s"
+        Reply in a supportive, conversational manner. Keep it brief (under 50 words).
+        """.formatted(safeMessage); // Use sanitized content
+
+    String response = callGeminiWithRotation(prompt);
+    return aiSecurityService.secureResponse(response); // SECURITY: Output Filter
+  }
+
   // ========================================================================
   // PRIVATE HELPER METHODS
   // ========================================================================
@@ -228,22 +274,8 @@ public class GeminiService {
    * Generate fallback emotion breakdown using lexicon.
    */
   private String generateFallbackEmotionBreakdown(String text) {
-    var vad = lexiconService.analyzeText(text);
-    double valence = vad.getOrDefault("valence", 0.5);
-
-    // Map valence to emotions (simplified)
-    int happiness = (int) (valence * 100);
-    int sadness = (int) ((1 - valence) * 60);
-    int anger = Math.max(0, 100 - happiness - sadness - 15);
-
-    String dominant = happiness >= sadness ? "happiness" : "sadness";
-
-    return String.format(
-        """
-            {"emotions":{"happiness":{"percentage":%d,"confidence":0.4},"sadness":{"percentage":%d,"confidence":0.4},"anger":{"percentage":%d,"confidence":0.3},"fear":{"percentage":5,"confidence":0.3},"surprise":{"percentage":5,"confidence":0.3},"disgust":{"percentage":3,"confidence":0.3},"contempt":{"percentage":2,"confidence":0.3}},"dominantEmotion":"%s","overallConfidence":0.35,"reasoning":"Fallback analysis using lexicon-based VAD scoring."}
-            """
-            .trim(),
-        happiness, sadness, anger, dominant);
+    String fallback = lexiconService.analyzeWithoutAI(text);
+    return aiSecurityService.secureResponse(fallback);
   }
 
   /**

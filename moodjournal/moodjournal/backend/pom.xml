@@ -155,6 +155,12 @@
 			<artifactId>bcprov-jdk18on</artifactId>
 			<version>1.80</version>
 		</dependency>
+                <!-- Jsoup for XSS Sanitization -->
+                <dependency>
+                        <groupId>org.jsoup</groupId>
+                        <artifactId>jsoup</artifactId>
+                        <version>1.17.2</version>
+                </dependency>
 	</dependencies>
 
 	<build>

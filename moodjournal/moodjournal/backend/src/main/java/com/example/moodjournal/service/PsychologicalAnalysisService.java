@@ -37,6 +37,9 @@ public class PsychologicalAnalysisService {
     @Autowired
     private JournalEntryRepository journalEntryRepository;
 
+    @Autowired
+    private AISecurityService aiSecurityService; // NEW: Security Gate
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -45,9 +48,22 @@ public class PsychologicalAnalysisService {
     public EntryAnalysisResult analyzeWithProfile(java.util.UUID userId, JournalEntry entry) {
         log.info(">>> Starting profile-aware analysis for userId={}", userId);
 
+        // <<< SECURITY CHECKPOINT >>>
+        // Sanitize and validate content through the 5-layer security gate FIRST.
+        String safeContent;
+        try {
+            safeContent = aiSecurityService.securePrompt(entry.getContent());
+        } catch (SecurityException e) {
+            log.warn("SECURITY BLOCK: Content rejected by AISecurityService: {}", e.getMessage());
+            EntryAnalysisResult blockedResult = getDefaultResult();
+            blockedResult.setNarrativeInsight("Entry flagged by security system: " + e.getMessage());
+            blockedResult.setRiskScore(1); // Not a mental health risk, a security risk.
+            return blockedResult; // Early exit, bypassing AI call entirely.
+        }
+
         // 1. DETERMINISTIC SAFETY CHECK (The "Red Line")
         // We do not trust the AI with life-or-death classification.
-        boolean hasCrisisKeywords = checkCrisisKeywords(entry.getContent());
+        boolean hasCrisisKeywords = checkCrisisKeywords(safeContent); // Check on SAFE content
         if (hasCrisisKeywords) {
             log.warn("!!! CRISIS KEYWORDS DETECTED for userId={} !!!", userId);
         }
@@ -56,8 +72,8 @@ public class PsychologicalAnalysisService {
         Optional<UserProfileDTO> profileOpt = userProfileService.getProfileByUserId(userId);
         log.info(">>> Profile found: {}", profileOpt.isPresent());
 
-        // Build the prompt
-        String prompt = buildAnalysisPrompt(profileOpt.orElse(null), userId, entry);
+        // Build the prompt with the already-sanitized content
+        String prompt = buildAnalysisPrompt(profileOpt.orElse(null), userId, entry, safeContent);
         log.info(">>> Prompt length: {} chars", prompt.length());
 
         try {
@@ -105,8 +121,10 @@ public class PsychologicalAnalysisService {
 
     /**
      * Build a comprehensive analysis prompt with profile context.
+     * Accepts pre-sanitized content to avoid redundant sanitization calls.
      */
-    private String buildAnalysisPrompt(UserProfileDTO profile, java.util.UUID userId, JournalEntry entry) {
+    private String buildAnalysisPrompt(UserProfileDTO profile, java.util.UUID userId, JournalEntry entry,
+            String safeContent) {
         StringBuilder prompt = new StringBuilder();
 
         // 1. Role Definition
@@ -162,7 +180,7 @@ public class PsychologicalAnalysisService {
         if (entry.getTriggerDescription() != null && !entry.getTriggerDescription().isBlank()) {
             prompt.append(String.format("Trigger: %s\n", entry.getTriggerDescription()));
         }
-        prompt.append(String.format("\nContent:\n%s\n\n", entry.getContent()));
+        prompt.append(String.format("\nContent:\n%s\n\n", safeContent)); // Use SANITIZED content passed as argument
 
         // 5. MERGED Output Format (Old Working Fields + New ISEAR/GoEmotions/VAD)
         prompt.append(

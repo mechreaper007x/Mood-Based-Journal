@@ -33,6 +33,7 @@ public class JournalEntryService {
   private final PsychologicalAnalysisService psychAnalysisService;
   private final AlertService alertService;
   private final EnsembleRiskService ensembleRiskService;
+  private final SanitizationService sanitizationService;
 
   public JournalEntryService(
       JournalEntryRepository entryRepo,
@@ -41,7 +42,8 @@ public class JournalEntryService {
       ObjectMapper objectMapper,
       PsychologicalAnalysisService psychAnalysisService,
       AlertService alertService,
-      EnsembleRiskService ensembleRiskService) {
+      EnsembleRiskService ensembleRiskService,
+      SanitizationService sanitizationService) {
     this.entryRepo = entryRepo;
     this.userRepo = userRepo;
     this.geminiService = geminiService;
@@ -49,6 +51,7 @@ public class JournalEntryService {
     this.psychAnalysisService = psychAnalysisService;
     this.alertService = alertService;
     this.ensembleRiskService = ensembleRiskService;
+    this.sanitizationService = sanitizationService;
   }
 
   @Transactional
@@ -57,6 +60,10 @@ public class JournalEntryService {
         .findById(userId)
         .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
     entry.setUser(user);
+
+    // XSS Sanitization
+    entry.setTitle(sanitizationService.sanitizeStrict(entry.getTitle()));
+    entry.setContent(sanitizationService.sanitize(entry.getContent()));
 
     // Quick pre-screening with lexicon (fast, no AI)
     var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
@@ -353,8 +360,8 @@ public class JournalEntryService {
           if (!e.getUser().getId().equals(userId)) {
             throw new NoSuchElementException("JournalEntry not found");
           }
-          e.setTitle(updated.getTitle());
-          e.setContent(updated.getContent());
+          e.setTitle(sanitizationService.sanitizeStrict(updated.getTitle()));
+          e.setContent(sanitizationService.sanitize(updated.getContent()));
 
           if (updated.getContent() != null && !updated.getContent().equals(e.getContent())) {
             Mood suggestedMood = suggestMood(updated.getContent());
@@ -385,8 +392,8 @@ public class JournalEntryService {
     return entryRepo
         .findById(id)
         .map(e -> {
-          e.setTitle(updatedEntry.getTitle());
-          e.setContent(updatedEntry.getContent());
+          e.setTitle(sanitizationService.sanitizeStrict(updatedEntry.getTitle()));
+          e.setContent(sanitizationService.sanitize(updatedEntry.getContent()));
           e.setMood(updatedEntry.getMood());
           e.setVisibility(updatedEntry.getVisibility());
           return entryRepo.save(e);
