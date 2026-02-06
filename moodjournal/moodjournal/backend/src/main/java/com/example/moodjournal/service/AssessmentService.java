@@ -36,6 +36,9 @@ public class AssessmentService {
     private static final int MAX_CACHED_SETS = 5; // Keep up to 5 different question sets
 
     @Autowired
+    private AISecurityService securityService;
+
+    @Autowired
     private GeminiService geminiService;
 
     @Autowired
@@ -510,7 +513,16 @@ public class AssessmentService {
         if (submission.getPersonalizedResponses() != null) {
             for (var pr : submission.getPersonalizedResponses()) {
                 context.append("Q: ").append(pr.getQuestion()).append("\n");
-                context.append("A: ").append(pr.getAnswer()).append("\n\n");
+
+                // SECURITY CHECK: Sanitize User Answer
+                String safeAnswer = "Redacted";
+                try {
+                    safeAnswer = securityService.securePrompt(pr.getAnswer());
+                } catch (Exception e) {
+                    log.error("Analysis Blocked: Malicious content in assessment answer.", e);
+                    safeAnswer = "[REDACTED - MALICIOUS CONTENT]";
+                }
+                context.append("A: ").append(safeAnswer).append("\n\n");
             }
         }
 

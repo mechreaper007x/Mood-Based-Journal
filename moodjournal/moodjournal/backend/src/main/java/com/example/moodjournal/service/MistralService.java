@@ -39,6 +39,9 @@ public class MistralService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private AISecurityService securityService;
+
     /**
      * Generate 3 personalized psychological questions based on journal entries.
      * Questions focus on: Big 5 traits, Shadow/Enneagram insights, Personal growth.
@@ -60,13 +63,31 @@ public class MistralService {
             return getFallbackQuestions();
         }
 
-        // Build journal context
+        // Build journal context securely
         StringBuilder journalContext = new StringBuilder();
+        int safeEntryCount = 0;
+
         for (int i = 0; i < Math.min(5, recentEntries.size()); i++) {
             JournalEntry entry = recentEntries.get(i);
-            journalContext.append("Entry ").append(i + 1).append(": ")
-                    .append(entry.getContent().substring(0, Math.min(300, entry.getContent().length())))
-                    .append("...\n");
+            try {
+                // SECURITY CHECK: Sanitize content before sending to AI
+                String safeContent = securityService.securePrompt(entry.getContent());
+
+                journalContext.append("Entry ").append(i + 1).append(": ")
+                        .append(safeContent.substring(0, Math.min(300, safeContent.length())))
+                        .append("...\n");
+                safeEntryCount++;
+            } catch (Exception e) {
+                log.warn("🚨 BLOCKED MALICIOUS JOURNAL ENTRY during Mistral call: {}", e.getMessage());
+                // Skip this entry but continue with others
+                journalContext.append("Entry ").append(i + 1)
+                        .append(": [CONTENT REDACTED DUE TO SECURITY VIOLATION]\n");
+            }
+        }
+
+        if (safeEntryCount == 0) {
+            log.warn("⚠️ All entries were blocked by security filters. returning fallback questions");
+            return getFallbackQuestions();
         }
 
         String prompt = """
