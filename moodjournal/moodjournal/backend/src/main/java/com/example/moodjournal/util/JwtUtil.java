@@ -22,8 +22,17 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    /**
+     * Generate token with default empty claims.
+     */
     public String generateToken(String username) {
-        Map<String, Object> claims = new HashMap<>();
+        return generateToken(username, new HashMap<>());
+    }
+
+    /**
+     * Generate token with custom claims (for fingerprinting, etc.)
+     */
+    public String generateToken(String username, Map<String, Object> claims) {
         return createToken(claims, username);
     }
 
@@ -65,5 +74,46 @@ public class JwtUtil {
     public Boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
+    }
+
+    /**
+     * Get time remaining until token expires (in milliseconds).
+     * Returns 0 if token is already expired.
+     */
+    public long getTimeToExpiry(String token) {
+        try {
+            Date expiration = extractExpiration(token);
+            long ttl = expiration.getTime() - System.currentTimeMillis();
+            return Math.max(0, ttl);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Check if token should be rotated based on age.
+     * 
+     * @param token           The JWT token
+     * @param rotationMinutes Rotation threshold in minutes
+     * @return true if token is older than rotationMinutes
+     */
+    public boolean shouldRotate(String token, int rotationMinutes) {
+        try {
+            Claims claims = extractAllClaims(token);
+            Long issuedAtMs = claims.get("iat_ms", Long.class);
+
+            if (issuedAtMs == null) {
+                // Fallback to standard iat claim
+                Date issuedAt = claims.getIssuedAt();
+                if (issuedAt == null)
+                    return false;
+                issuedAtMs = issuedAt.getTime();
+            }
+
+            long ageMinutes = (System.currentTimeMillis() - issuedAtMs) / (60 * 1000);
+            return ageMinutes >= rotationMinutes;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

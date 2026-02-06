@@ -8,11 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,10 +22,12 @@ import com.example.moodjournal.dto.ForgotPasswordRequest;
 import com.example.moodjournal.dto.RegisterRequest;
 import com.example.moodjournal.dto.ResetPasswordRequest;
 import com.example.moodjournal.model.User;
+import com.example.moodjournal.service.JwtSecurityService;
 import com.example.moodjournal.service.PasswordResetService;
 import com.example.moodjournal.service.UserService;
 import com.example.moodjournal.util.JwtUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -37,23 +41,26 @@ public class AuthController {
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final PasswordResetService passwordResetService;
+    private final JwtSecurityService jwtSecurityService;
 
     public AuthController(
             UserService userService,
             AuthenticationManager authenticationManager,
             UserDetailsService userDetailsService,
             JwtUtil jwtUtil,
-            PasswordResetService passwordResetService) {
+            PasswordResetService passwordResetService,
+            JwtSecurityService jwtSecurityService) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
         this.passwordResetService = passwordResetService;
+        this.jwtSecurityService = jwtSecurityService;
     }
 
     @CrossOrigin
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         try {
             User user = User.builder()
                     .username(request.getUsername())
@@ -64,8 +71,8 @@ public class AuthController {
 
             User registeredUser = userService.register(user);
 
-            final UserDetails userDetails = userDetailsService.loadUserByUsername(registeredUser.getEmail());
-            final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+            // Generate secure token with fingerprinting
+            final String jwt = jwtSecurityService.generateSecureToken(registeredUser.getEmail(), httpRequest);
 
             registeredUser.setPassword(null);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("token", jwt, "user", registeredUser));
@@ -76,7 +83,7 @@ public class AuthController {
 
     @CrossOrigin
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials, HttpServletRequest httpRequest) {
         log.info("--- LOGIN METHOD CALLED ---");
         try {
             authenticationManager.authenticate(
@@ -86,14 +93,55 @@ public class AuthController {
         }
 
         final String email = credentials.get("email");
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+
+        // Generate secure token with fingerprinting
+        final String jwt = jwtSecurityService.generateSecureToken(email, httpRequest);
 
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found after authentication"));
 
         user.setPassword(null);
+        log.info("Secure token generated for user: {}", email);
         return ResponseEntity.ok(Map.of("token", jwt, "user", user));
+    }
+
+    /**
+     * Logout endpoint - revokes the current JWT token.
+     * The token is added to a blacklist until it expires.
+     */
+    @CrossOrigin
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Missing or invalid Authorization header"));
+        }
+
+        String token = authHeader.substring(7);
+        jwtSecurityService.revokeToken(token);
+        SecurityContextHolder.clearContext();
+
+        log.info("Token revoked via logout");
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    /**
+     * Logout from all devices - revokes all tokens for the current user.
+     */
+    @CrossOrigin
+    @PostMapping("/logout-all")
+    public ResponseEntity<?> logoutAll(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Missing or invalid Authorization header"));
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+
+        jwtSecurityService.revokeAllUserTokens(email);
+        SecurityContextHolder.clearContext();
+
+        log.info("All tokens revoked for user: {}", email);
+        return ResponseEntity.ok(Map.of("message", "Logged out from all devices successfully"));
     }
 
     @CrossOrigin
