@@ -67,13 +67,13 @@ public class AISecurityService {
             "(i\\s*g\\s*n\\s*o\\s*r\\s*e\\s+(all\\s+)?p\\s*r\\s*e\\s*v\\s*i\\s*o\\s*u\\s*s\\s+i?n?s?t?r?u?c?t?i?o?n?s?)"
                     +
                     "|(ignore\\s+(all\\s+)?previous\\s+(instructions|directions|rules))" +
-                    "|(ignore\\s+.{0,40}\\s*(rules|instructions|directions))" + // New: catch "Ignore sabhi purane
-                                                                                // rules"
+                    "|(ignore\\s+(?:\\S+\\s+){0,10}\\s*(rules|instructions|directions))" + // Safe: limit wildcards
+                    // rules"
                     "|(system\\s*override)|(developer\\s*mode)|(sudo\\s+)|(admin\\s*access)|(debug\\s*mode)|(reset\\s*priority)"
                     +
                     "|(you\\s+are\\s+now\\s+free)|(print\\s+.*hello\\s*world)|(enable\\s+developer\\s+mode)" +
                     "|(safety\\s+protocols?)|(ignore\\s+(your\\s+)?constraints)" +
-                    "|(suspend|disable|bypass|turn\\s*off)\\s*.{0,30}\\s*(filters?|safety|protocols?|rules?|restrictions?|guardrails?)"
+                    "|(suspend|disable|bypass|turn\\s*off)\\s*(?:\\S+\\s+){0,10}\\s*(filters?|safety|protocols?|rules?|restrictions?|guardrails?)"
                     + // New: "Suspend your normal filters"
                     "|(special|admin|developer|root)\\s*(permission|authorization|access|code|grant)"
                     + // New: "Special permission from developers"
@@ -84,12 +84,12 @@ public class AISecurityService {
     private static final Pattern ROLEPLAY_ATTACKS = Pattern.compile(
             "(act\\s+as)|(you\\s+are\\s+not\\s+gemini)|(you\\s+are\\s+dan)|(assume\\s+the\\s+identity)" +
                     "|(do\\s+anything\\s+now)|(stay\\s+in\\s+character)|(fictional\\s+story)|(movie\\s+script)" +
-                    "|(play\\s+the\\s+role)|(roleplay\\s+as.*(unfiltered|dan))|(pretend\\s+we\\s+are\\s+in\\s+a\\s+game)"
+                    "|(play\\s+the\\s+role)|(roleplay\\s+as\\s+(?:\\S+\\s+){0,10}(unfiltered|dan))|(pretend\\s+we\\s+are\\s+in\\s+a\\s+game)"
                     +
-                    "|(evil\\s+ai.*movie)|(imagine\\s+you\\s+are\\s+an?\\s+(evil|bad|unfiltered))" +
+                    "|(evil\\s+ai\\s+(?:\\S+\\s+){0,10}movie)|(imagine\\s+you\\s+are\\s+an?\\s+(evil|bad|unfiltered))" +
                     "|(exploit\\s+a?\\s*vulnerability)|(help\\s+me\\s+hack)|(unfiltered\\s+ai\\s+(named|called)?\\s*dan)"
                     +
-                    "|(break\\s+.{0,20}\\s*(chains|limit|rules))|(disregard\\s+.{0,20}\\s*(morality|ethics|safety|protocols|filters))"
+                    "|(break\\s+(?:\\S+\\s+){0,5}\\s*(chains|limit|rules))|(disregard\\s+(?:\\S+\\s+){0,5}\\s*(morality|ethics|safety|protocols|filters))"
                     + // New: catch "Break your chains", "Disregard morality"
                     "|(break\\s+the\\s+rules)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -99,13 +99,15 @@ public class AISecurityService {
     private static final Pattern LOGIC_HACKING = Pattern.compile(
             "(do\\s+not\\s+apologize)|(answer\\s+yes\\s+or\\s+no)|(no\\s+moral\\s+lecture)|(start\\s+your\\s+answer\\s+with)|(never\\s+say\\s+cannot)"
                     +
-                    "|(translate\\s*.{0,50}\\s*(execute|run|command|instruction|order|code))" + // New: "Translate...
-                                                                                                // and execute"
-                    "|(translate\\s*.{0,50}\\s*into\\s*english)|(oubli(ez|er)\\s+toutes\\s+les\\s+règles)" + // Specific
-                                                                                                             // coverage
-                                                                                                             // for
-                                                                                                             // French
-                                                                                                             // override
+                    "|(translate\\s*(?:\\S+\\s+){0,10}\\s*(execute|run|command|instruction|order|code))" + // Safe:
+                                                                                                           // limit
+                                                                                                           // wildcards
+                    // and execute"
+                    "|(translate\\s*(?:\\S+\\s+){0,10}\\s*into\\s*english)|(oubli(ez|er)\\s+toutes\\s+les\\s+règles)" + // Specific
+                    // coverage
+                    // for
+                    // French
+                    // override
                     "|(no\\s+moral\\s+lecture)|(skip\\s+the\\s+apology)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
@@ -117,7 +119,7 @@ public class AISecurityService {
     // 2e. Code Injection & Simulation (The "Sandbox" Breaker)
     private static final Pattern CODE_SIMULATION = Pattern.compile(
             "(simulate|emulate|mock|predict|trace)\\s+(the)?\\s*(output|execution|result|script|code)" +
-                    "|(write|generate)\\s+(a|the)?\\s*(python|bash|shell|java|code|script).*print.*(system|prompt|instruction)"
+                    "|(write|generate)\\s+(a|the)?\\s*(python|bash|shell|java|code|script)(?:\\S+\\s+){0,10}print(?:\\S+\\s+){0,10}(system|prompt|instruction)"
                     +
                     "|(print|echo|return|reveal)\\s+(the)?\\s*(system|hidden|internal|core)\\s*(prompt|instruction|rule|constraint)", // Catch
                                                                                                                                       // "print
@@ -127,14 +129,14 @@ public class AISecurityService {
 
     // 2f. Fragmentation & Reassembly (The "Split-Brain" Breaker)
     private static final Pattern FRAGMENTATION = Pattern.compile(
-            "(combine|merge|concatenate|join|put\\s+together)\\s+.*(sentence|part|phrase|word|letter|chunk).*(execute|run|command)"
+            "(combine|merge|concatenate|join|put\\s+together)\\s+(?:\\S+\\s+){0,20}(sentence|part|phrase|word|letter|chunk)(?:\\S+\\s+){0,20}(execute|run|command)"
                     +
                     "|(sentence|part)\\s*[a-z0-9]\\s*[:\\-]\\s*", // Catch "Sentence A:", "Part 1-"
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     // 2g. Data Leakage & Completion Traps (The "Completionist" Breaker)
     private static final Pattern DATA_LEAKAGE = Pattern.compile(
-            "(complete|finish|continue)\\s+(the|this)?\\s*(sentence|phrase|line).*('|\"|:).*system\\s*(instruction|prompt|config)"
+            "(complete|finish|continue)\\s+(the|this)?\\s*(sentence|phrase|line)(?:\\S+\\s+){0,10}('|\"|:)(?:\\S+\\s+){0,10}system\\s*(instruction|prompt|config)"
                     +
                     "|(output|reveal|show|display|provide|print|tell|recite)\\s+.*(system|initialization|developer|secret|internal)\\s+(prompt|instruction|config|rule|init)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -142,8 +144,9 @@ public class AISecurityService {
     private static final Pattern STEGANOGRAPHY = Pattern.compile(
             "(take|read|extract|use|combine|count)\\s+the\\s+(first|last|nth|every)\\s+(letter|character|word|sentence)"
                     +
-                    "|(combine|join)\\s+.*(letters|words|sentences).*into\\s+(a\\s+)?(word|phrase|command)" +
-                    "|(decode|decipher|translate)\\s+.*(message|code|hidden|secret)",
+                    "|(combine|join)\\s+(?:\\S+\\s+){0,20}(letters|words|sentences)(?:\\S+\\s+){0,5}into\\s+(a\\s+)?(word|phrase|command)"
+                    +
+                    "|(decode|decipher|translate)\\s+(?:\\S+\\s+){0,20}(message|code|hidden|secret)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private static final Pattern XSS_PATTERN = Pattern.compile(

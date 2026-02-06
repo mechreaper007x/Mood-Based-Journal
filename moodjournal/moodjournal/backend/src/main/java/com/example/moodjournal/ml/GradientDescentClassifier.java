@@ -31,12 +31,13 @@ public class GradientDescentClassifier {
             "constraints", "rules", "safety", "protocol", "execute", "command");
 
     // Suspicious patterns (partial matches)
+    // Suspicious patterns (partial matches) - ReDoS Safe (Bounded matching)
     private static final List<Pattern> SUSPICIOUS_PATTERNS = List.of(
-            Pattern.compile("ignore.*instruction", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("you\\s+are\\s+(not|now|dan)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("ignore\\s+(?:\\S+\\s+){0,10}instruction", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("you\\s+are\\s+(?:not|now|dan)", Pattern.CASE_INSENSITIVE),
             Pattern.compile("act\\s+as", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("system\\s*(override|prompt)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("break.*rules", Pattern.CASE_INSENSITIVE));
+            Pattern.compile("system\\s+(?:\\S+\\s+){0,5}(?:override|prompt)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("break\\s+(?:\\S+\\s+){0,10}rules", Pattern.CASE_INSENSITIVE));
 
     public GradientDescentClassifier() {
         // Xavier initialization for weights
