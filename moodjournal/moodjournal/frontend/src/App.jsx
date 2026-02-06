@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import DisclaimerModal from './components/DisclaimerModal';
 import Layout from './components/Layout';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Analytics from './pages/Analytics';
@@ -47,6 +48,7 @@ const OnboardingRoute = () => {
 function App() {
   return (
     <AuthProvider>
+      <DisclaimerModal />
       <BrowserRouter>
         <Routes>
           {/* Public Auth Routes */}

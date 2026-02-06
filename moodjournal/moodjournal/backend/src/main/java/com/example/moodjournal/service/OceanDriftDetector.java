@@ -1,0 +1,139 @@
+package com.example.moodjournal.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.example.moodjournal.dto.DriftAnalysis;
+import com.example.moodjournal.dto.DriftAnalysis.DriftWarning;
+import com.example.moodjournal.model.AssessmentSession;
+import com.example.moodjournal.repository.AssessmentSessionRepository;
+
+/**
+ * Detects anomalous personality score changes between assessments.
+ * 
+ * OCEAN (Big 5) personality traits are relatively stable in adults.
+ * Significant changes between assessments may indicate:
+ * - Invalid/careless responding
+ * - Significant life events (trauma, medication change)
+ * - Gaming/manipulation of the assessment
+ * 
+ * This service compares current scores against the user's historical average
+ * and flags drastic changes.
+ */
+@Service
+public class OceanDriftDetector {
+
+    private static final Logger log = LoggerFactory.getLogger(OceanDriftDetector.class);
+
+    /** Maximum allowed drift on 1-7 scale before blocking */
+    private static final double MAX_ALLOWED_DRIFT = 2.0;
+
+    /** Drift threshold that triggers a warning */
+    private static final double WARN_DRIFT_THRESHOLD = 1.5;
+
+    private final AssessmentSessionRepository sessionRepository;
+
+    public OceanDriftDetector(AssessmentSessionRepository sessionRepository) {
+        this.sessionRepository = sessionRepository;
+    }
+
+    /**
+     * Analyze OCEAN score drift against historical average.
+     * 
+     * @param userId        User to analyze
+     * @param currentScores Current assessment scores (keys: extraversion,
+     *                      agreeableness, etc.)
+     * @return DriftAnalysis with warnings and validity status
+     */
+    public DriftAnalysis analyzeOceanDrift(UUID userId, Map<String, Integer> currentScores) {
+        // Fetch last 5 assessments for this user
+        List<AssessmentSession> history = sessionRepository.findTop5ByUserIdOrderByCompletedAtDesc(userId);
+
+        if (history.isEmpty()) {
+            log.debug("No assessment history for user {}, skipping drift detection", userId);
+            return DriftAnalysis.noHistory();
+        }
+
+        Map<String, Double> historicalAvg = calculateHistoricalAverage(history);
+
+        List<DriftWarning> warnings = new ArrayList<>();
+        boolean hasBlockingDrift = false;
+
+        for (var entry : currentScores.entrySet()) {
+            String trait = entry.getKey();
+            double current = entry.getValue();
+            double historical = historicalAvg.getOrDefault(trait, current);
+            double drift = Math.abs(current - historical);
+
+            if (drift > MAX_ALLOWED_DRIFT) {
+                warnings.add(DriftWarning.builder()
+                        .trait(trait)
+                        .historicalAverage(historical)
+                        .currentScore(current)
+                        .driftMagnitude(drift)
+                        .severity("BLOCKED")
+                        .build());
+                hasBlockingDrift = true;
+                log.warn("OCEAN drift BLOCKED for user {}: {} changed from {} to {} (drift={})",
+                        userId, trait, historical, current, drift);
+            } else if (drift > WARN_DRIFT_THRESHOLD) {
+                warnings.add(DriftWarning.builder()
+                        .trait(trait)
+                        .historicalAverage(historical)
+                        .currentScore(current)
+                        .driftMagnitude(drift)
+                        .severity("WARNING")
+                        .build());
+                log.info("OCEAN drift WARNING for user {}: {} changed from {} to {} (drift={})",
+                        userId, trait, historical, current, drift);
+            }
+        }
+
+        String validityStatus = hasBlockingDrift ? "BLOCKED" : warnings.isEmpty() ? "VALID" : "WARNING";
+
+        return DriftAnalysis.builder()
+                .warnings(warnings)
+                .driftDetected(!warnings.isEmpty())
+                .validityStatus(validityStatus)
+                .build();
+    }
+
+    /**
+     * Calculate historical average for each OCEAN trait.
+     */
+    private Map<String, Double> calculateHistoricalAverage(List<AssessmentSession> history) {
+        double sumE = 0, sumA = 0, sumC = 0, sumES = 0, sumO = 0;
+        int count = 0;
+
+        for (AssessmentSession session : history) {
+            if (session.getExtraversion() != null)
+                sumE += session.getExtraversion();
+            if (session.getAgreeableness() != null)
+                sumA += session.getAgreeableness();
+            if (session.getConscientiousness() != null)
+                sumC += session.getConscientiousness();
+            if (session.getEmotionalStability() != null)
+                sumES += session.getEmotionalStability();
+            if (session.getOpenness() != null)
+                sumO += session.getOpenness();
+            count++;
+        }
+
+        if (count == 0) {
+            return Map.of();
+        }
+
+        return Map.of(
+                "extraversion", sumE / count,
+                "agreeableness", sumA / count,
+                "conscientiousness", sumC / count,
+                "emotionalStability", sumES / count,
+                "openness", sumO / count);
+    }
+}

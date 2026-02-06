@@ -25,33 +25,36 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Register a new user.
+     * 
+     * SECURITY NOTE: Uses unique constraints + exception handling for duplicate
+     * detection.
+     * H2 doesn't fully support SERIALIZABLE with PESSIMISTIC_WRITE on new rows.
+     */
     @Transactional
     public User register(User user) {
-        // Race condition fix (V2): Removed "check-then-act" logic.
-        // We rely on the Database Unique Constraint and the below
-        // DataIntegrityViolationException catch block.
+        // Simple duplicate check (unique constraint is the real guard)
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            log.warn("Registration blocked: Email {} already exists", user.getEmail());
+            throw new RuntimeException("Email is already taken");
+        }
+
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            log.warn("Registration blocked: Username {} already exists", user.getUsername());
+            throw new RuntimeException("Username is already taken");
+        }
 
         // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // V11 FIX: Explicit Pre-Check
-        // We check existence before save. Note: A small race window exists here but is
-        // better
-        // than brittle exception parsing. For 100% strictness, we'd need a specific DB
-        // exception handler,
-        // but this "Lock-Free" approach is standard for Spring.
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email is already taken");
-        }
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username is already taken");
-        }
-
         try {
-            return userRepository.save(user);
+            User saved = userRepository.save(user);
+            log.info("User registered successfully: {}", user.getEmail());
+            return saved;
         } catch (DataIntegrityViolationException e) {
-            // Fallback for race condition collisions
-            log.warn("Data integrity violation during registration (Race Condition): {}", e.getMessage());
+            // Unique constraint violation (race condition fallback)
+            log.error("Registration failed due to duplicate: {}", e.getMessage());
             throw new RuntimeException("Registration failed: User already exists.");
         }
     }

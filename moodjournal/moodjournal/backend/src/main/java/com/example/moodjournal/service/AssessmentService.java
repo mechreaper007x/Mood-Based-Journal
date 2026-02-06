@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.example.moodjournal.dto.AnalyzedProfile;
 import com.example.moodjournal.dto.AssessmentQuestion;
 import com.example.moodjournal.dto.AssessmentSubmission;
+import com.example.moodjournal.dto.CrisisFlag;
 import com.example.moodjournal.dto.UserProfileDTO;
 import com.example.moodjournal.model.AssessmentResponseItem;
 import com.example.moodjournal.model.AssessmentSession;
@@ -254,6 +255,35 @@ public class AssessmentService {
         if (score <= 19)
             return "Moderately severe";
         return "Severe";
+    }
+
+    /**
+     * PHQ-9 Item 9 Suicide Risk Detection.
+     * 
+     * CLINICAL REFERENCE: PHQ-9 Item 9 asks:
+     * "Thoughts that you would be better off dead or of hurting yourself"
+     * 
+     * Per APA guidelines, ANY non-zero response requires crisis intervention:
+     * - Score 1: "Several days" - MODERATE risk
+     * - Score 2-3: "More than half the days" / "Nearly every day" - HIGH risk
+     * 
+     * @param phq9Responses Map of item index (0-8) to score (0-3)
+     * @return CrisisFlag with triggered status and crisis resources
+     */
+    public CrisisFlag checkPHQ9SuicideRisk(Map<Integer, Integer> phq9Responses) {
+        if (phq9Responses == null || phq9Responses.isEmpty()) {
+            return CrisisFlag.none();
+        }
+
+        // Item 9 is index 8 (0-indexed)
+        Integer item9Score = phq9Responses.get(8);
+
+        if (item9Score == null || item9Score <= 0) {
+            return CrisisFlag.none();
+        }
+
+        log.warn("CRISIS FLAG: PHQ-9 Item 9 triggered with score={}", item9Score);
+        return CrisisFlag.triggered(item9Score);
     }
 
     /**

@@ -327,9 +327,11 @@ public class GeminiService {
       log.debug("Attempting Gemini API call with model: {} (attempt {}/{})",
           model, i + 1, modelCount);
 
-      GenerateContentResponse response = null; // V8 FIX: Explicit scoping
+      // Response scoped to try block - eligible for GC immediately after return
+      // NOTE: Setting response = null in finally block was ineffective
+      // because the local variable goes out of scope anyway
       try {
-        response = client.models.generateContent(model, prompt, null);
+        GenerateContentResponse response = client.models.generateContent(model, prompt, null);
         String text = response.text();
         log.debug("Successfully got response from model: {}", model);
 
@@ -348,9 +350,8 @@ public class GeminiService {
         } else {
           log.error("Error with model {}: {}", model, e.getMessage());
         }
-      } finally {
-        response = null; // V8 FIX: Help GC to reclaim large response objects immediately
       }
+      // No finally block - response variable is scoped to try block
 
       // Backoff (outside try-catch to allow interrupt)
       if (i < modelCount - 1) {
@@ -366,6 +367,37 @@ public class GeminiService {
     String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
     log.error("All {} models exhausted. Last error: {}", modelCount, errorMessage);
     throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
+  }
+
+  // ========================================================================
+  // EMBEDDING SUPPORT (Vector RAG)
+  // ========================================================================
+
+  /**
+   * Generates a vector embedding for the given text using 'text-embedding-004'.
+   * Returns a float array representing the semantic meaning.
+   */
+  public float[] getEmbedding(String text) {
+    try {
+      // Model: gemini-embedding-001 is the embedding model for v1beta API
+      String modelName = "gemini-embedding-001";
+
+      var response = client.models.embedContent(modelName, text, null);
+      // API: response.embeddings() returns Optional<List<ContentEmbedding>>
+      // Each ContentEmbedding has values() returning Optional<List<Float>>
+      List<Float> values = response.embeddings().get().get(0).values().get();
+
+      // Convert List<Float> to float[]
+      float[] result = new float[values.size()];
+      for (int i = 0; i < values.size(); i++) {
+        result[i] = values.get(i);
+      }
+      return result;
+    } catch (Exception e) {
+      log.error("Failed to generate embedding: {}", e.getMessage());
+      // Return empty array or throw? For now throw to handle retry in caller.
+      throw new RuntimeException("Embedding generation failed", e);
+    }
   }
 
   /**

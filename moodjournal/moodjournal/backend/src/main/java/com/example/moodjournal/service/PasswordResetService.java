@@ -1,5 +1,8 @@
 package com.example.moodjournal.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -72,37 +75,48 @@ public class PasswordResetService {
     /**
      * Validates a password reset token.
      * Returns the associated user if the token is valid.
+     * 
+     * SECURITY (V13 FIX): Constant-time validation to prevent timing attacks.
+     * - Always fetches all non-expired tokens (consistent DB operation)
+     * - Uses MessageDigest.isEqual() for constant-time byte comparison
+     * - Timing is identical regardless of token validity
      */
     public Optional<User> validateToken(String token) {
-        // V12 FIX: Constant-time lookup simulation
-        // We always perform the same number of DB operations and checks regardless of
-        // validity
-        // to prevent timing attacks.
+        // CONSTANT-TIME FIX: Always fetch all non-expired tokens
+        // This ensures DB query time is consistent regardless of input token
+        List<PasswordResetToken> allTokens = tokenRepository.findAllNonExpired();
 
-        Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
+        PasswordResetToken matchedToken = null;
+        boolean foundMatch = false;
 
-        // Always simulate validation check even if token is missing
-        boolean isValidChain = true;
-
-        if (tokenOptional.isPresent()) {
-            PasswordResetToken resetToken = tokenOptional.get();
-            if (!resetToken.isValid()) {
-                isValidChain = false;
-                // Log without revealing too much context
-                log.warn("Invalid token attempt encountered");
-            }
-        } else {
-            isValidChain = false;
-            // Fake computation to mimic check time
-            PasswordResetToken.builder().expiryDate(java.time.LocalDateTime.now()).build().isValid();
-            log.warn("Invalid token check completed");
-        }
-
-        if (!isValidChain) {
+        // Edge case: handle null/empty input
+        if (token == null || token.isEmpty()) {
+            log.warn("Empty token validation attempt");
             return Optional.empty();
         }
 
-        return Optional.of(tokenOptional.get().getUser());
+        byte[] inputBytes = token.getBytes(StandardCharsets.UTF_8);
+
+        // Iterate ALL tokens for constant-time behavior
+        // MessageDigest.isEqual() is cryptographically constant-time
+        for (PasswordResetToken t : allTokens) {
+            byte[] storedBytes = t.getToken().getBytes(StandardCharsets.UTF_8);
+            if (MessageDigest.isEqual(inputBytes, storedBytes)) {
+                matchedToken = t;
+                foundMatch = true;
+                // Don't break - iterate all for constant time
+            }
+        }
+
+        // Validate matched token (always runs regardless of match)
+        boolean isValid = foundMatch && matchedToken != null && matchedToken.isValid();
+
+        if (!isValid) {
+            log.warn("Invalid token attempt (constant-time check completed)");
+            return Optional.empty();
+        }
+
+        return Optional.of(matchedToken.getUser());
     }
 
     /**

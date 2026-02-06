@@ -24,6 +24,13 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     @Query("DELETE FROM PasswordResetToken t WHERE t.expiryDate < ?1")
     void deleteExpiredTokens(LocalDateTime now);
 
+    /**
+     * Find all non-expired tokens for constant-time validation.
+     * SECURITY: Used to prevent timing attacks in token validation.
+     */
+    @Query("SELECT t FROM PasswordResetToken t WHERE t.expiryDate >= CURRENT_TIMESTAMP AND t.used = false")
+    java.util.List<PasswordResetToken> findAllNonExpired();
+
     @Modifying
     @Transactional
     void deleteByUser(User user);

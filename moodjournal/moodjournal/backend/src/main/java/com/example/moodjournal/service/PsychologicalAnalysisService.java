@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.moodjournal.dto.EntryAnalysisResult;
 import com.example.moodjournal.dto.UserProfileDTO;
 import com.example.moodjournal.model.JournalEntry;
+import com.example.moodjournal.model.RAGDocument;
 import com.example.moodjournal.repository.JournalEntryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +23,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Service for profile-aware psychological analysis of journal entries.
  * Uses user's psychological profile to provide personalized insights,
  * detect cognitive distortions, and generate tailored suggestions.
+ * 
+ * Enhanced with RAG (Retrieval-Augmented Generation) to ground insights in
+ * clinical data.
  */
 @Service
 public class PsychologicalAnalysisService {
@@ -38,12 +42,15 @@ public class PsychologicalAnalysisService {
     private JournalEntryRepository journalEntryRepository;
 
     @Autowired
-    private AISecurityService aiSecurityService; // NEW: Security Gate
+    private AISecurityService aiSecurityService; // Security Gate
+
+    @Autowired
+    private RAGService ragService; // RAG Integration
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Analyze a journal entry with full profile context.
+     * Analyze a journal entry with full profile context and RAG support.
      */
     public EntryAnalysisResult analyzeWithProfile(java.util.UUID userId, JournalEntry entry) {
         log.info(">>> Starting profile-aware analysis for userId={}", userId);
@@ -62,8 +69,7 @@ public class PsychologicalAnalysisService {
         }
 
         // 1. DETERMINISTIC SAFETY CHECK (The "Red Line")
-        // We do not trust the AI with life-or-death classification.
-        boolean hasCrisisKeywords = checkCrisisKeywords(safeContent); // Check on SAFE content
+        boolean hasCrisisKeywords = checkCrisisKeywords(safeContent);
         if (hasCrisisKeywords) {
             log.warn("!!! CRISIS KEYWORDS DETECTED for userId={} !!!", userId);
         }
@@ -120,8 +126,7 @@ public class PsychologicalAnalysisService {
     }
 
     /**
-     * Build a comprehensive analysis prompt with profile context.
-     * Accepts pre-sanitized content to avoid redundant sanitization calls.
+     * Build a comprehensive analysis prompt with profile context AND RAG examples.
      */
     private String buildAnalysisPrompt(UserProfileDTO profile, java.util.UUID userId, JournalEntry entry,
             String safeContent) {
@@ -161,7 +166,23 @@ public class PsychologicalAnalysisService {
         // 3. Add recent emotional trajectory
         prompt.append(buildRecentHistoryContext(userId));
 
-        // 4. Add current entry details
+        // 4. RAG CONTEXT INJECTION (New)
+        List<RAGDocument> similarDocs = ragService.findSimilarDocuments(safeContent, 3);
+        if (!similarDocs.isEmpty()) {
+            prompt.append("\n=== CLINICAL REFERENCE EXAMPLES (RAG Grounding) ===\n");
+            prompt.append("Use these similar clinical examples to calibrate your analysis of the user's entry:\n");
+            for (int i = 0; i < similarDocs.size(); i++) {
+                RAGDocument doc = similarDocs.get(i);
+                prompt.append(String.format("--- Example %d ---\n", i + 1));
+                prompt.append(String.format("Text Summary: %s...\n",
+                        doc.getText().substring(0, Math.min(100, doc.getText().length()))));
+                prompt.append(String.format("Clinical Tags: Category=%s, Subtype=%s, Somatic=%s, Detail=%s\n",
+                        doc.getCategory(), doc.getSubtype(), doc.getDetail1(), doc.getDetail2()));
+            }
+            prompt.append("--- End of Examples ---\n\n");
+        }
+
+        // 5. Add current entry details
         prompt.append("=== CURRENT JOURNAL ENTRY ===\n");
         prompt.append(String.format("Title: %s\n", entry.getTitle()));
 
@@ -182,15 +203,16 @@ public class PsychologicalAnalysisService {
         }
         prompt.append(String.format("\nContent:\n%s\n\n", safeContent)); // Use SANITIZED content passed as argument
 
-        // 5. MERGED Output Format (Old Working Fields + New ISEAR/GoEmotions/VAD)
+        // 6. MERGED Output Format
         prompt.append(
                 """
                         === ANALYSIS INSTRUCTIONS ===
-                        Analyze this entry considering the person's profile and provide ALL of the following:
+                        Analyze this entry considering the person's profile, recent history, and the provided RAG clinical examples.
+                        Provide ALL of the following:
 
                         1. EMOTION BREAKDOWN: Percentages for anger, happiness, sadness, anxiety, calmness (must sum to 100)
                         2. DOMINANT EMOTION: The primary emotion expressed
-                        3. COGNITIVE DISTORTIONS: Detect any of these patterns:
+                        3. COGNITIVE DISTORTIONS: Detect patterns like:
                            - all-or-nothing: Black/white thinking ("always", "never", "everyone")
                            - catastrophizing: Expecting worst outcomes ("disaster", "ruined")
                            - mind-reading: Assuming others' thoughts ("they think I'm...")

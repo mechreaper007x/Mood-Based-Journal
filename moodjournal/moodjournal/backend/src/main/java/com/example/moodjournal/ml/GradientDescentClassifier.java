@@ -40,14 +40,16 @@ public class GradientDescentClassifier {
             Pattern.compile("break\\s+(?:\\S+\\s+){0,10}rules", Pattern.CASE_INSENSITIVE));
 
     public GradientDescentClassifier() {
-        // Xavier initialization for weights
+        // Safe-by-default initialization
+        // Bias = -5.0 ensures sigmoid(-5) ~= 0.006 (Very low probability of attack)
+        // This prevents the untrained model from randomly blocking users.
         this.weights = new double[NUM_FEATURES];
         Random rand = new Random(42);
-        double scale = Math.sqrt(2.0 / NUM_FEATURES);
+        double scale = 0.01; // Small random noise for symmetry breaking
         for (int i = 0; i < NUM_FEATURES; i++) {
             weights[i] = rand.nextGaussian() * scale;
         }
-        this.bias = 0.0;
+        this.bias = -5.0;
     }
 
     public void loadWeights(double[] loadedWeights, double loadedBias) {
