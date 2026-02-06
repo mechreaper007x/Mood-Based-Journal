@@ -43,6 +43,9 @@ public class JournalEntryControllerTest {
     @MockitoBean
     private JwtUtil jwtUtil;
 
+    @MockitoBean
+    private com.example.moodjournal.service.AISecurityService aiSecurityService;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -70,6 +73,8 @@ public class JournalEntryControllerTest {
         journalEntry2.setUser(user);
 
         when(userService.findByEmail(anyString())).thenReturn(Optional.of(user));
+        // Mock security service to pass-through content by default
+        when(aiSecurityService.securePrompt(anyString())).thenAnswer(i -> i.getArguments()[0]);
     }
 
     @Test

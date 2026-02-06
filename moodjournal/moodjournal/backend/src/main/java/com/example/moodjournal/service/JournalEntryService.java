@@ -31,9 +31,9 @@ public class JournalEntryService {
   private final GeminiService geminiService;
   private final ObjectMapper objectMapper;
   private final PsychologicalAnalysisService psychAnalysisService;
+  private final SanitizationService sanitizationService;
   private final AlertService alertService;
   private final EnsembleRiskService ensembleRiskService;
-  private final SanitizationService sanitizationService;
 
   public JournalEntryService(
       JournalEntryRepository entryRepo,
@@ -64,6 +64,9 @@ public class JournalEntryService {
     // XSS Sanitization
     entry.setTitle(sanitizationService.sanitizeStrict(entry.getTitle()));
     entry.setContent(sanitizationService.sanitize(entry.getContent()));
+
+    // SECURITY CHECK MOVED TO CONTROLLER
+    // Validation is done before transaction starts to avoid rollback-only errors
 
     // Quick pre-screening with lexicon (fast, no AI)
     var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
@@ -363,6 +366,8 @@ public class JournalEntryService {
           e.setTitle(sanitizationService.sanitizeStrict(updated.getTitle()));
           e.setContent(sanitizationService.sanitize(updated.getContent()));
 
+          // SECURITY CHECK MOVED TO CONTROLLER
+
           if (updated.getContent() != null && !updated.getContent().equals(e.getContent())) {
             Mood suggestedMood = suggestMood(updated.getContent());
             if (updated.getMood() == null || updated.getMood().isBlank() || e.getMood() == null) {
@@ -394,6 +399,10 @@ public class JournalEntryService {
         .map(e -> {
           e.setTitle(sanitizationService.sanitizeStrict(updatedEntry.getTitle()));
           e.setContent(sanitizationService.sanitize(updatedEntry.getContent()));
+
+          // SECURITY GATE MOVED TO CONTROLLER
+          // No inline check here to avoid transaction poisoning
+
           e.setMood(updatedEntry.getMood());
           e.setVisibility(updatedEntry.getVisibility());
           return entryRepo.save(e);

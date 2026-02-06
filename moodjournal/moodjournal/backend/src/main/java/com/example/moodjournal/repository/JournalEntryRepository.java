@@ -29,4 +29,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
 
     // Get entries after a certain date for analytics
     List<JournalEntry> findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(java.util.UUID userId, Instant since);
+
+    // For ML training - get recent entries
+    List<JournalEntry> findTop100ByOrderByCreatedAtDesc();
 }

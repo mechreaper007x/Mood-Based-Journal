@@ -37,11 +37,14 @@ import jakarta.validation.Valid;
 public class JournalEntryController {
     private final JournalEntryService service;
     private final UserService userService;
+    private final com.example.moodjournal.service.AISecurityService aiSecurityService;
     private static final Logger log = LoggerFactory.getLogger(JournalEntryController.class);
 
-    public JournalEntryController(JournalEntryService service, UserService userService) {
+    public JournalEntryController(JournalEntryService service, UserService userService,
+            com.example.moodjournal.service.AISecurityService aiSecurityService) {
         this.service = service;
         this.userService = userService;
+        this.aiSecurityService = aiSecurityService;
     }
 
     private java.util.UUID getUserIdFromUserDetails(UserDetails userDetails) {
@@ -56,6 +59,18 @@ public class JournalEntryController {
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             java.util.UUID userId = getUserIdFromUserDetails(userDetails);
+
+            // SECURITY GATE: Check for prompt injection BEFORE ANY PROCESSING
+            // This prevents transaction poisoning if the check fails
+            try {
+                String securedContent = aiSecurityService.securePrompt(req.getContent());
+                req.setContent(securedContent); // Use the secured/redacted version
+            } catch (SecurityException se) {
+                log.warn("[SECURITY] Prompt injection BLOCKED at controller: {}", se.getMessage());
+                return ResponseEntity.badRequest().body(Map.of("error",
+                        "Your entry contains content that appears to be unsafe. Please revise and try again."));
+            }
+
             JournalEntry entry = new JournalEntry();
             entry.setTitle(req.getTitle());
             entry.setContent(req.getContent());
@@ -144,7 +159,20 @@ public class JournalEntryController {
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             java.util.UUID userId = getUserIdFromUserDetails(userDetails);
-            log.info("Update request for id={} payload={{}}", id, updated);
+
+            // SECURITY GATE: Check update content too
+            if (updated.getContent() != null) {
+                try {
+                    String securedContent = aiSecurityService.securePrompt(updated.getContent());
+                    updated.setContent(securedContent);
+                } catch (SecurityException se) {
+                    log.warn("[SECURITY] Prompt injection BLOCKED at update controller: {}", se.getMessage());
+                    return ResponseEntity.badRequest().body(Map.of("error",
+                            "Your entry contains content that appears to be unsafe. Please revise and try again."));
+                }
+            }
+
+            log.info("Update request for id={} payload={}", id, updated);
             JournalEntry result = service.update(id, userId, updated);
             return ResponseEntity.ok(result);
         } catch (NoSuchElementException e) {
