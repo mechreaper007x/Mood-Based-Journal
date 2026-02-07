@@ -167,8 +167,10 @@ public class PsychologicalAnalysisService {
         prompt.append(buildRecentHistoryContext(userId));
 
         // 4. RAG CONTEXT INJECTION (New)
+        log.info(">>> Consulting RAG Knowledge Base for clinical grounding...");
         List<RAGDocument> similarDocs = ragService.findSimilarDocuments(safeContent, 3);
         if (!similarDocs.isEmpty()) {
+            log.info(">>> RAG Context Injected: {} clinical examples added to prompt.", similarDocs.size());
             prompt.append("\n=== CLINICAL REFERENCE EXAMPLES (RAG Grounding) ===\n");
             prompt.append("Use these similar clinical examples to calibrate your analysis of the user's entry:\n");
             for (int i = 0; i < similarDocs.size(); i++) {
@@ -180,6 +182,8 @@ public class PsychologicalAnalysisService {
                         doc.getCategory(), doc.getSubtype(), doc.getDetail1(), doc.getDetail2()));
             }
             prompt.append("--- End of Examples ---\n\n");
+        } else {
+            log.info(">>> RAG: No matching clinical examples found. Proceeding without grounding.");
         }
 
         // 5. Add current entry details

@@ -1,16 +1,13 @@
 package com.example.moodjournal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -19,40 +16,35 @@ import com.example.moodjournal.model.RAGDocument;
 @ExtendWith(MockitoExtension.class)
 public class RAGServiceTest {
 
-    @Mock
-    private GeminiService geminiService;
-
     private RAGService ragService;
 
     @BeforeEach
     void setUp() {
-        ragService = new RAGService(geminiService);
+        ragService = new RAGService();
     }
 
     @Test
-    void testVectorSearch() {
-        // Mock embeddings
-        float[] queryVec = { 1.0f, 0.0f, 0.0f };
-        float[] docVec1 = { 0.9f, 0.1f, 0.0f }; // Similar
-        float[] docVec2 = { 0.0f, 1.0f, 0.0f }; // Orthogonal (Dissimilar)
-
-        when(geminiService.getEmbedding(anyString())).thenReturn(queryVec);
-
+    void testKeywordSearch() {
         // Manually inject docs to avoid CSV loading logic in unit test
-        RAGDocument doc1 = new RAGDocument("1", "Anxious", "Anxiety", "GAD", "d1", "d2");
-        doc1.setEmbedding(docVec1);
+        RAGDocument doc1 = new RAGDocument("1", "Anxious feelings today", "Anxiety", "GAD", "d1", "d2");
+        doc1.setTokens(Set.of("anxious", "feelings", "today", "anxiety", "gad"));
 
-        RAGDocument doc2 = new RAGDocument("2", "Calm", "Peace", "Zen", "d1", "d2");
-        doc2.setEmbedding(docVec2);
+        RAGDocument doc2 = new RAGDocument("2", "Feeling very Calm and peaceful", "Peace", "Zen", "d1", "d2");
+        doc2.setTokens(Set.of("feeling", "very", "calm", "and", "peaceful", "peace", "zen"));
 
         // Access private list via Reflection
+        @SuppressWarnings("unchecked")
         List<RAGDocument> docs = (List<RAGDocument>) ReflectionTestUtils.getField(ragService, "documents");
         docs.add(doc1);
         docs.add(doc2);
 
-        List<RAGDocument> results = ragService.findSimilarDocuments("test query", 2);
+        // Manually trigger IDF cache build (private method)
+        ReflectionTestUtils.invokeMethod(ragService, "buildIdfCache");
 
-        assertEquals(2, results.size());
-        assertEquals("Anxious", results.get(0).getText(), "Most similar doc should be first");
+        // Search for "anxious" -> should match doc1
+        List<RAGDocument> results = ragService.findSimilarDocuments("anxious", 2);
+
+        assertEquals(1, results.size());
+        assertEquals("Anxious feelings today", results.get(0).getText());
     }
 }

@@ -21,10 +21,7 @@ public class RAGDocument implements java.io.Serializable {
     private String detail1; // e.g., Heavy limbs
     private String detail2; // e.g., Messy bed
 
-    // Vector Embedding (768 dimensions for text-embedding-004)
-    private float[] embedding;
-
-    // Pre-computed tokens (Optional fallback)
+    // Pre-computed tokens for TF-IDF matching
     private transient java.util.Set<String> tokens;
 
     public RAGDocument(String id, String text, String category, String subtype, String detail1, String detail2) {

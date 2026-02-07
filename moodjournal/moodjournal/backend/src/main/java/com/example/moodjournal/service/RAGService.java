@@ -2,7 +2,6 @@ package com.example.moodjournal.service;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -13,62 +12,137 @@ import com.example.moodjournal.model.RAGDocument;
 import jakarta.annotation.PostConstruct;
 
 /**
- * Service for Vector RAG (Retrieval-Augmented Generation).
- * Uses Gemini Embeddings and Cosine Similarity to find semantic matches.
- * Caches embeddings locally to avoid re-generating them on every restart.
+ * Service for Simple RAG (Retrieval-Augmented Generation).
+ * Uses TF-IDF style keyword matching to find semantically relevant documents.
+ * No external API calls are needed for retrieval - fast and free.
  */
 @Service
 public class RAGService {
 
     private static final Logger log = LoggerFactory.getLogger(RAGService.class);
     private static final String DATASET_NAME = "mistral_master_raw_dataset.csv";
-    private static final String CACHE_PATH = "rag_cache.dat";
 
     private final List<RAGDocument> documents = new ArrayList<>();
-    private final GeminiService geminiService;
 
-    public RAGService(GeminiService geminiService) {
-        this.geminiService = geminiService;
-    }
+    // IDF (Inverse Document Frequency) cache for all terms
+    private final Map<String, Double> idfCache = new HashMap<>();
 
     @PostConstruct
     public void init() {
-        if (loadFromCache()) {
-            log.info("RAG System Ready (Loaded from Cache). Docs: {}", documents.size());
+        loadFromCSV();
+        if (!documents.isEmpty()) {
+            buildIdfCache();
+            log.info("Simple RAG System Ready. Docs: {}, Unique Terms: {}",
+                    documents.size(), idfCache.size());
         } else {
-            log.info("Cache not found or empty. Starting initial ingestion (This may take time)...");
-            loadFromCSV();
-            if (!documents.isEmpty()) {
-                generateEmbeddingsAndCache();
-            } else {
-                log.warn("RAG System: No documents found in CSV to ingest.");
+            log.warn("RAG System: No documents found in CSV.");
+        }
+    }
+
+    /**
+     * Tokenize text: lowercase, split on non-word chars, filter short words.
+     */
+    private Set<String> tokenize(String text) {
+        if (text == null || text.isBlank())
+            return Collections.emptySet();
+        return Arrays.stream(text.toLowerCase().split("\\W+"))
+                .filter(w -> w.length() > 2) // Skip very short words
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Build IDF cache from all documents.
+     * IDF = log(N / df) where N is total docs and df is document frequency.
+     */
+    private void buildIdfCache() {
+        int N = documents.size();
+        Map<String, Integer> termDocCounts = new HashMap<>();
+
+        for (RAGDocument doc : documents) {
+            Set<String> tokens = tokenize(doc.getText() + " " + doc.getCategory() + " " + doc.getSubtype());
+            doc.setTokens(tokens); // Cache tokens on document for fast lookup
+            for (String token : tokens) {
+                termDocCounts.merge(token, 1, Integer::sum);
             }
         }
-    }
 
-    private boolean loadFromCache() {
-        File cacheFile = new File(CACHE_PATH);
-        if (!cacheFile.exists())
-            return false;
-
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(cacheFile))) {
-            List<RAGDocument> cachedDocs = (List<RAGDocument>) ois.readObject();
-            documents.addAll(cachedDocs);
-            return true;
-        } catch (Exception e) {
-            log.warn("Failed to load RAG cache: {}", e.getMessage());
-            return false;
+        for (Map.Entry<String, Integer> entry : termDocCounts.entrySet()) {
+            // Add 1 to prevent division by zero
+            double idf = Math.log((double) N / (entry.getValue() + 1));
+            idfCache.put(entry.getKey(), idf);
         }
     }
 
-    private void saveToCache() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CACHE_PATH))) {
-            oos.writeObject(documents);
-            log.info("RAG Cache saved to {}", CACHE_PATH);
-        } catch (Exception e) {
-            log.error("Failed to save RAG cache: {}", e.getMessage());
+    /**
+     * Calculate TF-IDF score for a query against a document.
+     */
+    private double calculateTfIdfScore(Set<String> queryTokens, RAGDocument doc) {
+        if (doc.getTokens() == null || doc.getTokens().isEmpty())
+            return 0.0;
+
+        double score = 0.0;
+        for (String queryTerm : queryTokens) {
+            if (doc.getTokens().contains(queryTerm)) {
+                // TF = 1 (binary for simplicity), IDF from cache
+                double idf = idfCache.getOrDefault(queryTerm, 0.0);
+                score += idf;
+            }
         }
+        return score;
     }
+
+    /**
+     * Find documents relevant to the query using TF-IDF keyword matching.
+     * This is the "Simple RAG" - no embeddings, no external API calls.
+     */
+    public List<RAGDocument> findSimilarDocuments(String query, int limit) {
+        if (query == null || query.isBlank()) {
+            log.debug("[RAG] Empty query, skipping search.");
+            return Collections.emptyList();
+        }
+
+        Set<String> queryTokens = tokenize(query);
+        if (queryTokens.isEmpty()) {
+            log.debug("[RAG] No valid tokens in query.");
+            return Collections.emptyList();
+        }
+
+        log.info("╔══════════════════════════════════════════════════════════════════╗");
+        log.info("║               🔍 RAG KNOWLEDGE BASE SEARCH                      ║");
+        log.info("╠══════════════════════════════════════════════════════════════════╣");
+        log.info("║ Query Tokens: {}",
+                queryTokens.stream().limit(10).collect(Collectors.joining(", ")));
+
+        List<AbstractMap.SimpleEntry<RAGDocument, Double>> scored = documents.stream()
+                .map(doc -> new AbstractMap.SimpleEntry<>(doc, calculateTfIdfScore(queryTokens, doc)))
+                .filter(entry -> entry.getValue() > 0)
+                .sorted(Map.Entry.<RAGDocument, Double>comparingByValue().reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        if (scored.isEmpty()) {
+            log.info("║ Result: No matching documents found in knowledge base.");
+            log.info("╚══════════════════════════════════════════════════════════════════╝");
+            return Collections.emptyList();
+        }
+
+        log.info("║ Found {} relevant clinical examples:", scored.size());
+        for (int i = 0; i < scored.size(); i++) {
+            RAGDocument doc = scored.get(i).getKey();
+            double score = scored.get(i).getValue();
+            String preview = doc.getText().length() > 40
+                    ? doc.getText().substring(0, 40) + "..."
+                    : doc.getText();
+            log.info("║   {}. [Score: {:.2f}] {} | {}", i + 1, score, doc.getCategory(), preview);
+        }
+        log.info("╚══════════════════════════════════════════════════════════════════╝");
+
+        return scored.stream().map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    // ========================================================================
+    // CSV LOADING (Same as before)
+    // ========================================================================
 
     private void loadFromCSV() {
         documents.clear();
@@ -84,42 +158,44 @@ public class RAGService {
                     sb.append(line).append("\n");
                 }
                 String fullText = sb.toString();
-
-                // Simple CSV Parser logic (same as before)
-                boolean inQuotes = false;
-                StringBuilder field = new StringBuilder();
-                List<String> row = new ArrayList<>();
-                char[] chars = fullText.toCharArray();
-
-                for (int i = 0; i < chars.length; i++) {
-                    char c = chars[i];
-                    if (c == '\"') {
-                        if (i + 1 < chars.length && chars[i + 1] == '\"') {
-                            field.append('\"');
-                            i++;
-                        } else {
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (c == ',' && !inQuotes) {
-                        row.add(field.toString());
-                        field.setLength(0);
-                    } else if ((c == '\n' || c == '\r') && !inQuotes) {
-                        if (field.length() > 0 || !row.isEmpty()) {
-                            row.add(field.toString());
-                            field.setLength(0);
-                        }
-                        if (!row.isEmpty()) {
-                            addDocumentFromRow(row);
-                            row.clear();
-                        }
-                    } else {
-                        field.append(c);
-                    }
-                }
-                log.info("Loaded {} raw documents from CSV.", documents.size());
+                parseCSV(fullText);
+                log.info("Loaded {} documents from CSV.", documents.size());
             }
         } catch (IOException e) {
             log.error("Failed to load CSV: {}", e.getMessage());
+        }
+    }
+
+    private void parseCSV(String fullText) {
+        boolean inQuotes = false;
+        StringBuilder field = new StringBuilder();
+        List<String> row = new ArrayList<>();
+        char[] chars = fullText.toCharArray();
+
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '\"') {
+                if (i + 1 < chars.length && chars[i + 1] == '\"') {
+                    field.append('\"');
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (c == ',' && !inQuotes) {
+                row.add(field.toString());
+                field.setLength(0);
+            } else if ((c == '\n' || c == '\r') && !inQuotes) {
+                if (field.length() > 0 || !row.isEmpty()) {
+                    row.add(field.toString());
+                    field.setLength(0);
+                }
+                if (!row.isEmpty()) {
+                    addDocumentFromRow(row);
+                    row.clear();
+                }
+            } else {
+                field.append(c);
+            }
         }
     }
 
@@ -132,86 +208,5 @@ public class RAGService {
                     row.get(3).trim(), row.get(4).trim(), row.get(5).trim()));
         } catch (Exception ignored) {
         }
-    }
-
-    private void generateEmbeddingsAndCache() {
-        log.info("Generating Embeddings for {} documents...", documents.size());
-
-        int processed = 0;
-        int failures = 0;
-        boolean keyExpired = false;
-
-        for (RAGDocument doc : documents) {
-            try {
-                // Combine relevant fields for semantic meaning
-                String contentToEmbed = doc.getText() + " " + doc.getCategory() + " " + doc.getSubtype();
-                float[] vector = geminiService.getEmbedding(contentToEmbed);
-                doc.setEmbedding(vector);
-
-                processed++;
-                if (processed % 100 == 0) {
-                    log.info("Progress: {}/{} embeddings generated...", processed, documents.size());
-                }
-
-            } catch (Exception e) {
-                failures++;
-                String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-
-                if (errorMsg.contains("api key expired") || errorMsg.contains("400 bad request")) {
-                    log.error("CRITICAL: API Key appears to be expired or invalid. Halting RAG ingestion.");
-                    keyExpired = true;
-                    break;
-                }
-
-                log.error("Failed to embed doc {}: {}", doc.getId(), e.getMessage());
-
-                if (failures > 10) {
-                    log.error("Too many RAG ingestion failures. Halting to prevent log spam.");
-                    break;
-                }
-            }
-        }
-
-        if (processed > 0 && !keyExpired) {
-            saveToCache();
-            log.info("RAG Ingestion complete. Processed: {}, Failures: {}", processed, failures);
-        } else if (keyExpired) {
-            log.warn("RAG Ingestion halted due to API Key issue. System will run with limited functionality.");
-        }
-    }
-
-    /**
-     * Vector Search using Cosine Similarity
-     */
-    public List<RAGDocument> findSimilarDocuments(String query, int limit) {
-        try {
-            float[] queryVector = geminiService.getEmbedding(query);
-
-            return documents.stream()
-                    .filter(doc -> doc.getEmbedding() != null)
-                    .map(doc -> new AbstractMap.SimpleEntry<>(doc, cosineSimilarity(queryVector, doc.getEmbedding())))
-                    .sorted(Map.Entry.<RAGDocument, Double>comparingByValue().reversed())
-                    .limit(limit)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            log.error("Vector search failed: {}", e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    private double cosineSimilarity(float[] v1, float[] v2) {
-        if (v1.length != v2.length)
-            return 0.0;
-        double dotProduct = 0.0;
-        double normA = 0.0;
-        double normB = 0.0;
-        for (int i = 0; i < v1.length; i++) {
-            dotProduct += v1[i] * v2[i];
-            normA += v1[i] * v1[i];
-            normB += v2[i] * v2[i];
-        }
-        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 }
