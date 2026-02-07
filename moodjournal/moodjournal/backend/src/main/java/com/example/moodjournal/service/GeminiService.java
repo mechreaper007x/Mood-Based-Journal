@@ -63,6 +63,10 @@ public class GeminiService {
   // Lock to ensure only one API call at a time
   private final ReentrantLock apiLock = new ReentrantLock();
 
+  // Rate limiting: 10 RPM = 1 request every 6 seconds.
+  private static final long THROTTLE_MS = 6000;
+  private long lastCallTimestamp = 0;
+
   public GeminiService(
       @Value("${google.api.key}") String rawApiKey,
       AIResponseValidator validator,
@@ -317,6 +321,7 @@ public class GeminiService {
    * Call Gemini API with model rotation and retry logic.
    */
   public String callGeminiWithRotation(String prompt) {
+    throttle(); // Ensure rate limiting
     Exception lastException = null;
     int startIndex = modelIndex.get();
     int modelCount = AVAILABLE_MODELS.size();
@@ -378,6 +383,7 @@ public class GeminiService {
    * Returns a float array representing the semantic meaning.
    */
   public float[] getEmbedding(String text) {
+    throttle(); // Ensure rate limiting
     try {
       // Model: gemini-embedding-001 is the embedding model for v1beta API
       String modelName = "gemini-embedding-001";
@@ -397,6 +403,31 @@ public class GeminiService {
       log.error("Failed to generate embedding: {}", e.getMessage());
       // Return empty array or throw? For now throw to handle retry in caller.
       throw new RuntimeException("Embedding generation failed", e);
+    }
+  }
+
+  /**
+   * Ensures that subsequent API calls are spaced out by at least THROTTLE_MS.
+   */
+  private void throttle() {
+    apiLock.lock();
+    try {
+      long currentTime = System.currentTimeMillis();
+      long timeSinceLastCall = currentTime - lastCallTimestamp;
+
+      if (timeSinceLastCall < THROTTLE_MS) {
+        long waitTime = THROTTLE_MS - timeSinceLastCall;
+        log.info("Throttling Gemini API call ({} RPM limit). Waiting {}ms...", (60000 / THROTTLE_MS), waitTime);
+        try {
+          Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          log.warn("Throttling interrupted: {}", e.getMessage());
+        }
+      }
+      lastCallTimestamp = System.currentTimeMillis();
+    } finally {
+      apiLock.unlock();
     }
   }
 

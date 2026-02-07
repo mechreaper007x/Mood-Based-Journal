@@ -153,9 +153,6 @@ public class RAGService {
                     log.info("Progress: {}/{} embeddings generated...", processed, documents.size());
                 }
 
-                // Tiny sleep to be nice to API
-                Thread.sleep(20);
-
             } catch (Exception e) {
                 failures++;
                 String errorMsg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
