@@ -4,3 +4,4 @@ run_app_local.bat
 *.bat
 *.db
 *.trace.db
+*.md

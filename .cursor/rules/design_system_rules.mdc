@@ -1,0 +1,108 @@
+# Design System & Integration Rules
+
+This document outlines the patterns and standards for integrating Figma designs into the Mood Journal codebase using the Model Context Protocol (MCP).
+
+## 1. Design Token Definitions
+
+**Location:** `moodjournal/moodjournal/frontend/tailwind.config.js`
+
+Tokens are primarily managed through Tailwind's theme extension.
+
+```javascript
+// Example Token Structure
+theme: {
+  extend: {
+    colors: {
+      dark: {
+        bg: '#16181D',           // Primary background
+        card: 'rgba(30, 32, 41, 0.85)', // Card/Surface
+        input: 'rgba(0, 0, 0, 0.25)',   // Form inputs
+      },
+      primary: {
+        DEFAULT: '#8E2DE2',      // Brand primary
+        gradient: 'linear-gradient(90deg, #8E2DE2, #4A00E0)',
+      }
+    },
+    fontFamily: {
+      sans: ['Inter', 'sans-serif'],
+    }
+  },
+}
+```
+
+- **Typography:** Uses "Inter" font family. Imported in `src/index.css`.
+- **Spacing:** Standard Tailwind spacing scale is used.
+- **Breakpoints:** Standard Tailwind breakpoints (sm, md, lg, xl).
+
+## 2. Component Library
+
+**Location:** `moodjournal/moodjournal/frontend/src/components/`
+
+### Component Architecture
+- **Type:** Functional Components with Hooks.
+- **Styling:** Tailwind CSS (utility-classes).
+- **Animations:** `framer-motion` for transitions and micro-interactions.
+- **Props:** Standard React props, often using `clsx` or `tailwind-merge` for class manipulation.
+
+```jsx
+// Pattern: Component Structure
+import { motion } from 'framer-motion';
+import { LucideIcon } from 'lucide-react';
+
+const MyComponent = ({ title, icon: Icon, className }) => {
+  return (
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className={cn("bg-dark-card border border-white/5 p-6 rounded-2xl", className)}
+    >
+      <Icon className="text-primary-DEFAULT" />
+      <h3 className="text-white font-bold">{title}</h3>
+    </motion.div>
+  );
+};
+```
+
+## 3. Frameworks & Libraries
+
+- **Frontend:** React 18, Vite, Tailwind CSS.
+- **State Management:** React Context API (`src/context/AuthContext.jsx`).
+- **Data Fetching:** Axios (`src/lib/axios.js`).
+- **Routing:** React Router DOM v6.
+- **Charts:** Chart.js with `react-chartjs-2`.
+- **Backend:** Spring Boot 3 (Java 21).
+
+## 4. Asset Management
+
+- **Icons:** `lucide-react`. Use consistent sizing (default 24px) and colors from the primary palette.
+- **Images:** Stored in `backend/src/main/resources/static/` or referenced from external CDNs.
+- **Vite Assets:** Small assets can be placed in `frontend/src/assets` and imported.
+
+## 5. Icon System
+
+**Library:** `lucide-react`
+
+**Naming Convention:** Match Figma icon names to Lucide icons (e.g., "Brain" -> `BrainCircuit`, "Calendar" -> `Calendar`).
+
+```jsx
+import { BrainCircuit, TrendingUp, Calendar } from 'lucide-react';
+```
+
+## 6. Styling Approach
+
+- **Methodology:** Utility-first CSS via Tailwind.
+- **Global Styles:** Defined in `moodjournal/moodjournal/frontend/src/index.css`.
+- **Responsive Design:** Prefix classes with `sm:`, `md:`, `lg:` etc.
+- **Dark Mode:** The application is dark-mode first. Use `text-gray-400` for secondary text and `text-white` for headings.
+
+## 7. Project Organization
+
+- **Feature-based Pages:** `src/pages/` contain high-level views (Dashboard, Analytics, etc.).
+- **Reusable Components:** `src/components/` for UI primitives (Cards, Modals, Navigation).
+- **Backend Alignment:** API calls should correspond to controllers in `backend/src/main/java/com/example/moodjournal/controller/`.
+
+## 8. Integration Workflow (Figma to Code)
+
+1.  **Extract Tokens:** Identify colors/spacing in Figma and map to `tailwind.config.js`.
+2.  **Identify Components:** Break down the Figma design into atomic components (Button, Input) and organisms (AssessmentCard).
+3.  **Implement Layout:** Use Tailwind's Grid and Flexbox for high-level structure.
+4.  **Add Interactivity:** Use `framer-motion` for hover/tap states as seen in `Dashboard.jsx`.
