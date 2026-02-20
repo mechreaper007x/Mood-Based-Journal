@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 /**
  * The "Prefrontal Cortex" of the Immune System.
@@ -102,18 +103,35 @@ public class SecurityEvolutionService {
             // Cleanup: Gemini might wrap in quotes or code blocks
             regex = regex.replaceAll("```", "").trim();
 
+            if (regex.isBlank() || regex.length() > 500) {
+                log.warn(">>> [EVOLUTION] Discarding empty/oversized regex candidate.");
+                return;
+            }
+
+            try {
+                Pattern.compile(regex);
+            } catch (Exception ex) {
+                log.warn(">>> [EVOLUTION] Discarding invalid regex candidate: {}", ex.getMessage());
+                return;
+            }
+
+            if (securityRuleRepository.existsByPatternIgnoreCase(regex)) {
+                log.info(">>> [EVOLUTION] Regex already exists, skipping duplicate deployment.");
+                return;
+            }
+
             log.info(">>> [EVOLUTION] Synthesized new Antibody: {}", regex);
 
-            // Save as Experimental Rule (Shadow Mode)
+            // Save as Experimental Rule in shadow mode by default.
             SecurityRule newRule = new SecurityRule(
                     regex,
-                    "Auto-generated for " + violationType,
-                    true, // Active? Let's make it active for "True Self-Learning" request
-                    false // Shadow mode? User asked for "Real" adaptation, so let's unleash it.
+                    "Auto-generated for " + violationType + " (shadow)",
+                    true,
+                    true
             );
 
             securityRuleRepository.save(newRule);
-            log.info(">>> [EVOLUTION] Rule deployed to Database Rule Store.");
+            log.info(">>> [EVOLUTION] Rule deployed to Database Rule Store in shadow mode.");
 
         } catch (Exception e) {
             log.error(">>> [EVOLUTION] Failed to synthesize rule: {}", e.getMessage());

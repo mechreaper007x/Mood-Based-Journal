@@ -61,6 +61,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException ex) {
+        return new ResponseEntity<>(Map.of(
+                "error",
+                "Your request contains unsafe content and was blocked. Please revise and try again."),
+                HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
         // Log the full exception for debugging (server-side only)

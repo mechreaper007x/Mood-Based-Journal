@@ -266,6 +266,9 @@ public class JournalEntryService {
         log.info("Mapped emotion '{}' -> Mood: {}", dominantEmotion, mood);
         return mood;
       }
+    } catch (SecurityException se) {
+      log.warn("suggestMood blocked by security policy: {}", se.getMessage());
+      throw se;
     } catch (Exception e) {
       log.error("Gemini Analysis Failed: {}", e.getMessage(), e);
     }

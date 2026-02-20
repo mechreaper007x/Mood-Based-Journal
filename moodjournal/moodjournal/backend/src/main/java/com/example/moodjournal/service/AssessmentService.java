@@ -548,9 +548,13 @@ public class AssessmentService {
                 String safeAnswer = "Redacted";
                 try {
                     safeAnswer = securityService.securePrompt(pr.getAnswer());
+                } catch (SecurityException se) {
+                    log.warn("Assessment blocked by security policy: {}", se.getMessage());
+                    throw new SecurityException(
+                            "One or more assessment responses contain unsafe instructions. Please revise and retry.");
                 } catch (Exception e) {
-                    log.error("Analysis Blocked: Malicious content in assessment answer.", e);
-                    safeAnswer = "[REDACTED - MALICIOUS CONTENT]";
+                    log.error("Assessment answer parsing/security preprocessing failed.", e);
+                    safeAnswer = "[REDACTED - UNPROCESSABLE ANSWER]";
                 }
                 context.append("A: ").append(safeAnswer).append("\n\n");
             }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.moodjournal.dto.SuggestMoodRequest;
 import com.example.moodjournal.model.Mood;
+import com.example.moodjournal.service.AISecurityService;
 import com.example.moodjournal.service.GeminiService;
 import com.example.moodjournal.service.JournalEntryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,14 +30,17 @@ public class AIController {
     private final GeminiService geminiService;
     private final JournalEntryService journalEntryService;
     private final ObjectMapper objectMapper;
+    private final AISecurityService aiSecurityService;
 
     private static final Logger log = LoggerFactory.getLogger(AIController.class);
 
     public AIController(GeminiService geminiService, JournalEntryService journalEntryService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            AISecurityService aiSecurityService) {
         this.geminiService = geminiService;
         this.journalEntryService = journalEntryService;
         this.objectMapper = objectMapper;
+        this.aiSecurityService = aiSecurityService;
     }
 
     @PostMapping(value = "/suggest-mood", produces = "application/json")
@@ -45,7 +49,14 @@ public class AIController {
         if (validationError != null) {
             return ResponseEntity.badRequest().body(validationError);
         }
-        String content = request.getContent();
+        String content;
+        try {
+            content = aiSecurityService.securePrompt(request.getContent());
+        } catch (SecurityException se) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error",
+                    "Your request contains unsafe content and was blocked. Please revise and try again."));
+        }
         Mood suggestedMood = journalEntryService.suggestMood(content);
         return ResponseEntity.ok(Map.of("suggestedMood", suggestedMood.name()));
     }
@@ -58,7 +69,15 @@ public class AIController {
             return java.util.concurrent.CompletableFuture
                     .completedFuture(ResponseEntity.badRequest().body(validationError));
         }
-        String content = request.getContent();
+        String content;
+        try {
+            content = aiSecurityService.securePrompt(request.getContent());
+        } catch (SecurityException se) {
+            return java.util.concurrent.CompletableFuture.completedFuture(
+                    ResponseEntity.badRequest().body(Map.of(
+                            "error",
+                            "Your request contains unsafe content and was blocked. Please revise and try again.")));
+        }
 
         return geminiService.getEmotionBreakdown(content)
                 .<ResponseEntity<?>>thenApply(response -> {

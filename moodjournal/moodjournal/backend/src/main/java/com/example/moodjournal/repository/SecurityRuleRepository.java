@@ -15,4 +15,6 @@ public interface SecurityRuleRepository extends JpaRepository<SecurityRule, UUID
 
     // Fetch shadow rules for testing
     List<SecurityRule> findByIsShadowModeTrue();
+
+    boolean existsByPatternIgnoreCase(String pattern);
 }

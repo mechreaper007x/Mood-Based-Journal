@@ -90,8 +90,8 @@ public class GeminiService {
    */
   @Async("taskExecutor")
   public CompletableFuture<String> getEmotionBreakdown(String text) {
-    String sanitized = sanitizer.sanitize(text);
-    String prompt = PromptConstants.EMOTION_BREAKDOWN_PROMPT + sanitized;
+    String safeText = secureAndSanitizeInput(text);
+    String prompt = PromptConstants.EMOTION_BREAKDOWN_PROMPT + safeText;
 
     try {
       String response = callGeminiWithRotation(prompt);
@@ -101,13 +101,13 @@ public class GeminiService {
       ValidationResult validation = validator.validateEmotionBreakdown(cleanResponse);
       if (!validation.isValid() || validator.shouldFallbackToLexicon(validation.getConfidence())) {
         log.warn("Emotion breakdown validation failed or low confidence: {}", validation);
-        return CompletableFuture.completedFuture(generateFallbackEmotionBreakdown(sanitized));
+        return CompletableFuture.completedFuture(generateFallbackEmotionBreakdown(safeText));
       }
 
       return CompletableFuture.completedFuture(cleanResponse);
     } catch (Exception e) {
       log.error("Emotion breakdown failed, using fallback: {}", e.getMessage());
-      return CompletableFuture.completedFuture(generateFallbackEmotionBreakdown(sanitized));
+      return CompletableFuture.completedFuture(generateFallbackEmotionBreakdown(safeText));
     }
   }
 
@@ -137,8 +137,7 @@ public class GeminiService {
    * Validates response and falls back to lexicon on low confidence.
    */
   public String analyzeEmotions(String entryContent) {
-    // SECURITY: Pre-process and filter input
-    String safeContent = aiSecurityService.securePrompt(entryContent);
+    String safeContent = secureAndSanitizeInput(entryContent);
 
     // If content was completely filtered (e.g. only PII), warn but proceed with
     // empty or handle as error?
@@ -168,7 +167,7 @@ public class GeminiService {
       }
 
       if (validator.shouldFallbackToLexicon(validation.getConfidence())) {
-        String enhancedResponse = lexiconService.enhanceAnalysis(entryContent, validation);
+        String enhancedResponse = lexiconService.enhanceAnalysis(safeContent, validation);
         return aiSecurityService.secureResponse(enhancedResponse); // SECURITY: Output Filter
       }
 
@@ -184,8 +183,8 @@ public class GeminiService {
    * Uses safety-first approach with lexicon backup.
    */
   public String assessRisk(String journalContent) {
-    String sanitized = sanitizer.sanitize(journalContent);
-    String prompt = PromptConstants.RISK_ASSESSMENT_PROMPT + sanitized;
+    String safeContent = secureAndSanitizeInput(journalContent);
+    String prompt = PromptConstants.RISK_ASSESSMENT_PROMPT + safeContent;
 
     try {
       String response = callGeminiWithRotation(prompt);
@@ -195,13 +194,13 @@ public class GeminiService {
 
       if (!validation.isValid()) {
         log.warn("Risk assessment validation failed: {}. Using lexicon.", validation.getFailureReason());
-        return generateLexiconRiskAssessment(sanitized);
+        return generateLexiconRiskAssessment(safeContent);
       }
 
       return cleanResponse;
     } catch (Exception e) {
       log.error("Risk assessment failed: {}. Using lexicon fallback.", e.getMessage());
-      return generateLexiconRiskAssessment(sanitized);
+      return generateLexiconRiskAssessment(safeContent);
     }
   }
 
@@ -209,8 +208,8 @@ public class GeminiService {
    * Suggest mood category for journal entry.
    */
   public String suggestMood(String text) {
-    String sanitized = sanitizer.sanitize(text);
-    String prompt = PromptConstants.SUGGEST_MOOD_PROMPT + "\n\nJournal entry:\n" + sanitized;
+    String safeText = secureAndSanitizeInput(text);
+    String prompt = PromptConstants.SUGGEST_MOOD_PROMPT + "\n\nJournal entry:\n" + safeText;
 
     try {
       String response = callGeminiWithRotation(prompt);
@@ -233,10 +232,10 @@ public class GeminiService {
    * Generate a neutral, objective analysis of the journal content.
    */
   public String generateNeutralAnalysis(String text, String detectedEmotion) {
-    String sanitized = sanitizer.sanitize(text);
+    String safeText = secureAndSanitizeInput(text);
     String prompt = String.format(PromptConstants.NEUTRAL_ANALYSIS_PROMPT,
         detectedEmotion != null ? detectedEmotion : "unknown",
-        sanitized);
+        safeText);
 
     try {
       String result = callGeminiWithRotation(prompt);
@@ -257,8 +256,7 @@ public class GeminiService {
    * Call Gemini API with model rotation and retry logic.
    */
   public String chat(String message) {
-    // SECURITY: Pre-process and filter input
-    String safeMessage = aiSecurityService.securePrompt(message);
+    String safeMessage = secureAndSanitizeInput(message);
 
     String prompt = """
         You are a helpful, empathetic mental health companion.
@@ -273,6 +271,11 @@ public class GeminiService {
   // ========================================================================
   // PRIVATE HELPER METHODS
   // ========================================================================
+
+  private String secureAndSanitizeInput(String rawInput) {
+    String secured = aiSecurityService.securePrompt(rawInput);
+    return sanitizer.sanitize(secured);
+  }
 
   /**
    * Generate fallback emotion breakdown using lexicon.
