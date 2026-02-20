@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.moodjournal.exception.RateLimitExceededException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 @ControllerAdvice
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
             if (target != null && target.isEnum()) {
                 String allowed = Arrays.stream(target.getEnumConstants())
                         .map(Object::toString)
-                        .map(String::toLowerCase) 
+                        .map(String::toLowerCase)
                         .collect(Collectors.joining(", "));
                 String message = String.format("Invalid value for '%s'. Allowed values: %s",
                         field.isEmpty() ? "field" : field, allowed);
@@ -61,6 +62,13 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, String>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        return new ResponseEntity<>(
+                Map.of("error", ex.getMessage()),
+                HttpStatus.TOO_MANY_REQUESTS);
+    }
+
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException ex) {
         return new ResponseEntity<>(Map.of(
@@ -71,12 +79,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
-        
+
         org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
                 .error("Unhandled exception: ", ex);
 
-        
-        
         return new ResponseEntity<>(Map.of("error", "An unexpected error occurred. Please try again later."),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }

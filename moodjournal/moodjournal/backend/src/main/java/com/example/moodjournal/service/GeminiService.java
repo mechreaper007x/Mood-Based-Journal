@@ -1,9 +1,9 @@
 package com.example.moodjournal.service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,20 +13,13 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.moodjournal.exception.RateLimitExceededException;
 import com.example.moodjournal.service.AIResponseValidator.ValidationResult;
 import com.example.moodjournal.util.PromptConstants;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
-
-
-
-
-
-
-
-
-
-
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
 
 @Service
 public class GeminiService {
@@ -47,7 +40,6 @@ public class GeminiService {
   private final VADLexiconService lexiconService;
   private final com.example.moodjournal.security.sanitization.InputSanitizer sanitizer;
 
-  
   private static final List<String> AVAILABLE_MODELS = List.of(
       "gemini-2.5-flash",
       "gemini-2.5-flash-lite",
@@ -57,15 +49,19 @@ public class GeminiService {
       "gemma-3-4b-it",
       "gemma-3-1b-it");
 
-  
   private final AtomicInteger modelIndex = new AtomicInteger(0);
 
-  
-  private final ReentrantLock apiLock = new ReentrantLock();
-
-  
-  private static final long THROTTLE_MS = 6000;
-  private long lastCallTimestamp = 0;
+  /**
+   * Token bucket: 15 tokens refilled every 60 seconds (Gemini free-tier RPM
+   * limit).
+   * Bucket4j is thread-safe by design; no external lock is needed.
+   */
+  private final Bucket rateLimiter = Bucket.builder()
+      .addLimit(Bandwidth.builder()
+          .capacity(15)
+          .refillGreedy(15, Duration.ofMinutes(1))
+          .build())
+      .build();
 
   public GeminiService(
       @Value("${google.api.key}") String rawApiKey,
@@ -81,12 +77,9 @@ public class GeminiService {
     this.restTemplate = restTemplate;
     this.objectMapper = objectMapper;
     this.aiSecurityService = aiSecurityService;
-    log.info("GeminiService initialized with {} models for rotation and validation enabled",
+    log.info("GeminiService initialized. Models: {}, Rate limit: 15 req/min (Bucket4j)",
         AVAILABLE_MODELS.size());
   }
-
-  
-
 
   @Async("taskExecutor")
   public CompletableFuture<String> getEmotionBreakdown(String text) {
@@ -97,7 +90,6 @@ public class GeminiService {
       String response = callGeminiWithRotation(prompt);
       String cleanResponse = cleanJsonResponse(response);
 
-      
       ValidationResult validation = validator.validateEmotionBreakdown(cleanResponse);
       if (!validation.isValid() || validator.shouldFallbackToLexicon(validation.getConfidence())) {
         log.warn("Emotion breakdown validation failed or low confidence: {}", validation);
@@ -110,9 +102,6 @@ public class GeminiService {
       return CompletableFuture.completedFuture(generateFallbackEmotionBreakdown(safeText));
     }
   }
-
-  
-
 
   public String getDailyQuote() {
     try {
@@ -132,16 +121,8 @@ public class GeminiService {
     }
   }
 
-  
-
-
-
   public String analyzeEmotions(String entryContent) {
     String safeContent = secureAndSanitizeInput(entryContent);
-
-    
-    
-    
 
     String prompt = """
         Analyze the following journal entry and return a JSON object with:
@@ -151,14 +132,13 @@ public class GeminiService {
         4. "Suggestion": A brief, helpful suggestion for the user.
 
         Entry: "%s"
-        """.formatted(safeContent); 
+        """.formatted(safeContent);
 
     try {
       String response = callGeminiWithRotation(prompt);
       String cleanResponse = cleanJsonResponse(response);
       log.info("Gemini emotion analysis response (raw): {}", cleanResponse);
 
-      
       ValidationResult validation = validator.validateEmotionBreakdown(cleanResponse);
 
       if (!validation.isValid()) {
@@ -168,19 +148,15 @@ public class GeminiService {
 
       if (validator.shouldFallbackToLexicon(validation.getConfidence())) {
         String enhancedResponse = lexiconService.enhanceAnalysis(safeContent, validation);
-        return aiSecurityService.secureResponse(enhancedResponse); 
+        return aiSecurityService.secureResponse(enhancedResponse);
       }
 
-      return aiSecurityService.secureResponse(cleanResponse); 
+      return aiSecurityService.secureResponse(cleanResponse);
     } catch (Exception e) {
       log.error("Gemini analysis failed: {}. Using fallback.", e.getMessage(), e);
-      return aiSecurityService.secureResponse(generateFallbackEmotionBreakdown(safeContent)); 
+      return aiSecurityService.secureResponse(generateFallbackEmotionBreakdown(safeContent));
     }
   }
-
-  
-
-
 
   public String assessRisk(String journalContent) {
     String safeContent = secureAndSanitizeInput(journalContent);
@@ -204,9 +180,6 @@ public class GeminiService {
     }
   }
 
-  
-
-
   public String suggestMood(String text) {
     String safeText = secureAndSanitizeInput(text);
     String prompt = PromptConstants.SUGGEST_MOOD_PROMPT + "\n\nJournal entry:\n" + safeText;
@@ -228,9 +201,6 @@ public class GeminiService {
     }
   }
 
-  
-
-
   public String generateNeutralAnalysis(String text, String detectedEmotion) {
     String safeText = secureAndSanitizeInput(text);
     String prompt = String.format(PromptConstants.NEUTRAL_ANALYSIS_PROMPT,
@@ -239,7 +209,7 @@ public class GeminiService {
 
     try {
       String result = callGeminiWithRotation(prompt);
-      
+
       result = result.replaceAll("[\\x00-\\x1F]", " ").trim();
 
       if (result.startsWith("{") || result.startsWith("\"")) {
@@ -252,9 +222,6 @@ public class GeminiService {
     }
   }
 
-  
-
-
   public String chat(String message) {
     String safeMessage = secureAndSanitizeInput(message);
 
@@ -262,31 +229,21 @@ public class GeminiService {
         You are a helpful, empathetic mental health companion.
         User says: "%s"
         Reply in a supportive, conversational manner. Keep it brief (under 50 words).
-        """.formatted(safeMessage); 
+        """.formatted(safeMessage);
 
     String response = callGeminiWithRotation(prompt);
-    return aiSecurityService.secureResponse(response); 
+    return aiSecurityService.secureResponse(response);
   }
-
-  
-  
-  
 
   private String secureAndSanitizeInput(String rawInput) {
     String secured = aiSecurityService.securePrompt(rawInput);
     return sanitizer.sanitize(secured);
   }
 
-  
-
-
   private String generateFallbackEmotionBreakdown(String text) {
     String fallback = lexiconService.analyzeWithoutAI(text);
     return aiSecurityService.secureResponse(fallback);
   }
-
-  
-
 
   private String generateLexiconRiskAssessment(String text) {
     int riskScore = lexiconService.calculateRiskScore(text);
@@ -313,18 +270,12 @@ public class GeminiService {
         riskScore, riskLevel, keywordsJson);
   }
 
-  
-
-
   private String getDefaultQuote() {
     return "{\"quote\":\"The only way out is through.\",\"author\":\"Robert Frost\",\"verified\":true}";
   }
 
-  
-
-
   public String callGeminiWithRotation(String prompt) {
-    throttle(); 
+    consumeToken(); // Fail-fast rate limit check — no sleeping, no blocking.
     Exception lastException = null;
     int startIndex = modelIndex.get();
     int modelCount = AVAILABLE_MODELS.size();
@@ -335,15 +286,11 @@ public class GeminiService {
       log.debug("Attempting Gemini API call with model: {} (attempt {}/{})",
           model, i + 1, modelCount);
 
-      
-      
-      
       try {
         GenerateContentResponse response = client.models.generateContent(model, prompt, null);
         String text = response.text();
         log.debug("Successfully got response from model: {}", model);
 
-        
         modelIndex.getAndUpdate(current -> (current + 1) % modelCount);
         return text != null ? text.trim() : "";
       } catch (Exception e) {
@@ -359,17 +306,6 @@ public class GeminiService {
           log.error("Error with model {}: {}", model, e.getMessage());
         }
       }
-      
-
-      
-      if (i < modelCount - 1) {
-        try {
-          Thread.sleep(200);
-        } catch (InterruptedException ie) {
-          Thread.currentThread().interrupt();
-          break;
-        }
-      }
     }
 
     String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
@@ -377,26 +313,16 @@ public class GeminiService {
     throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
   }
 
-  
-  
-  
-
-  
-
-
-
   public float[] getEmbedding(String text) {
-    throttle(); 
+    consumeToken(); // Fail-fast rate limit check.
     try {
-      
+
       String modelName = "gemini-embedding-001";
 
       var response = client.models.embedContent(modelName, text, null);
-      
-      
+
       List<Float> values = response.embeddings().get().get(0).values().get();
 
-      
       float[] result = new float[values.size()];
       for (int i = 0; i < values.size(); i++) {
         result[i] = values.get(i);
@@ -404,39 +330,37 @@ public class GeminiService {
       return result;
     } catch (Exception e) {
       log.error("Failed to generate embedding: {}", e.getMessage());
-      
+
       throw new RuntimeException("Embedding generation failed", e);
     }
   }
 
-  
-
-
-  private void throttle() {
-    apiLock.lock();
-    try {
-      long currentTime = System.currentTimeMillis();
-      long timeSinceLastCall = currentTime - lastCallTimestamp;
-
-      if (timeSinceLastCall < THROTTLE_MS) {
-        long waitTime = THROTTLE_MS - timeSinceLastCall;
-        log.info("Throttling Gemini API call ({} RPM limit). Waiting {}ms...", (60000 / THROTTLE_MS), waitTime);
-        try {
-          Thread.sleep(waitTime);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          log.warn("Throttling interrupted: {}", e.getMessage());
-        }
-      }
-      lastCallTimestamp = System.currentTimeMillis();
-    } finally {
-      apiLock.unlock();
+  /**
+   * Attempts to consume one token from the Bucket4j rate limiter.
+   *
+   * <p>
+   * <strong>Why this is superior to ReentrantLock + Thread.sleep():</strong><br>
+   * Under the M/M/1 queueing model, server utilisation ρ = λ/μ. When
+   * Thread.sleep() holds a Tomcat worker thread, that thread is blocked but
+   * still counted against the thread-pool capacity. As arrival rate λ rises,
+   * ρ → 1 and, by Little's Law (L = λW), mean queue length L grows without
+   * bound — i.e. the server collapses. A fail-fast rejection (tryConsume)
+   * immediately returns capacity to the pool: ρ stays low, latency stays
+   * predictable, and the system degrades gracefully instead of starving.
+   *
+   * <p>
+   * Bucket4j uses a lock-free CAS loop internally, so it is also more
+   * CPU-efficient than a ReentrantLock under concurrent access.
+   *
+   * @throws RateLimitExceededException if the 15 req/min budget is exhausted.
+   */
+  private void consumeToken() {
+    if (!rateLimiter.tryConsume(1)) {
+      log.warn("Gemini rate limit exhausted (15 req/min). Rejecting request fast.");
+      throw new RateLimitExceededException(
+          "Gemini API rate limit exceeded (15 requests/minute). Please try again shortly.");
     }
   }
-
-  
-
-
 
   public String cleanJsonResponse(String response) {
     if (response == null)
@@ -444,7 +368,6 @@ public class GeminiService {
 
     String cleanText = response.trim();
 
-    
     if (cleanText.startsWith("```")) {
       int firstNewline = cleanText.indexOf('\n');
       if (firstNewline != -1) {
@@ -457,7 +380,6 @@ public class GeminiService {
 
     cleanText = cleanText.trim();
 
-    
     StringBuilder sanitized = new StringBuilder();
     boolean inString = false;
     boolean escaped = false;

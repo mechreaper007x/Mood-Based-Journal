@@ -1,6 +1,5 @@
 package com.example.moodjournal.config;
 
-import java.lang.reflect.Method;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,8 +55,8 @@ public class SecurityConfig {
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtRequestFilter jwtRequestFilter)
                         throws Exception {
-                disableCrossSiteGuard(http);
                 http
+                                .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(request -> {
                                         org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
                                         config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
@@ -119,20 +119,5 @@ public class SecurityConfig {
                 http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
-        }
-
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        private void disableCrossSiteGuard(HttpSecurity http) {
-                try {
-                        Class<?> configurerType = Class.forName(
-                                        "org.springframework.security.config.annotation.web.configurers.Cs" + "rfConfigurer");
-                        Object configurer = http.getConfigurer((Class) configurerType);
-                        if (configurer != null) {
-                                Method disable = configurerType.getMethod("disable");
-                                disable.invoke(configurer);
-                        }
-                } catch (ReflectiveOperationException e) {
-                        throw new IllegalStateException("Failed to configure stateless security chain", e);
-                }
         }
 }
