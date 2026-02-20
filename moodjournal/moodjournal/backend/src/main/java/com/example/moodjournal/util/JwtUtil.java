@@ -16,7 +16,7 @@ import java.util.function.Function;
 public class JwtUtil {
 
     private final SecretKey key;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; 
+    private static final long EXPIRATION_TIME = 1000 * 60 * 15;
     private static final String TOKEN_ISSUER = "moodjournal-api";
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
