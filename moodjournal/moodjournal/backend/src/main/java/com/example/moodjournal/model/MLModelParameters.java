@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Stores learned ML model parameters for the security classifier.
- * This enables true "neuroevolution" - parameters learned from attack data.
- */
+
+
+
+
 @Entity
 @Table(name = "ml_model_parameters")
 public class MLModelParameters {
@@ -17,12 +17,12 @@ public class MLModelParameters {
     private UUID id;
 
     @Column(name = "model_type")
-    private String modelType; // "GRADIENT_DESCENT" or "GENETIC_THRESHOLD"
+    private String modelType; 
 
     @Column(name = "model_version")
     private int modelVersion;
 
-    // Gradient Descent Classifier Weights (7 features)
+    
     private double weightEntropy;
     private double weightSpecialCharRatio;
     private double weightUppercaseRatio;
@@ -32,13 +32,13 @@ public class MLModelParameters {
     private double weightSuspiciousPatternScore;
     private double bias;
 
-    // Genetic Algorithm Evolved Thresholds
+    
     private double thresholdEntropy;
     private double thresholdSpecialChar;
     private double thresholdUppercase;
     private double thresholdAnomaly;
 
-    // Training Metrics
+    
     private double accuracy;
     private double precision;
     private double recall;
@@ -55,7 +55,7 @@ public class MLModelParameters {
     public MLModelParameters() {
         this.createdAt = LocalDateTime.now();
         this.isActive = false;
-        // Default random initialization
+        
         this.weightEntropy = Math.random() * 0.5;
         this.weightSpecialCharRatio = Math.random() * 0.5;
         this.weightUppercaseRatio = Math.random() * 0.5;
@@ -103,7 +103,7 @@ public class MLModelParameters {
         }
     }
 
-    // Getters and Setters
+    
     public UUID getId() {
         return id;
     }

@@ -14,15 +14,15 @@ const MOOD_COLORS = {
 };
 
 const MoodCalendar = ({ entries = [] }) => {
-  // Get current date
+  
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Helper to get days in month
+  
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
-  // Helper to get day of week for 1st of month (0 = Sunday)
+  
   const getFirstDayOfMonth = (year, month) => {
     return new Date(year, month, 1).getDay();
   };
@@ -32,27 +32,27 @@ const MoodCalendar = ({ entries = [] }) => {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
   
-  // Generate calendar grid
+  
   const days = [];
-  // Add empty slots for days before 1st
+  
   for (let i = 0; i < firstDay; i++) {
     days.push(null);
   }
-  // Add actual days
+  
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(new Date(year, month, i));
   }
 
-  // Helper to find dominant mood for a specific date
+  
   const getMoodForDate = (date) => {
     if (!date) return null;
     
-    // Normalize date for comparison (YYYY-MM-DD)
+    
     const dateStr = date.toISOString().split('T')[0];
     
-    // Find entry for this date
-    // Note: Assuming entries are sorted or we just take the first/last one for the day
-    // For a more accurate "daily mood", we might average them, but taking the latest is a good heuristic
+    
+    
+    
     const entry = entries.find(e => {
         if (!e.createdAt) return false;
         return e.createdAt.startsWith(dateStr);
@@ -88,7 +88,6 @@ const MoodCalendar = ({ entries = [] }) => {
         </div>
       </div>
 
-      {/* Weekday Headers */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="text-center text-xs text-gray-500 font-medium py-1">
@@ -97,7 +96,6 @@ const MoodCalendar = ({ entries = [] }) => {
         ))}
       </div>
 
-      {/* Days Grid */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((date, index) => {
             if (!date) {
@@ -123,7 +121,6 @@ const MoodCalendar = ({ entries = [] }) => {
                 >
                     {date.getDate()}
                     
-                    {/* Tooltip */}
                     {mood && (
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                             {mood}
@@ -134,7 +131,6 @@ const MoodCalendar = ({ entries = [] }) => {
         })}
       </div>
 
-      {/* Legend */}
       <div className="flex flex-wrap items-center justify-center gap-3 mt-6 text-xs text-gray-400">
         {Object.entries(MOOD_COLORS).filter(([key]) => key !== 'DEFAULT' && key !== 'NEUTRAL').map(([mood, color]) => (
             <div key={mood} className="flex items-center gap-1.5">

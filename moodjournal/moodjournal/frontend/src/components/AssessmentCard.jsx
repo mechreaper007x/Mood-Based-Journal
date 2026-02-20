@@ -1,17 +1,17 @@
 import { motion } from 'framer-motion';
 
-/**
- * AssessmentCard - Reusable card component for psychological assessments.
- * Displays a question with MCQ options as styled buttons.
- * 
- * @param {Object} props
- * @param {number} props.number - Question number
- * @param {string} props.question - The question text
- * @param {Array} props.options - Array of { value, label } options
- * @param {string|number} props.selectedAnswer - Currently selected answer value
- * @param {Function} props.onSelect - Callback when an option is selected
- * @param {string} props.type - 'likert' | 'paired' | 'mcq'
- */
+
+
+
+
+
+
+
+
+
+
+
+
 const AssessmentCard = ({ 
   number, 
   question, 
@@ -27,7 +27,6 @@ const AssessmentCard = ({
       transition={{ delay: number * 0.02 }}
       className="bg-dark-card/50 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:border-primary-DEFAULT/30 transition-all"
     >
-      {/* Question Header */}
       <div className="flex items-start gap-3 mb-4">
         <span className="flex-shrink-0 w-8 h-8 bg-primary-DEFAULT/20 text-primary-DEFAULT rounded-lg flex items-center justify-center text-sm font-bold">
           {number}
@@ -35,7 +34,6 @@ const AssessmentCard = ({
         <p className="text-white font-medium leading-relaxed">{question}</p>
       </div>
 
-      {/* Options */}
       {type === 'likert' ? (
         <div className="flex justify-between gap-1 sm:gap-2">
           {options.map(opt => (

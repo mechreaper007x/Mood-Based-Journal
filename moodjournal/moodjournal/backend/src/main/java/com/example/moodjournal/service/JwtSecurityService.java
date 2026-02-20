@@ -14,15 +14,15 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Multi-Layer JWT Security Service
- * 
- * Implements 4-layer defense:
- * 1. Token Fingerprinting (Anti-Theft) - Binds token to browser characteristics
- * 2. Token Blacklisting (Revocation) - Enables instant token invalidation
- * 3. Token Rotation (Anti-Replay) - Periodically issues fresh tokens
- * 4. Standard Validation - Signature and expiry checks
- */
+
+
+
+
+
+
+
+
+
 @Service
 public class JwtSecurityService {
 
@@ -46,15 +46,15 @@ public class JwtSecurityService {
         this.jwtUtil = jwtUtil;
     }
 
-    // ============================================
-    // TOKEN GENERATION WITH FINGERPRINTING
-    // ============================================
+    
+    
+    
 
-    /**
-     * Generate a secure token with browser fingerprint embedded.
-     * The fingerprint helps detect if a token is being used from a different
-     * device/browser.
-     */
+    
+
+
+
+
     public String generateSecureToken(String email, HttpServletRequest request) {
         String fingerprint = createFingerprint(
                 request.getHeader("User-Agent"),
@@ -63,24 +63,24 @@ public class JwtSecurityService {
 
         String fingerprintHash = hashFingerprint(fingerprint);
 
-        // Store full fingerprint hash with token expiry (10 hours)
-        long tokenTtl = 10 * 60 * 60 * 1000L; // 10 hours in ms
+        
+        long tokenTtl = 10 * 60 * 60 * 1000L; 
         tokenStore.setWithExpiry(
                 FINGERPRINT_PREFIX + email,
                 fingerprintHash,
                 tokenTtl);
 
-        // Embed partial fingerprint in JWT claims for stateless verification fallback
+        
         Map<String, Object> claims = new HashMap<>();
-        claims.put("fp", fingerprintHash.substring(0, 16)); // Partial for JWT size
-        claims.put("iat_ms", System.currentTimeMillis()); // For rotation check
+        claims.put("fp", fingerprintHash.substring(0, 16)); 
+        claims.put("iat_ms", System.currentTimeMillis()); 
 
         String token = jwtUtil.generateToken(email, claims);
 
-        // Track user's active token (for logout-all-devices)
+        
         tokenStore.setWithExpiry(
                 USER_TOKENS_PREFIX + email,
-                token.substring(token.length() - 32), // Last 32 chars as identifier
+                token.substring(token.length() - 32), 
                 tokenTtl);
 
         log.info("Generated secure token for user: {} [fingerprint={}]",
@@ -89,17 +89,17 @@ public class JwtSecurityService {
         return token;
     }
 
-    // ============================================
-    // FINGERPRINT VALIDATION
-    // ============================================
+    
+    
+    
 
-    /**
-     * Validate that the request fingerprint matches the stored fingerprint.
-     * Returns true if fingerprinting is disabled or if fingerprints match.
-     */
+    
+
+
+
     public boolean validateTokenFingerprint(String token, HttpServletRequest request) {
         if (!fingerprintEnabled) {
-            return true; // Fingerprinting disabled
+            return true; 
         }
 
         try {
@@ -108,7 +108,7 @@ public class JwtSecurityService {
 
             if (storedHash == null) {
                 log.warn("No stored fingerprint for user: {}", email);
-                return false; // Token expired or fingerprint not found
+                return false; 
             }
 
             String currentFingerprint = createFingerprint(
@@ -117,7 +117,7 @@ public class JwtSecurityService {
                     request.getHeader("Accept-Language"));
             String currentHash = hashFingerprint(currentFingerprint);
 
-            // Constant-time comparison to prevent timing attacks
+            
             boolean match = MessageDigest.isEqual(
                     storedHash.getBytes(StandardCharsets.UTF_8),
                     currentHash.getBytes(StandardCharsets.UTF_8));
@@ -134,18 +134,63 @@ public class JwtSecurityService {
         }
     }
 
-    // ============================================
-    // TOKEN ROTATION (Anti-Replay)
-    // ============================================
+    public boolean validateTokenBinding(String token) {
+        try {
+            String email = jwtUtil.extractUsername(token);
+            String storedTokenSuffix = tokenStore.get(USER_TOKENS_PREFIX + email);
+            if (storedTokenSuffix == null) {
+                log.warn("No active token binding for user: {}", email);
+                return false;
+            }
 
-    /**
-     * Check if token should be rotated based on age.
-     */
+            String tokenSuffix = token.length() > 32 ? token.substring(token.length() - 32) : token;
+            boolean suffixMatch = MessageDigest.isEqual(
+                    storedTokenSuffix.getBytes(StandardCharsets.UTF_8),
+                    tokenSuffix.getBytes(StandardCharsets.UTF_8));
+            if (!suffixMatch) {
+                log.warn("Token suffix mismatch for user: {}", email);
+                return false;
+            }
+
+            String storedFingerprintHash = tokenStore.get(FINGERPRINT_PREFIX + email);
+            if (storedFingerprintHash == null) {
+                log.warn("No fingerprint binding for user: {}", email);
+                return false;
+            }
+
+            String tokenFingerprintFragment = jwtUtil.extractClaim(token, claims -> claims.get("fp", String.class));
+            if (tokenFingerprintFragment == null) {
+                log.warn("Missing fingerprint claim for user: {}", email);
+                return false;
+            }
+
+            String expectedFragment = storedFingerprintHash.substring(0, Math.min(16, storedFingerprintHash.length()));
+            boolean fragmentMatch = MessageDigest.isEqual(
+                    expectedFragment.getBytes(StandardCharsets.UTF_8),
+                    tokenFingerprintFragment.getBytes(StandardCharsets.UTF_8));
+            if (!fragmentMatch) {
+                log.warn("Token fingerprint claim mismatch for user: {}", email);
+            }
+
+            return fragmentMatch;
+        } catch (Exception e) {
+            log.error("Error validating token binding", e);
+            return false;
+        }
+    }
+
+    
+    
+    
+
+    
+
+
     public boolean shouldRotateToken(String token) {
         try {
             Long issuedAt = jwtUtil.extractClaim(token, claims -> claims.get("iat_ms", Long.class));
             if (issuedAt == null) {
-                return false; // Legacy token without iat_ms claim
+                return false; 
             }
 
             long ageMinutes = (System.currentTimeMillis() - issuedAt) / (60 * 1000);
@@ -156,13 +201,13 @@ public class JwtSecurityService {
         }
     }
 
-    /**
-     * Rotate token: blacklist old token and issue new one.
-     */
+    
+
+
     public String rotateToken(String oldToken, HttpServletRequest request) {
         String email = jwtUtil.extractUsername(oldToken);
 
-        // Blacklist old token
+        
         long ttl = jwtUtil.getTimeToExpiry(oldToken);
         if (ttl > 0) {
             tokenStore.setWithExpiry(
@@ -173,24 +218,24 @@ public class JwtSecurityService {
 
         log.info("Token rotated for user: {}", email);
 
-        // Issue new token with fresh fingerprint
+        
         return generateSecureToken(email, request);
     }
 
-    // ============================================
-    // TOKEN BLACKLISTING (Revocation)
-    // ============================================
+    
+    
+    
 
-    /**
-     * Check if token is blacklisted (revoked).
-     */
+    
+
+
     public boolean isTokenBlacklisted(String token) {
         return tokenStore.exists(BLACKLIST_PREFIX + token);
     }
 
-    /**
-     * Revoke a specific token (e.g., on logout).
-     */
+    
+
+
     public void revokeToken(String token) {
         try {
             long ttl = jwtUtil.getTimeToExpiry(token);
@@ -208,35 +253,35 @@ public class JwtSecurityService {
         }
     }
 
-    /**
-     * Revoke all tokens for a user (logout from all devices).
-     */
+    
+
+
     public void revokeAllUserTokens(String email) {
         tokenStore.delete(FINGERPRINT_PREFIX + email);
         tokenStore.delete(USER_TOKENS_PREFIX + email);
         log.info("All tokens revoked for user: {}", email);
     }
 
-    // ============================================
-    // HELPER METHODS
-    // ============================================
+    
+    
+    
 
-    /**
-     * Create browser fingerprint from request characteristics.
-     * Uses partial IP to allow for minor network changes (e.g., mobile carrier
-     * NAT).
-     */
+    
+
+
+
+
     private String createFingerprint(String userAgent, String ip, String acceptLang) {
         return String.join("|",
                 userAgent != null ? userAgent : "unknown",
-                ip != null ? ip.substring(0, Math.min(ip.length(), 12)) : "unknown", // Partial IP
-                acceptLang != null ? acceptLang.split(",")[0] : "en" // Primary language only
+                ip != null ? ip.substring(0, Math.min(ip.length(), 12)) : "unknown", 
+                acceptLang != null ? acceptLang.split(",")[0] : "en" 
         );
     }
 
-    /**
-     * Get client IP, handling proxies and load balancers.
-     */
+    
+
+
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
@@ -249,9 +294,9 @@ public class JwtSecurityService {
         return request.getRemoteAddr();
     }
 
-    /**
-     * Hash fingerprint using SHA-256.
-     */
+    
+
+
     private String hashFingerprint(String fingerprint) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

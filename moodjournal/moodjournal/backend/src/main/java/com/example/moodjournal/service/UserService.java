@@ -25,16 +25,16 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Register a new user.
-     * 
-     * SECURITY NOTE: Uses unique constraints + exception handling for duplicate
-     * detection.
-     * H2 doesn't fully support SERIALIZABLE with PESSIMISTIC_WRITE on new rows.
-     */
+    
+
+
+
+
+
+
     @Transactional
     public User register(User user) {
-        // Simple duplicate check (unique constraint is the real guard)
+        
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             log.warn("Registration blocked: Email {} already exists", user.getEmail());
             throw new RuntimeException("Email is already taken");
@@ -45,7 +45,7 @@ public class UserService {
             throw new RuntimeException("Username is already taken");
         }
 
-        // Encode password
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         try {
@@ -53,7 +53,7 @@ public class UserService {
             log.info("User registered successfully: {}", user.getEmail());
             return saved;
         } catch (DataIntegrityViolationException e) {
-            // Unique constraint violation (race condition fallback)
+            
             log.error("Registration failed due to duplicate: {}", e.getMessage());
             throw new RuntimeException("Registration failed: User already exists.");
         }
@@ -68,8 +68,8 @@ public class UserService {
             org.springframework.security.core.userdetails.UserDetails userDetails,
             Object authenticationDetails, com.example.moodjournal.util.JwtUtil jwtUtil) {
 
-        // 1. PESSIMISTIC LOCK: Ensure no other thread is disabling the user right now
-        // This transaction holds the lock until the method returns
+        
+        
         Optional<User> dbUser = userRepository.findByEmailForUpdate(username);
 
         boolean isValid = false;
@@ -86,7 +86,7 @@ public class UserService {
             log.warn("Authentication atomic check failed: User {} not found in DB", username);
         }
 
-        // 2. Set Authentication while Lock is still held (Semantic Atomicity)
+        
         if (isValid && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
             org.springframework.security.authentication.UsernamePasswordAuthenticationToken authToken = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());

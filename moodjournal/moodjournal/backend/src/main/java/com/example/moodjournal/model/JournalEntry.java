@@ -60,41 +60,41 @@ public class JournalEntry {
   private Instant createdAt;
   private Instant updatedAt;
 
-  // AI analysis results (optional)
+  
   private String analysisEmotion;
   private Double analysisConfidence;
   private Double analysisIntensity;
 
-  // NLP Pipeline results
-  private Double textblobPolarity; // -1 to +1
-  private Double vaderCompound; // -1 to +1
-  private Double subjectivity; // 0 to 1
+  
+  private Double textblobPolarity; 
+  private Double vaderCompound; 
+  private Double subjectivity; 
   @Column(columnDefinition = "TEXT")
-  private String detailedAnalysis; // Gemini narrative
+  private String detailedAnalysis; 
 
-  // ===== STRUCTURED CONTEXT (User-provided) =====
+  
   @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
   @CollectionTable(name = "entry_context_tags", joinColumns = @JoinColumn(name = "entry_id"))
   @Column(name = "tag")
-  private Set<String> contextTags; // work, family, health, relationships, self, money
+  private Set<String> contextTags; 
 
-  private Integer stressLevel; // 1-10 at time of writing
-  private Integer energyLevel; // 1-10 at time of writing
-  private Integer sleepQuality; // 1-5 last night
+  private Integer stressLevel; 
+  private Integer energyLevel; 
+  private Integer sleepQuality; 
 
   @Column(length = 500)
-  private String triggerDescription; // "What triggered this feeling?"
+  private String triggerDescription; 
 
-  // ===== PROFILE-AWARE ANALYSIS RESULTS =====
+  
   @Column(length = 500)
-  private String cognitiveDistortions; // Comma-separated: "catastrophizing,all-or-nothing"
+  private String cognitiveDistortions; 
 
-  private Integer riskScore; // 1-10 mental health concern level
+  private Integer riskScore; 
 
   @Column(columnDefinition = "TEXT")
-  private String suggestions; // Personalized suggestions JSON
+  private String suggestions; 
 
-  private String emotionalTrajectory; // improving, declining, stable
+  private String emotionalTrajectory; 
 
   public JournalEntry() {
   }
@@ -220,7 +220,7 @@ public class JournalEntry {
     this.detailedAnalysis = detailedAnalysis;
   }
 
-  // ===== STRUCTURED CONTEXT GETTERS/SETTERS =====
+  
   public Set<String> getContextTags() {
     return contextTags;
   }
@@ -261,7 +261,7 @@ public class JournalEntry {
     this.triggerDescription = triggerDescription;
   }
 
-  // ===== GETTERS/SETTERS FOR PROFILE-AWARE ANALYSIS =====
+  
   public String getCognitiveDistortions() {
     return cognitiveDistortions;
   }
@@ -307,15 +307,15 @@ public class JournalEntry {
   }
 }
 
-// Sample JSON to create a new JournalEntry
-/*
- * {
- * "title": "Day One",
- * "content": "Here's my mood today—fired up!",
- * "mood": "HAPPY",
- * "visibility": "PUBLIC_ANON",
- * "user": {
- * "id": 1
- * }
- * }
- */
+
+
+
+
+
+
+
+
+
+
+
+

@@ -28,8 +28,8 @@ public class AnalyticsController {
     @Autowired
     private UserService userService;
 
-    // Helper to get User ID
-    // Helper to get User ID
+    
+    
     private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails instanceof com.example.moodjournal.model.User user) {
             return user.getId();
@@ -39,10 +39,10 @@ public class AnalyticsController {
                 .getId();
     }
 
-    /**
-     * Get mood distribution over time (day by day)
-     * Query param: range = week | month | year
-     */
+    
+
+
+
     @GetMapping("/mood-trend")
     public ResponseEntity<List<Map<String, Object>>> getMoodTrend(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -57,29 +57,29 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsService.getMoodTrend(getUserId(userDetails), since));
     }
 
-    /**
-     * Get emotional trajectory (improvement/decline over time)
-     */
+    
+
+
     @GetMapping("/trajectory")
     public ResponseEntity<Map<String, Object>> getTrajectory(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(analyticsService.getEmotionalTrajectory(getUserId(userDetails)));
     }
 
-    /**
-     * Get cognitive distortion frequency
-     */
-    /**
-     * Get cognitive distortion frequency
-     */
+    
+
+
+    
+
+
     @GetMapping("/distortion-frequency")
     public ResponseEntity<Map<String, Integer>> getDistortionFrequency(
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(analyticsService.getDistortionFrequency(getUserId(userDetails)));
     }
 
-    /**
-     * Get risk score history
-     */
+    
+
+
     @GetMapping("/risk-history")
     public ResponseEntity<List<Map<String, Object>>> getRiskHistory(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -94,9 +94,9 @@ public class AnalyticsController {
         return ResponseEntity.ok(analyticsService.getRiskHistory(getUserId(userDetails), since));
     }
 
-    /**
-     * Get overall stats summary
-     */
+    
+
+
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getSummary(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(analyticsService.getSummary(getUserId(userDetails)));

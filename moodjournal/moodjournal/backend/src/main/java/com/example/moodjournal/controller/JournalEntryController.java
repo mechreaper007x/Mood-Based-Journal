@@ -52,7 +52,7 @@ public class JournalEntryController {
                 .orElseThrow(() -> new NoSuchElementException("User not found")).getId();
     }
 
-    // POST /journal - create using request body only (user may be omitted)
+    
     @CrossOrigin
     @PostMapping
     public ResponseEntity<?> createEntry(@Valid @RequestBody CreateJournalEntryRequest req,
@@ -60,11 +60,11 @@ public class JournalEntryController {
         try {
             java.util.UUID userId = getUserIdFromUserDetails(userDetails);
 
-            // SECURITY GATE: Check for prompt injection BEFORE ANY PROCESSING
-            // This prevents transaction poisoning if the check fails
+            
+            
             try {
                 String securedContent = aiSecurityService.securePrompt(req.getContent());
-                req.setContent(securedContent); // Use the secured/redacted version
+                req.setContent(securedContent); 
             } catch (SecurityException se) {
                 log.warn("[SECURITY] Prompt injection BLOCKED at controller: {}", se.getMessage());
                 return ResponseEntity.badRequest().body(Map.of("error",
@@ -74,12 +74,12 @@ public class JournalEntryController {
             JournalEntry entry = new JournalEntry();
             entry.setTitle(req.getTitle());
             entry.setContent(req.getContent());
-            // Set mood from request if it exists and is not empty
+            
             if (req.getMood() != null && !req.getMood().isBlank()) {
                 try {
-                    entry.setMood(Mood.valueOf(req.getMood().toUpperCase())); // Convert string to Mood enum
+                    entry.setMood(Mood.valueOf(req.getMood().toUpperCase())); 
                 } catch (IllegalArgumentException e) {
-                    // If mood is invalid, it will be null, and the service will auto-detect it
+                    
                 }
             }
             if (req.getVisibility() != null && !req.getVisibility().isBlank()) {
@@ -88,7 +88,7 @@ public class JournalEntryController {
                 entry.setVisibility(Visibility.PRIVATE);
             }
 
-            // Copy optional AI analysis metadata into the entry (if provided)
+            
             if (req.getAnalysisEmotion() != null && !req.getAnalysisEmotion().isBlank()) {
                 entry.setAnalysisEmotion(req.getAnalysisEmotion());
             }
@@ -99,7 +99,7 @@ public class JournalEntryController {
                 entry.setAnalysisIntensity(req.getAnalysisIntensity());
             }
 
-            // Copy structured context fields
+            
             if (req.getContextTags() != null) {
                 entry.setContextTags(req.getContextTags());
             }
@@ -116,8 +116,8 @@ public class JournalEntryController {
                 entry.setTriggerDescription(req.getTriggerDescription());
             }
 
-            JournalEntry created = service.create(userId, entry); // Assuming this method exists and handles mood
-                                                                  // detection
+            JournalEntry created = service.create(userId, entry); 
+                                                                  
             URI location = URI.create(String.format("/journal/%d", created.getId()));
             return ResponseEntity.status(HttpStatus.CREATED).location(location).body(created);
         } catch (NoSuchElementException e) {
@@ -160,7 +160,7 @@ public class JournalEntryController {
         try {
             java.util.UUID userId = getUserIdFromUserDetails(userDetails);
 
-            // SECURITY GATE: Check update content too
+            
             if (updated.getContent() != null) {
                 try {
                     String securedContent = aiSecurityService.securePrompt(updated.getContent());

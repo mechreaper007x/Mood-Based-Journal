@@ -14,9 +14,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Individual Q&A pair from an assessment session.
- */
+
+
+
 @Entity
 @Table(name = "assessment_response_item")
 @Data

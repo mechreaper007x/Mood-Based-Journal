@@ -9,15 +9,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for AIResponseValidator.
- * 
- * Tests the hallucination guardrails:
- * - JSON schema validation
- * - Percentage sum validation
- * - Confidence threshold enforcement
- * - Fallback decision logic
- */
+
+
+
+
+
+
+
+
+
 class AIResponseValidatorTest {
 
     private AIResponseValidator validator;
@@ -27,9 +27,9 @@ class AIResponseValidatorTest {
         validator = new AIResponseValidator(new ObjectMapper());
     }
 
-    // ========================================================================
-    // EMOTION BREAKDOWN VALIDATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Emotion Breakdown Validation")
@@ -156,9 +156,9 @@ class AIResponseValidatorTest {
         }
     }
 
-    // ========================================================================
-    // RISK ASSESSMENT VALIDATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Risk Assessment Validation")
@@ -222,9 +222,9 @@ class AIResponseValidatorTest {
         }
     }
 
-    // ========================================================================
-    // MOOD SUGGESTION VALIDATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Mood Suggestion Validation")
@@ -285,9 +285,9 @@ class AIResponseValidatorTest {
         }
     }
 
-    // ========================================================================
-    // DAILY QUOTE VALIDATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Daily Quote Validation")
@@ -343,9 +343,9 @@ class AIResponseValidatorTest {
         }
     }
 
-    // ========================================================================
-    // FALLBACK LOGIC TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Fallback Logic")

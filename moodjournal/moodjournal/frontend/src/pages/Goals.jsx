@@ -92,7 +92,6 @@ const Goals = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -110,7 +109,6 @@ const Goals = () => {
         </button>
       </div>
 
-      {/* New Goal Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
@@ -181,7 +179,6 @@ const Goals = () => {
         </div>
       )}
 
-      {/* Active Goals */}
       <div>
         <h3 className="text-lg font-semibold text-white mb-4">Active Goals ({activeGoals.length})</h3>
         {activeGoals.length === 0 ? (
@@ -213,7 +210,6 @@ const Goals = () => {
                     <h4 className="text-lg font-medium text-white">{goal.title}</h4>
                     {goal.description && <p className="text-sm text-gray-400 mt-1">{goal.description}</p>}
                     
-                    {/* Progress Bar */}
                     <div className="mt-3">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>Progress</span>
@@ -252,7 +248,6 @@ const Goals = () => {
         )}
       </div>
 
-      {/* Completed Goals */}
       {completedGoals.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Completed ({completedGoals.length})</h3>

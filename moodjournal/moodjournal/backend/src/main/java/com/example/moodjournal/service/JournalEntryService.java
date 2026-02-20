@@ -61,27 +61,27 @@ public class JournalEntryService {
         .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
     entry.setUser(user);
 
-    // XSS Sanitization
+    
     entry.setTitle(sanitizationService.sanitizeStrict(entry.getTitle()));
     entry.setContent(sanitizationService.sanitize(entry.getContent()));
 
-    // SECURITY CHECK MOVED TO CONTROLLER
-    // Validation is done before transaction starts to avoid rollback-only errors
+    
+    
 
-    // Quick pre-screening with lexicon (fast, no AI)
+    
     var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
     if (quickScreen.isCrisis) {
       log.warn("CRISIS detected in quick screen! Keywords: {}", quickScreen.detectedKeywords);
       entry.setRiskScore(quickScreen.riskScore);
     }
 
-    // Only analyze if mood is NOT already set (to prevent duplicate API calls)
+    
     if (entry.getMood() == null) {
       log.info("No mood provided, running profile-aware analysis...");
       analyzeAndSetMood(userId, entry, quickScreen);
     } else {
       log.info("Mood already provided from frontend: {}, skipping analysis", entry.getMood());
-      // Still apply ensemble risk if quick screen detected something
+      
       if (quickScreen.isHighRisk) {
         entry.setRiskScore(Math.max(entry.getRiskScore() != null ? entry.getRiskScore() : 0, quickScreen.riskScore));
       }
@@ -89,7 +89,7 @@ public class JournalEntryService {
 
     JournalEntry saved = entryRepo.save(entry);
 
-    // Check for alerts after analysis
+    
     try {
       alertService.checkAndGenerateAlerts(userId, saved);
     } catch (Exception e) {
@@ -107,17 +107,17 @@ public class JournalEntryService {
         quickScreen.detectedKeywords);
 
     try {
-      // Use the new profile-aware analysis service
+      
       EntryAnalysisResult result = psychAnalysisService.analyzeWithProfile(userId, entry);
 
-      // Set emotion breakdown as detailed analysis
+      
       if (result.getEmotionBreakdown() != null) {
         StringBuilder breakdown = new StringBuilder();
         result.getEmotionBreakdown().forEach((k, v) -> breakdown.append(k).append(": ").append(v).append("%, "));
         entry.setDetailedAnalysis(breakdown.toString().replaceAll(", $", ""));
       }
 
-      // Set dominant emotion
+      
       if (result.getPrimaryEmotion() != null) {
         entry.setAnalysisEmotion(result.getPrimaryEmotion());
         Mood mood = mapEmotionToMood(result.getPrimaryEmotion().toLowerCase());
@@ -127,12 +127,12 @@ public class JournalEntryService {
         entry.setMood(Mood.NEUTRAL);
       }
 
-      // Set new profile-aware analysis fields
+      
       if (result.getCognitiveDistortions() != null && !result.getCognitiveDistortions().isEmpty()) {
         entry.setCognitiveDistortions(String.join(",", result.getCognitiveDistortions()));
       }
 
-      // ENSEMBLE RISK SCORING: Combine AI + Lexicon scores
+      
       int aiRiskScore = result.getRiskScore() != null ? result.getRiskScore() : -1;
       Map<String, Double> aiVadScores = null;
       if (result.getVadScores() != null) {
@@ -145,7 +145,7 @@ public class JournalEntryService {
       EnsembleRiskService.EnsembleResult ensembleResult = ensembleRiskService.analyzeRisk(entry.getContent(),
           aiRiskScore, aiVadScores);
 
-      // Use ensemble risk score (MAX of AI and lexicon for safety)
+      
       entry.setRiskScore(ensembleResult.finalRiskScore);
       log.info("Ensemble risk: final={} (AI={}, lexicon={}) source={} crisisKeywords={}",
           ensembleResult.finalRiskScore, ensembleResult.aiRiskScore,
@@ -154,7 +154,7 @@ public class JournalEntryService {
 
       entry.setEmotionalTrajectory(result.getEmotionalTrajectory());
 
-      // Store suggestions as JSON
+      
       if (result.getPersonalizedSuggestions() != null) {
         try {
           entry.setSuggestions(objectMapper.writeValueAsString(result.getPersonalizedSuggestions()));
@@ -163,7 +163,7 @@ public class JournalEntryService {
         }
       }
 
-      // Set narrative insight as detailed analysis if present
+      
       if (result.getNarrativeInsight() != null) {
         String current = entry.getDetailedAnalysis() != null ? entry.getDetailedAnalysis() + " | " : "";
         entry.setDetailedAnalysis(current + result.getNarrativeInsight());
@@ -178,9 +178,9 @@ public class JournalEntryService {
     }
   }
 
-  /**
-   * Fallback to basic Gemini analysis if profile-aware fails.
-   */
+  
+
+
   private void fallbackBasicAnalysis(JournalEntry entry) {
     try {
       String emotionJson = geminiService.analyzeEmotions(entry.getContent());
@@ -202,7 +202,7 @@ public class JournalEntryService {
     }
   }
 
-  // Helper to parse "60%" or 60 -> int 60
+  
   private int parsePercent(Object val) {
     if (val == null)
       return 0;
@@ -213,7 +213,7 @@ public class JournalEntryService {
       try {
         return Integer.parseInt(s);
       } catch (NumberFormatException e) {
-        // Try parsing as double and converting
+        
         try {
           return (int) Double.parseDouble(s);
         } catch (NumberFormatException e2) {
@@ -224,7 +224,7 @@ public class JournalEntryService {
     return 0;
   }
 
-  // Helper to find and parse percent with multiple possible key names
+  
   private int parsePercentFromMap(Map<String, Object> map, String... keys) {
     for (String key : keys) {
       Object val = map.get(key);
@@ -238,7 +238,7 @@ public class JournalEntryService {
     return 0;
   }
 
-  // Helper to find a string value with multiple possible key names
+  
   private String getStringFromMap(Map<String, Object> map, String... keys) {
     for (String key : keys) {
       Object val = map.get(key);
@@ -252,14 +252,14 @@ public class JournalEntryService {
   public Mood suggestMood(String content) {
     log.info("=== suggestMood called ===");
     try {
-      // Use Gemini for mood suggestion
+      
       String emotionJson = geminiService.analyzeEmotions(content);
       Map<String, Object> analysis = objectMapper.readValue(
           emotionJson,
           new TypeReference<Map<String, Object>>() {
           });
 
-      // Get dominant emotion and map to mood
+      
       String dominantEmotion = (String) analysis.get("DominantEmotion");
       if (dominantEmotion != null) {
         Mood mood = mapEmotionToMood(dominantEmotion.toLowerCase());
@@ -277,7 +277,7 @@ public class JournalEntryService {
   }
 
   private Mood mapEmotionToMood(String emotion) {
-    // Map detailed emotions to Mood categories
+    
     return switch (emotion) {
       case "happiness", "happy", "joy", "jubilation", "ecstasy", "elation", "bliss", "cheerfulness",
           "glee", "delight", "delighted", "pleased", "thrilled", "euphoria", "gratitude",
@@ -320,7 +320,7 @@ public class JournalEntryService {
           if (!entry.getUser().getId().equals(userId)) {
             throw new NoSuchElementException("Entry not found");
           }
-          // Re-run profile-aware analysis with quick screen
+          
           var quickScreen = ensembleRiskService.quickScreen(entry.getContent());
           analyzeAndSetMood(userId, entry, quickScreen);
           return entryRepo.save(entry);
@@ -369,7 +369,7 @@ public class JournalEntryService {
           e.setTitle(sanitizationService.sanitizeStrict(updated.getTitle()));
           e.setContent(sanitizationService.sanitize(updated.getContent()));
 
-          // SECURITY CHECK MOVED TO CONTROLLER
+          
 
           if (updated.getContent() != null && !updated.getContent().equals(e.getContent())) {
             Mood suggestedMood = suggestMood(updated.getContent());
@@ -403,8 +403,8 @@ public class JournalEntryService {
           e.setTitle(sanitizationService.sanitizeStrict(updatedEntry.getTitle()));
           e.setContent(sanitizationService.sanitize(updatedEntry.getContent()));
 
-          // SECURITY GATE MOVED TO CONTROLLER
-          // No inline check here to avoid transaction poisoning
+          
+          
 
           e.setMood(updatedEntry.getMood());
           e.setVisibility(updatedEntry.getVisibility());

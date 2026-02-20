@@ -21,9 +21,9 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.UniqueConstraint;
 
-/**
- * Mental health alerts for concerning patterns.
- */
+
+
+
 @Entity
 @Table(name = "alert", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "user_id", "type", "triggerEntryId" })
@@ -54,7 +54,7 @@ public class Alert {
 
     private Instant createdAt;
 
-    // Reference to the entry that triggered the alert (optional)
+    
     private Long triggerEntryId;
 
     @PrePersist
@@ -63,9 +63,9 @@ public class Alert {
     }
 
     public enum AlertType {
-        HIGH_RISK, // Risk score >= 7
-        DECLINING_TRAJECTORY, // 3+ days of declining mood
-        CONSISTENT_DISTORTION, // Same distortion in 3+ entries
-        CRISIS_KEYWORDS // Detected concerning language
+        HIGH_RISK, 
+        DECLINING_TRAJECTORY, 
+        CONSISTENT_DISTORTION, 
+        CRISIS_KEYWORDS 
     }
 }

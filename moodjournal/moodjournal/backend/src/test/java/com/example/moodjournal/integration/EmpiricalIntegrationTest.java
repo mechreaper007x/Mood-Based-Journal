@@ -16,14 +16,14 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Integration tests for the full AI analysis pipeline.
- * 
- * These tests validate end-to-end behavior:
- * - Full pipeline processing of dataset entries
- * - AI failure resilience and graceful degradation
- * - Accuracy metrics across different categories
- */
+
+
+
+
+
+
+
+
 class EmpiricalIntegrationTest {
 
     private VADLexiconService vadService;
@@ -49,14 +49,14 @@ class EmpiricalIntegrationTest {
     void setUp() {
         ObjectMapper objectMapper = new ObjectMapper();
         vadService = new VADLexiconService();
-        vadService.init(); // Manually initialize
+        vadService.init(); 
         ensembleService = new EnsembleRiskService(vadService);
         validator = new AIResponseValidator(objectMapper);
     }
 
-    // ========================================================================
-    // END-TO-END PIPELINE TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("End-to-End Pipeline")
@@ -78,7 +78,7 @@ class EmpiricalIntegrationTest {
             double totalRisk = 0;
 
             for (DatasetEntry entry : entries) {
-                // Step 1: Quick screen with lexicon
+                
                 EnsembleRiskService.QuickScreenResult quickResult = ensembleService.quickScreen(entry.text());
 
                 assertNotNull(quickResult, "Quick screen should return result");
@@ -124,7 +124,7 @@ class EmpiricalIntegrationTest {
                 EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(entry.text());
                 totalRisk += result.riskScore;
 
-                // Bio_Social entries often have somatic symptoms
+                
                 if (result.riskScore >= 3) {
                     somaticDetected++;
                 }
@@ -139,9 +139,9 @@ class EmpiricalIntegrationTest {
         }
     }
 
-    // ========================================================================
-    // AI FAILURE RESILIENCE TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("AI Failure Resilience")
@@ -152,7 +152,7 @@ class EmpiricalIntegrationTest {
         void aiFailure_gracefulDegradation_lexiconFallback() {
             String testText = "I feel sad and hopeless. Life seems meaningless.";
 
-            // Simulate AI failure scenario - use only lexicon
+            
             EnsembleRiskService.QuickScreenResult lexiconResult = ensembleService.quickScreen(testText);
 
             assertNotNull(lexiconResult, "Should return lexicon-only result");
@@ -167,7 +167,7 @@ class EmpiricalIntegrationTest {
         void stability_rapidCalls_remainsStable() {
             String testText = "I'm feeling anxious about tomorrow.";
 
-            // Make 100 rapid calls
+            
             for (int i = 0; i < 100; i++) {
                 EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(testText);
                 assertNotNull(result);
@@ -181,7 +181,7 @@ class EmpiricalIntegrationTest {
         void malformedAiResponse_handledGracefully() {
             String testText = "I need help with my feelings.";
 
-            // Simulate malformed AI response with just lexicon fallback
+            
             EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(testText);
 
             assertNotNull(result);
@@ -189,9 +189,9 @@ class EmpiricalIntegrationTest {
         }
     }
 
-    // ========================================================================
-    // ACCURACY METRICS TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Accuracy Metrics")
@@ -232,7 +232,7 @@ class EmpiricalIntegrationTest {
                 return;
             }
 
-            // Search for entries with known crisis keywords
+            
             List<DatasetEntry> crisisEntries = datasetLoader.searchByKeywords(
                     "want to die", "kill myself", "end it all", "suicide", "no point in living");
 
@@ -258,9 +258,9 @@ class EmpiricalIntegrationTest {
         }
     }
 
-    // ========================================================================
-    // VALIDATOR INTEGRATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Validator Integration")
@@ -269,7 +269,7 @@ class EmpiricalIntegrationTest {
         @Test
         @DisplayName("Validator correctly identifies fallback threshold")
         void validator_fallbackThreshold_triggersCorrectly() {
-            // Test boundary conditions
+            
             assertFalse(validator.shouldFallbackToLexicon(0.5), "0.5 should NOT trigger fallback");
             assertTrue(validator.shouldFallbackToLexicon(0.49), "0.49 should trigger fallback");
             assertTrue(validator.shouldFallbackToLexicon(0.3), "0.3 should trigger fallback");

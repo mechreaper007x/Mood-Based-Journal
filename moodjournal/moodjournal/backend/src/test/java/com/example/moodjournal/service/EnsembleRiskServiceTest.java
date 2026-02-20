@@ -12,16 +12,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Empirical tests for EnsembleRiskService.
- * 
- * Tests validate:
- * - Confidence-weighted voting mechanism
- * - Discrepancy detection between AI and lexicon
- * - Circuit breaker behavior on AI failures
- * - Fallback to lexicon-only mode
- * - Crisis keyword detection triggers
- */
+
+
+
+
+
+
+
+
+
+
 class EnsembleRiskServiceTest {
 
     private EnsembleRiskService ensembleService;
@@ -41,13 +41,13 @@ class EnsembleRiskServiceTest {
     @BeforeEach
     void setUp() {
         vadService = new VADLexiconService();
-        vadService.init(); // Manually initialize
+        vadService.init(); 
         ensembleService = new EnsembleRiskService(vadService);
     }
 
-    // ========================================================================
-    // QUICK SCREEN (LEXICON-ONLY) TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Quick Screen (Lexicon-Only)")
@@ -85,14 +85,14 @@ class EnsembleRiskServiceTest {
             EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(crisisText);
 
             assertNotNull(result.detectedKeywords);
-            // Crisis keywords should be detected
+            
             System.out.println("Quick screen crisis keywords: " + result.detectedKeywords);
         }
     }
 
-    // ========================================================================
-    // FULL ENSEMBLE RISK ANALYSIS TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Full Ensemble Risk Analysis")
@@ -111,8 +111,8 @@ class EnsembleRiskServiceTest {
 
             assertNotNull(result);
             assertEquals(aiConfidence, result.aiConfidence, 0.01);
-            // Ensemble uses safety-first: lexicon may override AI when it detects higher
-            // risk
+            
+            
             assertTrue(result.finalRiskScore >= 0 && result.finalRiskScore <= 10,
                     "Final score should be valid (0-10), got: " + result.finalRiskScore);
             System.out.println("High confidence test: AI=" + aiRiskScore + ", final=" + result.finalRiskScore);
@@ -122,15 +122,15 @@ class EnsembleRiskServiceTest {
         @DisplayName("Low AI confidence falls back to lexicon")
         void analyzeRisk_lowAiConfidence_weightsLexiconHigher() {
             String testText = "I feel hopeless and want to disappear. Nothing matters.";
-            int aiRiskScore = 2; // AI underestimates risk
-            double aiConfidence = 0.3; // Low confidence
+            int aiRiskScore = 2; 
+            double aiConfidence = 0.3; 
             Map<String, Double> aiVadScores = createVadMap(0.6, 0.3, 0.5);
 
             EnsembleRiskService.EnsembleResult result = ensembleService.analyzeRisk(testText, aiRiskScore, aiConfidence,
                     aiVadScores);
 
             assertNotNull(result);
-            // With low AI confidence, lexicon should dominate
+            
             assertTrue(result.finalRiskScore > aiRiskScore,
                     "Low confidence should let lexicon override low AI score");
         }
@@ -138,17 +138,17 @@ class EnsembleRiskServiceTest {
         @Test
         @DisplayName("Discrepancy detected when AI and lexicon disagree significantly")
         void analyzeRisk_significantDisagreement_flagsDiscrepancy() {
-            // Text that lexicon should score HIGH but AI says LOW
+            
             String highRiskText = "I want to die. I want to disappear forever. " +
                     "There's no point in living anymore. I hate myself.";
-            int aiRiskScore = 1; // AI severely underestimates
+            int aiRiskScore = 1; 
             double aiConfidence = 0.7;
-            Map<String, Double> aiVadScores = createVadMap(0.7, 0.3, 0.6); // Doesn't match text
+            Map<String, Double> aiVadScores = createVadMap(0.7, 0.3, 0.6); 
 
             EnsembleRiskService.EnsembleResult result = ensembleService.analyzeRisk(highRiskText, aiRiskScore,
                     aiConfidence, aiVadScores);
 
-            // Should detect discrepancy or override AI score
+            
             assertTrue(result.discrepancyDetected || result.finalRiskScore > aiRiskScore,
                     "Should detect discrepancy or override AI score for high-risk text");
             System.out.println("Discrepancy detected: " + result.discrepancyDetected);
@@ -169,9 +169,9 @@ class EnsembleRiskServiceTest {
         }
     }
 
-    // ========================================================================
-    // CRISIS DETECTION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Crisis Detection")
@@ -184,8 +184,8 @@ class EnsembleRiskServiceTest {
 
             EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(crisisText);
 
-            // Crisis detection may vary - at minimum, should detect keywords and elevate
-            // risk
+            
+            
             assertTrue(result.isCrisis || result.isHighRisk || result.riskScore >= 5,
                     "Severe crisis text should be flagged (isCrisis=" + result.isCrisis +
                             ", isHighRisk=" + result.isHighRisk + ", score=" + result.riskScore + ")");
@@ -222,15 +222,15 @@ class EnsembleRiskServiceTest {
             System.out.println("Dark_Reality high risk (>=6): " + highRiskCount + "/" +
                     darkRealityEntries.size());
 
-            // At least some Dark_Reality entries should be flagged as high risk
+            
             assertTrue(highRiskCount > 0,
                     "At least some Dark_Reality entries should be high risk");
         }
     }
 
-    // ========================================================================
-    // CIRCUIT BREAKER / RESILIENCE TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("AI Failure Resilience")
@@ -241,7 +241,7 @@ class EnsembleRiskServiceTest {
         void resilience_aiUnavailable_lexiconFallback() {
             String testText = "I feel sad and hopeless today.";
 
-            // Quick screen is always lexicon-only
+            
             EnsembleRiskService.QuickScreenResult result = ensembleService.quickScreen(testText);
 
             assertNotNull(result, "Should always return result from lexicon");
@@ -253,7 +253,7 @@ class EnsembleRiskServiceTest {
         void resilience_nullAiVad_handlesGracefully() {
             String testText = "I'm feeling anxious today.";
 
-            // Pass null AI VAD
+            
             EnsembleRiskService.EnsembleResult result = ensembleService.analyzeRisk(testText, 5, 0.6, null);
 
             assertNotNull(result);
@@ -265,7 +265,7 @@ class EnsembleRiskServiceTest {
         void resilience_emptyAiVad_handlesGracefully() {
             String testText = "I'm feeling worried today.";
 
-            // Pass empty AI VAD
+            
             EnsembleRiskService.EnsembleResult result = ensembleService.analyzeRisk(testText, 4, 0.5, new HashMap<>());
 
             assertNotNull(result);
@@ -273,9 +273,9 @@ class EnsembleRiskServiceTest {
         }
     }
 
-    // ========================================================================
-    // EMPIRICAL DATASET TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Empirical Dataset Validation")
@@ -320,8 +320,8 @@ class EnsembleRiskServiceTest {
                 }
             }
 
-            // Unaware_Disorder may have ego-syntonic content that's harder to detect
-            // This is informational - we want to track detection rates
+            
+            
             System.out.println("Unaware_Disorder very low risk count: " + veryLowRiskCount + "/" +
                     entries.size());
         }
@@ -335,9 +335,9 @@ class EnsembleRiskServiceTest {
         }
     }
 
-    // ========================================================================
-    // HELPER METHODS
-    // ========================================================================
+    
+    
+    
 
     private Map<String, Double> createVadMap(double valence, double arousal, double dominance) {
         Map<String, Double> vad = new HashMap<>();

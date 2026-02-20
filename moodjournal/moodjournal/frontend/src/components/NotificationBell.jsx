@@ -37,7 +37,7 @@ const NotificationBell = () => {
 
   useEffect(() => {
     fetchAlerts();
-    // Poll every 30 seconds
+    
     const interval = setInterval(fetchAlerts, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -80,7 +80,6 @@ const NotificationBell = () => {
 
   return (
     <div className="relative">
-      {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -93,24 +92,20 @@ const NotificationBell = () => {
         )}
       </button>
 
-      {/* Dropdown */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop */}
             <div 
               className="fixed inset-0 z-40" 
               onClick={() => setIsOpen(false)} 
             />
             
-            {/* Panel */}
             <motion.div
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="absolute right-0 top-12 w-80 sm:w-96 bg-dark-card border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
             >
-              {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
                 <h3 className="font-semibold text-white flex items-center gap-2">
                   <Bell size={18} className="text-primary-DEFAULT" />
@@ -135,7 +130,6 @@ const NotificationBell = () => {
                 </div>
               </div>
 
-              {/* Alert List */}
               <div className="max-h-80 overflow-y-auto">
                 {alerts.length === 0 ? (
                   <div className="p-6 text-center text-gray-500">

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
@@ -24,11 +25,11 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(JournalEntryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class JournalEntryControllerTest {
 
     @Autowired
@@ -73,7 +74,7 @@ public class JournalEntryControllerTest {
         journalEntry2.setUser(user);
 
         when(userService.findByEmail(anyString())).thenReturn(Optional.of(user));
-        // Mock security service to pass-through content by default
+        
         when(aiSecurityService.securePrompt(anyString())).thenAnswer(i -> i.getArguments()[0]);
     }
 
@@ -86,7 +87,7 @@ public class JournalEntryControllerTest {
 
         when(journalEntryService.create(any(java.util.UUID.class), any(JournalEntry.class))).thenReturn(journalEntry1);
 
-        mockMvc.perform(post("/api/journal").with(csrf())
+        mockMvc.perform(post("/api/journal")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -135,7 +136,7 @@ public class JournalEntryControllerTest {
         when(journalEntryService.update(any(), any(java.util.UUID.class), any(UpdateJournalEntryRequest.class)))
                 .thenReturn(journalEntry1);
 
-        mockMvc.perform(put("/api/journal/1").with(csrf())
+        mockMvc.perform(put("/api/journal/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -145,7 +146,7 @@ public class JournalEntryControllerTest {
     @Test
     @WithMockUser(username = "testuser@example.com")
     void deleteJournalEntry_shouldReturnNoContent() throws Exception {
-        mockMvc.perform(delete("/api/journal/1").with(csrf()))
+        mockMvc.perform(delete("/api/journal/1"))
                 .andExpect(status().isNoContent());
     }
 }

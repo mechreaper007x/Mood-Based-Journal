@@ -23,14 +23,14 @@ public class AnalyticsService {
     @Autowired
     private JournalEntryRepository journalEntryRepository;
 
-    /**
-     * Get mood counts per day for the given time range.
-     */
+    
+
+
     public List<Map<String, Object>> getMoodTrend(java.util.UUID userId, Instant since) {
         List<JournalEntry> entries = journalEntryRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(
                 userId, since);
 
-        // Group by date
+        
         Map<LocalDate, Map<Mood, Long>> byDate = entries.stream()
                 .filter(e -> e.getMood() != null && e.getCreatedAt() != null)
                 .collect(Collectors.groupingBy(
@@ -50,9 +50,9 @@ public class AnalyticsService {
         return result;
     }
 
-    /**
-     * Calculate emotional trajectory based on recent entries.
-     */
+    
+
+
     public Map<String, Object> getEmotionalTrajectory(java.util.UUID userId) {
         List<JournalEntry> recent = journalEntryRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId);
 
@@ -65,12 +65,12 @@ public class AnalyticsService {
             return result;
         }
 
-        // Calculate average positivity score (happy=2, calm=1, sad=-1, angry=-2, etc.)
+        
         List<Integer> scores = recent.stream()
                 .map(e -> moodToScore(e.getMood()))
                 .collect(Collectors.toList());
 
-        // Compare first half vs second half
+        
         int halfSize = scores.size() / 2;
         if (halfSize == 0)
             halfSize = 1;
@@ -116,9 +116,9 @@ public class AnalyticsService {
         };
     }
 
-    /**
-     * Get frequency of cognitive distortions.
-     */
+    
+
+
     public Map<String, Integer> getDistortionFrequency(java.util.UUID userId) {
         List<JournalEntry> entries = journalEntryRepository.findByUserId(userId);
 
@@ -138,9 +138,9 @@ public class AnalyticsService {
         return frequency;
     }
 
-    /**
-     * Get risk score history over time.
-     */
+    
+
+
     public List<Map<String, Object>> getRiskHistory(java.util.UUID userId, Instant since) {
         List<JournalEntry> entries = journalEntryRepository.findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(
                 userId, since);
@@ -157,16 +157,16 @@ public class AnalyticsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get summary statistics.
-     */
+    
+
+
     public Map<String, Object> getSummary(java.util.UUID userId) {
         List<JournalEntry> allEntries = journalEntryRepository.findByUserId(userId);
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalEntries", allEntries.size());
 
-        // Mood distribution
+        
         Map<String, Long> moodDistribution = allEntries.stream()
                 .filter(e -> e.getMood() != null)
                 .collect(Collectors.groupingBy(
@@ -174,7 +174,7 @@ public class AnalyticsService {
                         Collectors.counting()));
         summary.put("moodDistribution", moodDistribution);
 
-        // Average risk score
+        
         double avgRisk = allEntries.stream()
                 .filter(e -> e.getRiskScore() != null)
                 .mapToInt(JournalEntry::getRiskScore)
@@ -182,14 +182,14 @@ public class AnalyticsService {
                 .orElse(0);
         summary.put("averageRiskScore", Math.round(avgRisk * 10) / 10.0);
 
-        // Most common mood
+        
         String mostCommonMood = moodDistribution.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("NEUTRAL");
         summary.put("mostCommonMood", mostCommonMood);
 
-        // Entries this week
+        
         long thisWeek = allEntries.stream()
                 .filter(e -> e.getCreatedAt() != null &&
                         e.getCreatedAt().isAfter(Instant.now().minus(7, java.time.temporal.ChronoUnit.DAYS)))

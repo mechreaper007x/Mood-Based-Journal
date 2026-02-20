@@ -18,15 +18,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * Multi-Layer JWT Request Filter
- * 
- * Implements 4-layer defense:
- * 1. BLACKLIST CHECK - Reject revoked tokens immediately
- * 2. FINGERPRINT VALIDATION - Detect stolen tokens
- * 3. STANDARD JWT VALIDATION - Signature + expiry + user status
- * 4. AUTO-ROTATION - Issue new token via X-New-Token header
- */
+
+
+
+
+
+
+
+
+
 public class JwtRequestFilter extends OncePerRequestFilter {
 
   private final UserDetailsService userDetailsService;
@@ -66,39 +66,45 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     String jwt = authorizationHeader.substring(7);
 
-    // ============================================
-    // DEFENSE LAYER 1: BLACKLIST CHECK
-    // ============================================
+    
+    
+    
     if (jwtSecurityService.isTokenBlacklisted(jwt)) {
       log.warn("Blocked request with revoked token");
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.setContentType("application/json");
-      response.getWriter().write("{\"error\":\"Token revoked\",\"code\":\"TOKEN_REVOKED\"}");
+      writeUnauthorized(response, "Token revoked", "TOKEN_REVOKED");
+      return;
+    }
+
+    if (!jwtSecurityService.validateTokenBinding(jwt)) {
+      log.warn("Blocked request with invalid token binding");
+      writeUnauthorized(response, "Invalid token", "TOKEN_BINDING_INVALID");
       return;
     }
 
     try {
       String username = jwtUtil.extractUsername(jwt);
+      if (username == null || username.isBlank()) {
+        writeUnauthorized(response, "Invalid token", "TOKEN_INVALID");
+        return;
+      }
       log.debug("Extracted username: {}", username);
 
-      // ============================================
-      // DEFENSE LAYER 2: FINGERPRINT VALIDATION
-      // ============================================
+      
+      
+      
       if (!jwtSecurityService.validateTokenFingerprint(jwt, request)) {
         log.warn("Token fingerprint mismatch for user: {} - possible token theft!", username);
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"Invalid token context\",\"code\":\"FINGERPRINT_MISMATCH\"}");
+        writeUnauthorized(response, "Invalid token context", "FINGERPRINT_MISMATCH");
         return;
       }
 
-      // ============================================
-      // DEFENSE LAYER 3: STANDARD JWT VALIDATION
-      // ============================================
+      
+      
+      
       if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-        // Atomic authentication via UserService (DB lock + status check)
+        
         boolean authenticated = userService.verifyAndAuthenticate(
             username,
             jwt,
@@ -106,10 +112,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             new WebAuthenticationDetailsSource().buildDetails(request),
             jwtUtil);
 
+        if (!authenticated) {
+          writeUnauthorized(response, "Invalid token", "TOKEN_VALIDATION_FAILED");
+          return;
+        }
+
         if (authenticated) {
-          // ============================================
-          // DEFENSE LAYER 4: AUTO-ROTATION
-          // ============================================
+          
+          
+          
           if (jwtSecurityService.shouldRotateToken(jwt)) {
             String newToken = jwtSecurityService.rotateToken(jwt, request);
             response.setHeader("X-New-Token", newToken);
@@ -120,8 +131,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     } catch (Exception e) {
       log.error("JWT validation failed: {}", e.getMessage());
+      writeUnauthorized(response, "Invalid token", "TOKEN_INVALID");
+      return;
     }
 
     chain.doFilter(request, response);
+  }
+
+  private void writeUnauthorized(HttpServletResponse response, String error, String code) throws IOException {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType("application/json");
+    response.getWriter().write(String.format("{\"error\":\"%s\",\"code\":\"%s\"}", error, code));
   }
 }

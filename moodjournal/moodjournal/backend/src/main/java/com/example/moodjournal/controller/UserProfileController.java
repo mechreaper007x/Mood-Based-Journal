@@ -30,9 +30,9 @@ public class UserProfileController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Get current user's profile
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -51,9 +51,9 @@ public class UserProfileController {
         }
     }
 
-    /**
-     * Check if profile is complete
-     */
+    
+
+
     @GetMapping("/complete")
     public ResponseEntity<?> isProfileComplete(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -65,14 +65,14 @@ public class UserProfileController {
             return ResponseEntity.ok(Map.of("isComplete", complete));
         } catch (Exception e) {
             log.error("Error checking profile complete: {}", e.getMessage());
-            // Return false instead of 500 - this is a new user without a profile
+            
             return ResponseEntity.ok(Map.of("isComplete", false));
         }
     }
 
-    /**
-     * Create or update profile
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<UserProfileDTO> saveProfile(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -82,9 +82,9 @@ public class UserProfileController {
         return ResponseEntity.ok(saved);
     }
 
-    /**
-     * Mark profile as complete (called at end of onboarding)
-     */
+    
+
+
     @PostMapping("/complete")
     public ResponseEntity<Map<String, String>> markComplete(@AuthenticationPrincipal UserDetails userDetails) {
         java.util.UUID userId = getUserId(userDetails);
@@ -92,7 +92,7 @@ public class UserProfileController {
         return ResponseEntity.ok(Map.of("message", "Profile marked as complete"));
     }
 
-    // Helper to extract user ID from authentication
+    
     private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails == null) {
             log.error("getUserId called with null userDetails");

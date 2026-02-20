@@ -46,7 +46,7 @@ public class JournalEntryIntegrationTest {
                 journalEntryRepository.deleteAll();
                 userRepository.deleteAll();
 
-                // Create Victim
+                
                 victim = new User();
                 victim.setUsername("victim");
                 victim.setEmail("victim@example.com");
@@ -54,7 +54,7 @@ public class JournalEntryIntegrationTest {
                 victim.setAge(25);
                 victim = userRepository.save(victim);
 
-                // Create Attacker
+                
                 attacker = new User();
                 attacker.setUsername("attacker");
                 attacker.setEmail("attacker@example.com");
@@ -62,7 +62,7 @@ public class JournalEntryIntegrationTest {
                 attacker.setAge(30);
                 attacker = userRepository.save(attacker);
 
-                // Create Private Entry for Victim
+                
                 victimEntry = new JournalEntry();
                 victimEntry.setTitle("Secret Diary");
                 victimEntry.setContent("This is private content.");
@@ -75,10 +75,10 @@ public class JournalEntryIntegrationTest {
         @Test
         @WithMockUser(username = "attacker@example.com")
         public void testAttackerCannotAccessVictimEntry() throws Exception {
-                // Attacker attempts to fetch Victim's entry
-                // Should return 404 (Not Found) effectively hiding existence, or 403
-                // (Forbidden)
+                
+                
+                
                 mockMvc.perform(get("/api/journal/" + victimEntry.getId()))
-                                .andExpect(status().isNotFound()); // Expecting 404 as per GlobalExceptionHandler logic
+                                .andExpect(status().isNotFound()); 
         }
 }

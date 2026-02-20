@@ -3,11 +3,11 @@ import { Heart, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { CRISIS_RESOURCES, GROUNDING_EXERCISES } from '../data/crisisResources';
 
-/**
- * CrisisModal
- * A modal that appears when high-risk content is detected.
- * It blocks interaction until acknowledged and provides immediate help resources.
- */
+
+
+
+
+
 const CrisisModal = ({ isOpen, onClose, riskScore }) => {
   const [showGrounding, setShowGrounding] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
@@ -16,7 +16,7 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
 
   const handleAcknowledge = () => {
     setAcknowledged(true);
-    // Small delay before allowing close
+    
     setTimeout(() => onClose(), 500);
   };
 
@@ -27,7 +27,7 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-        onClick={(e) => e.stopPropagation()} // Prevent closing by clicking outside
+        onClick={(e) => e.stopPropagation()} 
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -35,7 +35,6 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-gradient-to-br from-[#1a1c23] to-[#0d0f14] border border-red-500/30 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         >
-          {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-red-500/20 rounded-full">
               <Heart className="w-6 h-6 text-red-400" />
@@ -46,7 +45,6 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
             </div>
           </div>
 
-          {/* Main Message */}
           <div className="bg-white/5 rounded-xl p-4 mb-6">
             <p className="text-gray-300 leading-relaxed">
               It sounds like you're going through a difficult time. 
@@ -58,7 +56,6 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
             </p>
           </div>
 
-          {/* Helplines */}
           <div className="mb-6">
             <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
               <Phone className="w-4 h-4" />
@@ -85,7 +82,6 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
             </div>
           </div>
 
-          {/* Grounding Exercise Toggle */}
           <button
             onClick={() => setShowGrounding(!showGrounding)}
             className="w-full text-left bg-blue-500/10 hover:bg-blue-500/20 rounded-lg p-3 mb-4 transition-colors"
@@ -114,7 +110,6 @@ const CrisisModal = ({ isOpen, onClose, riskScore }) => {
             </motion.div>
           )}
 
-          {/* Acknowledge Button */}
           <button
             onClick={handleAcknowledge}
             disabled={acknowledged}

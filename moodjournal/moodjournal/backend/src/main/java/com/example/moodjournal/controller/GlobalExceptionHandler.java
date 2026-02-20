@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
             if (target != null && target.isEnum()) {
                 String allowed = Arrays.stream(target.getEnumConstants())
                         .map(Object::toString)
-                        .map(String::toLowerCase) // Convert enum names to lowercase for better user experience
+                        .map(String::toLowerCase) 
                         .collect(Collectors.joining(", "));
                 String message = String.format("Invalid value for '%s'. Allowed values: %s",
                         field.isEmpty() ? "field" : field, allowed);
@@ -71,12 +71,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
-        // Log the full exception for debugging (server-side only)
+        
         org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class)
                 .error("Unhandled exception: ", ex);
 
-        // SECURITY: Never expose internal error messages to clients
-        // This prevents information disclosure attacks
+        
+        
         return new ResponseEntity<>(Map.of("error", "An unexpected error occurred. Please try again later."),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -1,5 +1,5 @@
-// Crisis helpline resources for mental health support
-// These are real, verified helplines
+
+
 
 export const CRISIS_RESOURCES = {
   india: [

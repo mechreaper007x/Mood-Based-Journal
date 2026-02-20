@@ -1,16 +1,16 @@
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-/**
- * Prototype Disclaimer Modal
- * Shows on first visit to inform users this is NOT a professional tool.
- * Stores acknowledgment in localStorage.
- */
+
+
+
+
+
 const DisclaimerModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
-    // Check if user has already acknowledged
+    
     const acknowledged = localStorage.getItem('disclaimer_acknowledged');
     if (!acknowledged) {
       setIsOpen(true);
@@ -27,7 +27,6 @@ const DisclaimerModal = () => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="bg-dark-card border border-yellow-500/50 rounded-2xl max-w-lg mx-4 p-6 shadow-2xl">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-yellow-500/20 rounded-full">
             <AlertTriangle className="w-6 h-6 text-yellow-500" />
@@ -35,7 +34,6 @@ const DisclaimerModal = () => {
           <h2 className="text-xl font-bold text-white">⚠️ Important Disclaimer</h2>
         </div>
         
-        {/* Content */}
         <div className="space-y-4 text-gray-300 text-sm leading-relaxed">
           <p className="font-semibold text-white">
             This is a <span className="text-yellow-400">PROTOTYPE</span> application for educational purposes only.
@@ -65,7 +63,6 @@ const DisclaimerModal = () => {
           </p>
         </div>
         
-        {/* Accept Button */}
         <button
           onClick={handleAccept}
           className="w-full mt-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-semibold rounded-xl transition-all duration-200"

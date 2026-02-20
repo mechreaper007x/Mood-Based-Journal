@@ -104,7 +104,7 @@ public class AIController {
         if (request.getContent() == null || request.getContent().isBlank()) {
             return Map.of("error", "Text cannot be empty");
         }
-        return null; // Validation passed
+        return null; 
     }
 
     @GetMapping(value = "/daily-quote", produces = "application/json")
@@ -115,10 +115,10 @@ public class AIController {
             try {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> json = objectMapper.readValue(response, Map.class);
-                // Check if the response contains an error
+                
                 if (json.containsKey("error")) {
                     log.warn("AI service returned error: {}", json.get("error"));
-                    // Return a fallback quote
+                    
                     return ResponseEntity.ok(Map.of(
                             "quote", "You are stronger than you know. Take it one breath at a time.",
                             "author", "Unknown"));

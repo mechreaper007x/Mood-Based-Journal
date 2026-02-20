@@ -10,10 +10,10 @@ import java.util.UUID;
 @Repository
 public interface SecurityRuleRepository extends JpaRepository<SecurityRule, UUID> {
 
-    // Fetch only active rules to load into the Bouncer
+    
     List<SecurityRule> findByIsActiveTrue();
 
-    // Fetch shadow rules for testing
+    
     List<SecurityRule> findByIsShadowModeTrue();
 
     boolean existsByPatternIgnoreCase(String pattern);

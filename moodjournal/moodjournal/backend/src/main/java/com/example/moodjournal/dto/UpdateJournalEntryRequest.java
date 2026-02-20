@@ -11,7 +11,7 @@ public class UpdateJournalEntryRequest {
 
     private String content;
     
-    // use String here to avoid Jackson enum binding errors; service will parse
+    
     @Pattern(regexp = "HAPPY|SAD|ANGRY|NEUTRAL|SURPRISED", message = "Invalid mood")
     private String mood;
 

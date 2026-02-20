@@ -19,8 +19,8 @@ const ForgotPassword = () => {
       await api.post('/auth/forgot-password', { email });
       setSubmitted(true);
     } catch (err) {
-      // We show success regardless to prevent user enumeration
-      // But if there's a network error, we should show it
+      
+      
       if (err.message === 'Network Error') {
         setError('Unable to connect to server. Please try again later.');
       } else {
@@ -34,7 +34,6 @@ const ForgotPassword = () => {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
-        {/* Background Decor */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-DEFAULT/20 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-[#4A00E0]/20 rounded-full blur-[100px]" />
 
@@ -83,7 +82,6 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-DEFAULT/20 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-[#4A00E0]/20 rounded-full blur-[100px]" />
 

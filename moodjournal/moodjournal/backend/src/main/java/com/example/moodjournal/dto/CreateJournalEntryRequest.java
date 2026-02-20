@@ -22,12 +22,12 @@ public class CreateJournalEntryRequest {
     @Pattern(regexp = "PRIVATE|PUBLIC", message = "Invalid visibility")
     private String visibility;
 
-    // Optional AI analysis metadata
+    
     private String analysisEmotion;
     private Double analysisConfidence;
     private Double analysisIntensity;
 
-    // Structured context fields (user-provided)
+    
     private Set<String> contextTags;
     private Integer stressLevel;
     private Integer energyLevel;

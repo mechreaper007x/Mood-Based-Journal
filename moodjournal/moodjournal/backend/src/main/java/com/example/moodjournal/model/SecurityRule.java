@@ -13,16 +13,16 @@ public class SecurityRule {
     private UUID id;
 
     @Column(nullable = false)
-    private String pattern; // The Regex Pattern
+    private String pattern; 
 
     @Column(name = "description")
-    private String description; // e.g., "Blocks 'DAN' prompt injection variants"
+    private String description; 
 
     @Column(name = "is_active")
     private boolean isActive;
 
     @Column(name = "is_shadow_mode")
-    private boolean isShadowMode; // If true, logs only (doesn't block)
+    private boolean isShadowMode; 
 
     @Column(name = "blocked_count")
     private int blockedCount;
@@ -50,7 +50,7 @@ public class SecurityRule {
         this.lastTriggeredAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
+    
     public UUID getId() {
         return id;
     }

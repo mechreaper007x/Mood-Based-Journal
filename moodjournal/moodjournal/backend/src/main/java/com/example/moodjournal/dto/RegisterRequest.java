@@ -7,10 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for user registration requests.
- * Separates API contract from internal User entity.
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

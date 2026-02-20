@@ -39,19 +39,19 @@ public class ReportService {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            // Fonts - Using generic names to avoid potential missing font issues
+            
             Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
             Font headerFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
             Font bodyFont = new Font(Font.HELVETICA, 10, Font.NORMAL);
             Font moodFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.BLUE);
 
-            // Title
+            
             Paragraph title = new Paragraph("Mood Journal Report", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
             document.add(Chunk.NEWLINE);
 
-            // User Info (Safe Access)
+            
             String name = (user != null && user.getDisplayName() != null) ? user.getDisplayName() : "User";
             String email = (user != null && user.getEmail() != null) ? user.getEmail() : "";
             Paragraph userInfo = new Paragraph("User: " + name + " (" + email + ")");
@@ -59,11 +59,11 @@ public class ReportService {
             document.add(userInfo);
             document.add(Chunk.NEWLINE);
 
-            // Fetch entries safely using ID
+            
             java.util.UUID userId = (user != null) ? user.getId() : null;
             List<JournalEntry> entries = journalEntryRepository.findByUserId(userId);
 
-            // Manual sort to fallback if DB sort fails or repository method is missing
+            
             try {
                 if (entries != null) {
                     entries.sort((a, b) -> {
@@ -73,7 +73,7 @@ public class ReportService {
                     });
                 }
             } catch (Exception e) {
-                // Ignore sort errors
+                
             }
 
             if (entries == null || entries.isEmpty()) {
@@ -118,7 +118,7 @@ public class ReportService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Fallback: Create a simple error PDF so the user sees *something*
+            
             try {
                 Document errorDoc = new Document();
                 ByteArrayOutputStream errorOut = new ByteArrayOutputStream();
@@ -140,7 +140,7 @@ public class ReportService {
         header.setBackgroundColor(Color.DARK_GRAY);
         header.setBorderWidth(1);
 
-        // V13 FIX: Prevent XSS by escaping content
+        
         String safeTitle = org.springframework.web.util.HtmlUtils.htmlEscape(headerTitle);
         header.setPhrase(new Phrase(safeTitle, font));
 

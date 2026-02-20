@@ -30,17 +30,17 @@ public class AlertService {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Check if alert should be generated based on entry analysis.
-     * Called after journal entry analysis is complete.
-     */
+    
+
+
+
     @Transactional
     public void checkAndGenerateAlerts(java.util.UUID userId, JournalEntry entry) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null)
             return;
 
-        // Check for high risk score
+        
         if (entry.getRiskScore() != null && entry.getRiskScore() >= 7) {
             generateAlert(user, AlertType.HIGH_RISK,
                     String.format(
@@ -50,9 +50,9 @@ public class AlertService {
             log.info("Generated HIGH_RISK alert for user {} with score {}", userId, entry.getRiskScore());
         }
 
-        // Check for declining trajectory
+        
         if ("declining".equalsIgnoreCase(entry.getEmotionalTrajectory())) {
-            // Check if this is 3rd consecutive declining entry
+            
             List<JournalEntry> recent = journalEntryRepository.findTop5ByUserIdOrderByCreatedAtDesc(userId);
             int decliningCount = 0;
             for (JournalEntry e : recent) {

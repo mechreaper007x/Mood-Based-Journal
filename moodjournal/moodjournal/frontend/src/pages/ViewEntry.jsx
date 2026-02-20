@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../lib/axios';
 
-// Mood color mapping
+
 const moodColors = {
   HAPPY: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   SAD: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -147,7 +147,7 @@ const ViewEntry = () => {
     );
   }
 
-  // Parse context tags
+  
   let contextTags = [];
   try {
     if (entry.contextTags) {
@@ -157,7 +157,7 @@ const ViewEntry = () => {
     }
   } catch { contextTags = []; }
 
-  // Parse suggestions
+  
   let suggestions = [];
   try {
     if (entry.suggestions) {
@@ -168,7 +168,7 @@ const ViewEntry = () => {
     if (entry.suggestions) suggestions = [entry.suggestions]; 
   }
 
-  // Parse nuance tags
+  
   let nuanceTags = [];
   try {
     if (entry.nuanceTags) {
@@ -180,7 +180,6 @@ const ViewEntry = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <Link 
           to="/journal" 
@@ -208,13 +207,11 @@ const ViewEntry = () => {
         </div>
       </div>
 
-      {/* Main Entry Card */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-dark-card border border-white/10 rounded-2xl p-8 shadow-xl"
       >
-        {/* Title & Mood */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">{entry.title}</h1>
@@ -228,7 +225,6 @@ const ViewEntry = () => {
           </span>
         </div>
 
-        {/* Quick Check-in Stats */}
         {(entry.stressLevel || entry.energyLevel || entry.sleepQuality) && (
           <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-dark-bg/50 rounded-xl border border-white/5">
             {entry.stressLevel && (
@@ -257,7 +253,6 @@ const ViewEntry = () => {
           </div>
         )}
 
-        {/* Context Tags */}
         {contextTags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {contextTags.map(tagId => {
@@ -275,7 +270,6 @@ const ViewEntry = () => {
           </div>
         )}
 
-        {/* Trigger Description */}
         {entry.triggerDescription && (
           <div className="mb-6 p-4 bg-amber-500/5 rounded-xl border border-amber-500/20">
             <span className="text-xs text-amber-400 font-medium">Trigger:</span>
@@ -283,18 +277,15 @@ const ViewEntry = () => {
           </div>
         )}
 
-        {/* Main Content */}
         <div className="mb-8">
           <h3 className="text-lg font-medium text-gray-400 mb-3">Journal Entry</h3>
           <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">{entry.content}</p>
         </div>
 
-        {/* Analysis Section */}
         {(entry.detailedAnalysis || entry.cognitiveDistortions || entry.riskScore || entry.primaryEmotion || entry.vadScores) && (
           <div className="border-t border-white/10 pt-6 space-y-6">
             <h3 className="text-lg font-medium text-gray-400">AI Analysis</h3>
 
-            {/* Risk Score & Trajectory */}
             <div className="flex items-center gap-4 flex-wrap">
               {entry.riskScore !== undefined && entry.riskScore !== null && (
                 <div className={`px-4 py-2 rounded-lg border ${
@@ -322,7 +313,6 @@ const ViewEntry = () => {
               )}
             </div>
 
-            {/* Primary Emotion & Nuance Tags */}
             {(entry.primaryEmotion || nuanceTags.length > 0) && (
               <div className="flex items-center gap-3 flex-wrap">
                 {entry.primaryEmotion && (
@@ -338,7 +328,6 @@ const ViewEntry = () => {
               </div>
             )}
 
-            {/* VAD Scores */}
             {entry.vadScores && (
               <div className="flex items-center gap-6 p-4 bg-dark-bg/50 rounded-xl">
                 <span className="text-gray-500 text-sm">VAD Analysis:</span>
@@ -368,7 +357,6 @@ const ViewEntry = () => {
               </div>
             )}
 
-            {/* Cognitive Distortions */}
             {entry.cognitiveDistortions && (
               <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/20">
                 <span className="text-sm text-amber-400 font-medium block mb-2">⚠️ Cognitive Distortions Detected:</span>
@@ -382,7 +370,6 @@ const ViewEntry = () => {
               </div>
             )}
 
-            {/* Suggestions */}
             {suggestions.length > 0 && (
               <div className="p-4 bg-primary-DEFAULT/5 rounded-xl border-l-4 border-primary-DEFAULT/50">
                 <span className="text-sm text-primary-DEFAULT font-medium block mb-2">💡 Suggestions</span>
@@ -397,7 +384,6 @@ const ViewEntry = () => {
               </div>
             )}
 
-            {/* Detailed Analysis */}
             {entry.detailedAnalysis && (
               <div className="p-4 bg-white/5 rounded-xl border-l-4 border-gray-500/50">
                 <span className="text-sm text-gray-400 font-medium block mb-2">📝 Detailed Analysis</span>

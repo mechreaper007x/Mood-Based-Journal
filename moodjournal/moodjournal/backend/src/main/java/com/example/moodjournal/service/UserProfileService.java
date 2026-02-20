@@ -25,47 +25,47 @@ public class UserProfileService {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * Get profile for a user, or return empty if not exists
-     */
+    
+
+
     @Transactional(readOnly = true)
     public Optional<UserProfileDTO> getProfileByUserId(java.util.UUID userId) {
         log.debug("Fetching profile for userId: {}", userId);
         Optional<UserProfile> profileOpt = userProfileRepository.findByUserId(userId);
         log.debug("Profile found: {}", profileOpt.isPresent());
 
-        // Force initialize lazy collections within transaction
+        
         profileOpt.ifPresent(profile -> {
             if (profile.getCurrentStressors() != null) {
-                profile.getCurrentStressors().size(); // force init
+                profile.getCurrentStressors().size(); 
             }
             if (profile.getInterests() != null) {
-                profile.getInterests().size(); // force init
+                profile.getInterests().size(); 
             }
         });
 
         return profileOpt.map(this::toDTO);
     }
 
-    /**
-     * Check if a user has a completed profile
-     */
+    
+
+
     public boolean isProfileComplete(java.util.UUID userId) {
         return userProfileRepository.findByUserId(userId)
                 .map(profile -> Boolean.TRUE.equals(profile.getIsComplete()))
                 .orElse(false);
     }
 
-    /**
-     * Check if profile exists for a user
-     */
+    
+
+
     public boolean profileExists(java.util.UUID userId) {
         return userProfileRepository.existsByUserId(userId);
     }
 
-    /**
-     * Create or update user profile
-     */
+    
+
+
     @Transactional
     public UserProfileDTO saveProfile(java.util.UUID userId, UserProfileDTO dto) {
         log.info("Saving profile for userId: {}", userId);
@@ -78,21 +78,21 @@ public class UserProfileService {
         boolean isNew = profile.getId() == null;
         log.info("Profile {} for userId: {}", isNew ? "creating new" : "updating existing", userId);
 
-        // Set user reference
+        
         profile.setUser(user);
 
-        // Map DTO to entity
+        
         updateProfileFromDTO(profile, dto);
 
-        // Save and return
+        
         UserProfile saved = userProfileRepository.save(profile);
         log.info("Profile saved successfully with id: {}", saved.getId());
         return toDTO(saved);
     }
 
-    /**
-     * Mark profile as complete
-     */
+    
+
+
     @Transactional
     public void markProfileComplete(java.util.UUID userId) {
         userProfileRepository.findByUserId(userId)
@@ -102,49 +102,49 @@ public class UserProfileService {
                 });
     }
 
-    // ================
-    // HELPER METHODS
-    // ================
+    
+    
+    
 
     private void updateProfileFromDTO(UserProfile profile, UserProfileDTO dto) {
-        // Demographics
+        
         profile.setGender(dto.getGender());
         profile.setEmploymentStatus(dto.getEmploymentStatus());
         profile.setRelationshipStatus(dto.getRelationshipStatus());
         profile.setLivingArrangement(dto.getLivingArrangement());
 
-        // Big 5
+        
         profile.setExtraversion(dto.getExtraversion());
         profile.setAgreeableness(dto.getAgreeableness());
         profile.setConscientiousness(dto.getConscientiousness());
         profile.setEmotionalStability(dto.getEmotionalStability());
         profile.setOpenness(dto.getOpenness());
 
-        // Jungian
+        
         profile.setPrimaryArchetype(dto.getPrimaryArchetype());
         profile.setSecondaryArchetype(dto.getSecondaryArchetype());
 
-        // Empathy
+        
         profile.setCognitiveEmpathy(dto.getCognitiveEmpathy());
         profile.setAffectiveEmpathy(dto.getAffectiveEmpathy());
         profile.setCompassionateEmpathy(dto.getCompassionateEmpathy());
 
-        // Life Context
+        
         profile.setCurrentStressors(dto.getCurrentStressors());
         profile.setBaselineStressLevel(dto.getBaselineStressLevel());
         profile.setBaselineEnergyLevel(dto.getBaselineEnergyLevel());
         profile.setSleepQuality(dto.getSleepQuality());
 
-        // Beliefs
+        
         profile.setCoreBeliefs(dto.getCoreBeliefs());
         profile.setLifeValues(dto.getLifeValues());
         profile.setInterests(dto.getInterests());
 
-        // Trauma
+        
         profile.setHasReportedTrauma(dto.getHasReportedTrauma());
         profile.setTraumaContext(dto.getTraumaContext());
 
-        // Complete status
+        
         if (dto.getIsComplete() != null) {
             profile.setIsComplete(dto.getIsComplete());
         }

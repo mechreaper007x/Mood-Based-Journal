@@ -14,27 +14,27 @@ import com.example.moodjournal.dto.DriftAnalysis.DriftWarning;
 import com.example.moodjournal.model.AssessmentSession;
 import com.example.moodjournal.repository.AssessmentSessionRepository;
 
-/**
- * Detects anomalous personality score changes between assessments.
- * 
- * OCEAN (Big 5) personality traits are relatively stable in adults.
- * Significant changes between assessments may indicate:
- * - Invalid/careless responding
- * - Significant life events (trauma, medication change)
- * - Gaming/manipulation of the assessment
- * 
- * This service compares current scores against the user's historical average
- * and flags drastic changes.
- */
+
+
+
+
+
+
+
+
+
+
+
+
 @Service
 public class OceanDriftDetector {
 
     private static final Logger log = LoggerFactory.getLogger(OceanDriftDetector.class);
 
-    /** Maximum allowed drift on 1-7 scale before blocking */
+    
     private static final double MAX_ALLOWED_DRIFT = 2.0;
 
-    /** Drift threshold that triggers a warning */
+    
     private static final double WARN_DRIFT_THRESHOLD = 1.5;
 
     private final AssessmentSessionRepository sessionRepository;
@@ -43,16 +43,16 @@ public class OceanDriftDetector {
         this.sessionRepository = sessionRepository;
     }
 
-    /**
-     * Analyze OCEAN score drift against historical average.
-     * 
-     * @param userId        User to analyze
-     * @param currentScores Current assessment scores (keys: extraversion,
-     *                      agreeableness, etc.)
-     * @return DriftAnalysis with warnings and validity status
-     */
+    
+
+
+
+
+
+
+
     public DriftAnalysis analyzeOceanDrift(UUID userId, Map<String, Integer> currentScores) {
-        // Fetch last 5 assessments for this user
+        
         List<AssessmentSession> history = sessionRepository.findTop5ByUserIdOrderByCompletedAtDesc(userId);
 
         if (history.isEmpty()) {
@@ -104,9 +104,9 @@ public class OceanDriftDetector {
                 .build();
     }
 
-    /**
-     * Calculate historical average for each OCEAN trait.
-     */
+    
+
+
     private Map<String, Double> calculateHistoricalAverage(List<AssessmentSession> history) {
         double sumE = 0, sumA = 0, sumC = 0, sumES = 0, sumO = 0;
         int count = 0;

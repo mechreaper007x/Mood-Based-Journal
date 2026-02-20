@@ -15,7 +15,7 @@ import api from '../lib/axios';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-// Archetype descriptions
+
 const archetypeInfo = {
   hero: { icon: Shield, color: 'red', desc: 'Brave, determined, driven to prove worth through courageous action' },
   caregiver: { icon: Heart, color: 'pink', desc: 'Nurturing, compassionate, driven to protect and care for others' },
@@ -74,7 +74,7 @@ const Profile = () => {
     );
   }
 
-  // Big 5 Radar Chart Data
+  
   const radarData = {
     labels: ['Extraversion', 'Agreeableness', 'Conscientiousness', 'Emotional Stability', 'Openness'],
     datasets: [
@@ -116,7 +116,6 @@ const Profile = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
       <div>
         <h2 className="text-3xl font-bold text-white flex items-center gap-3">
           <User className="text-primary-DEFAULT" />
@@ -126,7 +125,6 @@ const Profile = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Big 5 Radar Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -148,7 +146,6 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Archetypes */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -160,7 +157,6 @@ const Profile = () => {
             Psychological Archetypes
           </h3>
           <div className="space-y-4">
-            {/* Primary */}
             <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-purple-500/30 flex items-center justify-center">
@@ -173,7 +169,6 @@ const Profile = () => {
               </div>
               <p className="text-gray-400 text-sm mt-3">{PrimaryArch.desc}</p>
             </div>
-            {/* Secondary */}
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-500/30 flex items-center justify-center">
@@ -188,7 +183,6 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Empathy Profile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -222,7 +216,6 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Stressors & Context */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -263,7 +256,6 @@ const Profile = () => {
         </motion.div>
       </div>
 
-      {/* Retake Assessment */}
       <div className="text-center pt-4">
         <a
           href="/assessment"

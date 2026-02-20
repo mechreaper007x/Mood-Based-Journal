@@ -41,25 +41,25 @@ public class GoalController {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userDetails.getUsername()));
     }
 
-    /**
-     * Get all goals for the current user.
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<List<Goal>> getGoals(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(goalService.getGoals(getUserId(userDetails)));
     }
 
-    /**
-     * Get only active (incomplete) goals.
-     */
+    
+
+
     @GetMapping("/active")
     public ResponseEntity<List<Goal>> getActiveGoals(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(goalService.getActiveGoals(getUserId(userDetails)));
     }
 
-    /**
-     * Create a new goal.
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Goal> createGoal(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -67,9 +67,9 @@ public class GoalController {
         return ResponseEntity.ok(goalService.createGoal(getUserId(userDetails), request));
     }
 
-    /**
-     * Update a goal's progress or complete it.
-     */
+    
+
+
     @PutMapping("/{id}")
     public ResponseEntity<Goal> updateGoal(
             @PathVariable Long id,
@@ -78,9 +78,9 @@ public class GoalController {
         return ResponseEntity.ok(goalService.updateGoal(id, getUserId(userDetails), request));
     }
 
-    /**
-     * Delete a goal.
-     */
+    
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGoal(
             @PathVariable Long id,

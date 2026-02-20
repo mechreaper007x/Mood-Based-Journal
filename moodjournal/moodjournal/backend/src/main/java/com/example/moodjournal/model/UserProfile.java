@@ -35,74 +35,74 @@ public class UserProfile {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    // ===================
-    // DEMOGRAPHICS
-    // ===================
+    
+    
+    
     private String gender;
-    private String employmentStatus; // employed, student, unemployed, retired, self_employed
-    private String relationshipStatus; // single, dating, married, divorced, widowed
-    private String livingArrangement; // alone, with_family, with_roommates, with_partner
+    private String employmentStatus; 
+    private String relationshipStatus; 
+    private String livingArrangement; 
 
-    // ===================
-    // BIG 5 PERSONALITY (TIPI scores: 1-7 scale)
-    // ===================
+    
+    
+    
     private Integer extraversion;
     private Integer agreeableness;
     private Integer conscientiousness;
-    private Integer emotionalStability; // inverse of Neuroticism
+    private Integer emotionalStability; 
     private Integer openness;
 
-    // ===================
-    // JUNGIAN ARCHETYPE
-    // ===================
-    private String primaryArchetype; // hero, caregiver, explorer, rebel, lover, creator, jester, sage, magician,
-                                     // ruler, innocent, everyman
+    
+    
+    
+    private String primaryArchetype; 
+                                     
     private String secondaryArchetype;
 
-    // ===================
-    // EMPATHY QUOTIENT (simplified)
-    // ===================
-    private Integer cognitiveEmpathy; // 1-10: ability to understand others' perspectives
-    private Integer affectiveEmpathy; // 1-10: ability to feel others' emotions
-    private Integer compassionateEmpathy; // 1-10: ability to take action to help
+    
+    
+    
+    private Integer cognitiveEmpathy; 
+    private Integer affectiveEmpathy; 
+    private Integer compassionateEmpathy; 
 
-    // ===================
-    // LIFE CONTEXT
-    // ===================
+    
+    
+    
     @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
     @CollectionTable(name = "user_stressors", joinColumns = @JoinColumn(name = "profile_id"))
     @Column(name = "stressor")
-    private Set<String> currentStressors; // work, finances, health, relationships, family, academic, etc.
+    private Set<String> currentStressors; 
 
-    private Integer baselineStressLevel; // 1-10
-    private Integer baselineEnergyLevel; // 1-10
-    private Integer sleepQuality; // 1-10
+    private Integer baselineStressLevel; 
+    private Integer baselineEnergyLevel; 
+    private Integer sleepQuality; 
 
-    // ===================
-    // BELIEFS & VALUES (optional)
-    // ===================
+    
+    
+    
     @Column(length = 1000)
-    private String coreBeliefs; // free text
+    private String coreBeliefs; 
 
     @Column(length = 1000)
-    private String lifeValues; // free text
+    private String lifeValues; 
 
     @ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "profile_id"))
     @Column(name = "interest")
-    private Set<String> interests; // hobbies, passions
+    private Set<String> interests; 
 
-    // ===================
-    // OPTIONAL: PAST CONTEXT (sensitive)
-    // ===================
+    
+    
+    
     private Boolean hasReportedTrauma;
 
     @Column(length = 2000)
-    private String traumaContext; // optional free text
+    private String traumaContext; 
 
-    // ===================
-    // METADATA
-    // ===================
+    
+    
+    
     private Boolean isComplete;
 
     @Column(updatable = false)

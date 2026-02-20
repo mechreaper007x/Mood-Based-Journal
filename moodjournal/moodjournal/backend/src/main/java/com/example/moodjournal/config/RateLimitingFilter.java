@@ -15,14 +15,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Rate limiting filter to protect auth endpoints from brute force attacks.
- * Limits: 10 requests per minute per IP for sensitive endpoints.
- */
+
+
+
+
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    // LRU Cache with max 1000 entries to prevent memory leaks (S1 fix)
+    
     private final Map<String, Bucket> buckets = java.util.Collections.synchronizedMap(
             new java.util.LinkedHashMap<String, Bucket>(1000, 0.75f, true) {
                 @Override
@@ -31,7 +31,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 }
             });
 
-    // Rate limit: 10 requests per minute per IP
+    
     private static final int REQUESTS_PER_MINUTE = 10;
 
     private Bucket createNewBucket() {
@@ -52,7 +52,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // Only rate limit sensitive auth endpoints
+        
         if (path.contains("/api/auth/login") ||
                 path.contains("/api/auth/forgot-password") ||
                 path.contains("/api/auth/reset-password")) {

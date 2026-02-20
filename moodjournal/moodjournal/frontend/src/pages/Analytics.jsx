@@ -84,7 +84,7 @@ const Analytics = () => {
     );
   }
 
-  // Mood Distribution Doughnut
+  
   const moodDistData = {
     labels: Object.keys(summary?.moodDistribution || {}),
     datasets: [{
@@ -94,7 +94,7 @@ const Analytics = () => {
     }],
   };
 
-  // Risk History Line Chart
+  
   const riskLineData = {
     labels: riskHistory.map(r => r.date),
     datasets: [{
@@ -107,7 +107,7 @@ const Analytics = () => {
     }],
   };
 
-  // Distortion Bar Chart
+  
   const distortionData = {
     labels: Object.keys(distortions).slice(0, 6),
     datasets: [{
@@ -131,7 +131,6 @@ const Analytics = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -153,7 +152,6 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-dark-card border border-white/5 rounded-xl p-4">
           <p className="text-gray-500 text-sm">Total Entries</p>
@@ -179,7 +177,6 @@ const Analytics = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Mood Distribution */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-dark-card border border-white/5 rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4">Mood Distribution</h3>
           <div className="h-64">
@@ -191,7 +188,6 @@ const Analytics = () => {
           </div>
         </motion.div>
 
-        {/* Risk Score History */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-dark-card border border-white/5 rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
             <AlertTriangle className="text-red-400" size={20} />
@@ -206,7 +202,6 @@ const Analytics = () => {
           </div>
         </motion.div>
 
-        {/* Cognitive Distortions */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-dark-card border border-white/5 rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
             <Brain className="text-amber-400" size={20} />
@@ -221,7 +216,6 @@ const Analytics = () => {
           </div>
         </motion.div>
 
-        {/* Trajectory Details */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="bg-dark-card border border-white/5 rounded-2xl p-6">
           <h3 className="text-xl font-semibold text-white mb-4">Emotional Trajectory</h3>
           <div className="space-y-4">

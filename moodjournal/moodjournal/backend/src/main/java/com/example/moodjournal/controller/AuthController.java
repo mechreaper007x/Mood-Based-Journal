@@ -71,7 +71,7 @@ public class AuthController {
 
             User registeredUser = userService.register(user);
 
-            // Generate secure token with fingerprinting
+            
             final String jwt = jwtSecurityService.generateSecureToken(registeredUser.getEmail(), httpRequest);
 
             registeredUser.setPassword(null);
@@ -94,7 +94,7 @@ public class AuthController {
 
         final String email = credentials.get("email");
 
-        // Generate secure token with fingerprinting
+        
         final String jwt = jwtSecurityService.generateSecureToken(email, httpRequest);
 
         User user = userService.findByEmail(email)
@@ -105,10 +105,10 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", jwt, "user", user));
     }
 
-    /**
-     * Logout endpoint - revokes the current JWT token.
-     * The token is added to a blacklist until it expires.
-     */
+    
+
+
+
     @CrossOrigin
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
@@ -124,9 +124,9 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
 
-    /**
-     * Logout from all devices - revokes all tokens for the current user.
-     */
+    
+
+
     @CrossOrigin
     @PostMapping("/logout-all")
     public ResponseEntity<?> logoutAll(@RequestHeader("Authorization") String authHeader) {

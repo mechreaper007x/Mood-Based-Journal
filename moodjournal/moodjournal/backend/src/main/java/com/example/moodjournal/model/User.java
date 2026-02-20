@@ -43,7 +43,7 @@ public class User implements UserDetails {
 
     private Integer age;
 
-    // UserDetails interface methods
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
@@ -77,19 +77,19 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    /**
-     * Returns email for Spring Security authentication (UserDetails interface).
-     * The JWT token uses email as the subject.
-     */
+    
+
+
+
     @Override
     public String getUsername() {
         return email;
     }
 
-    /**
-     * Returns the actual display username (not the email).
-     * Use this for display purposes.
-     */
+    
+
+
+
     public String getDisplayName() {
         return username;
     }

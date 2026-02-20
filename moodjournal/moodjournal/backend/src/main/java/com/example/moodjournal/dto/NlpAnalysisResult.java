@@ -7,13 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
-/**
- * Response DTO from the Python NLP microservice
- */
+
+
+
 @Data
 public class NlpAnalysisResult {
 
-    // spaCy preprocessing
+    
     @JsonProperty("token_count")
     private Integer tokenCount;
 
@@ -21,14 +21,14 @@ public class NlpAnalysisResult {
 
     private List<Map<String, String>> entities;
 
-    // TextBlob scores
+    
     @JsonProperty("textblob_polarity")
-    private Double textblobPolarity; // -1 to +1
+    private Double textblobPolarity; 
 
     @JsonProperty("textblob_subjectivity")
-    private Double textblobSubjectivity; // 0 to 1
+    private Double textblobSubjectivity; 
 
-    // VADER scores
+    
     @JsonProperty("vader_positive")
     private Double vaderPositive;
 
@@ -39,13 +39,13 @@ public class NlpAnalysisResult {
     private Double vaderNeutral;
 
     @JsonProperty("vader_compound")
-    private Double vaderCompound; // -1 to +1 (main score)
+    private Double vaderCompound; 
 
-    // Ensemble results
+    
     @JsonProperty("base_sentiment")
-    private String baseSentiment; // POSITIVE, NEGATIVE, NEUTRAL
+    private String baseSentiment; 
 
-    private String emotion; // detected emotion keyword
+    private String emotion; 
 
-    private String category; // Mood enum value
+    private String category; 
 }

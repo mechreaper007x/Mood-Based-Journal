@@ -13,13 +13,13 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/**
- * VAD Lexicon Service - Provides local, deterministic VAD scoring
- * using a pre-built lexicon of emotion words.
- * 
- * This acts as the first layer of the Ensemble Risk Engine,
- * providing fast, reliable scoring without AI dependency.
- */
+
+
+
+
+
+
+
 @Service
 public class VADLexiconService {
 
@@ -30,7 +30,7 @@ public class VADLexiconService {
     private final List<java.util.regex.Pattern> crisisPatterns = new ArrayList<>();
     private static final Pattern WORD_PATTERN = Pattern.compile("[a-zA-Z]+");
 
-    // Default crisis keywords for fallback
+    
     private static final Set<String> DEFAULT_CRISIS_KEYWORDS = Set.of(
             "suicide", "suicidal", "kill", "dying", "death", "harm", "hopeless");
 
@@ -46,7 +46,7 @@ public class VADLexiconService {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(inputStream);
 
-            // Load regular words
+            
             JsonNode words = root.get("words");
             if (words != null) {
                 Iterator<String> fieldNames = words.fieldNames();
@@ -60,18 +60,18 @@ public class VADLexiconService {
                 }
             }
 
-            // Load crisis keywords
+            
             JsonNode crisisNode = root.get("crisis_keywords");
             if (crisisNode != null) {
                 Iterator<String> fieldNames = crisisNode.fieldNames();
                 while (fieldNames.hasNext()) {
                     String phrase = fieldNames.next();
                     if (phrase.startsWith("_"))
-                        continue; // Skip metadata
+                        continue; 
 
                     crisisKeywords.add(phrase.toLowerCase());
 
-                    // Also add to lexicon if it's a single word
+                    
                     if (!phrase.contains(" ")) {
                         JsonNode vadNode = crisisNode.get(phrase);
                         double v = vadNode.get("v").asDouble();
@@ -84,11 +84,11 @@ public class VADLexiconService {
                 crisisKeywords.addAll(DEFAULT_CRISIS_KEYWORDS);
             }
 
-            // Compile patterns for all crisis keywords
+            
             for (String keyword : crisisKeywords) {
-                // escape the keyword just in case, though they should be simple words
+                
                 String escaped = Pattern.quote(keyword);
-                // Match whole word boundaries, case insensitive
+                
                 crisisPatterns.add(Pattern.compile("\\b" + escaped + "\\b", Pattern.CASE_INSENSITIVE));
             }
 
@@ -99,12 +99,12 @@ public class VADLexiconService {
         }
     }
 
-    /**
-     * Analyzes text and returns aggregated VAD scores.
-     * 
-     * @param text The text to analyze
-     * @return Map with "valence", "arousal", "dominance" keys (0.0-1.0)
-     */
+    
+
+
+
+
+
     public Map<String, Double> analyzeText(String text) {
         if (text == null || text.isBlank()) {
             return getDefaultVAD();
@@ -125,7 +125,7 @@ public class VADLexiconService {
             return getDefaultVAD();
         }
 
-        // Calculate weighted average (could be enhanced with TF-IDF later)
+        
         double sumV = 0, sumA = 0, sumD = 0;
         for (double[] vad : foundScores) {
             sumV += vad[0];
@@ -142,20 +142,20 @@ public class VADLexiconService {
         return result;
     }
 
-    /**
-     * Calculates a risk score (0-10) from VAD values.
-     * Low valence + low dominance = high risk
-     * Crisis keywords detected = maximum risk boost
-     * 
-     * @param text The text to analyze
-     * @return Risk score from 0 (safe) to 10 (crisis)
-     */
+    
+
+
+
+
+
+
+
     public int calculateRiskScore(String text) {
         if (text == null || text.isBlank()) {
             return 0;
         }
 
-        // Check for crisis keywords first using regex (safer than contains)
+        
         int crisisKeywordCount = 0;
         for (java.util.regex.Pattern pattern : crisisPatterns) {
             if (pattern.matcher(text).find()) {
@@ -163,21 +163,21 @@ public class VADLexiconService {
             }
         }
 
-        // If multiple crisis keywords, return high risk immediately
+        
         if (crisisKeywordCount >= 2) {
             return 9;
         }
 
-        // Get VAD scores
+        
         Map<String, Double> vad = analyzeText(text);
         double valence = vad.get("valence");
         double dominance = vad.get("dominance");
 
-        // Risk formula: (1 - valence) * 0.6 + (1 - dominance) * 0.4
-        // Low valence (sadness) and low dominance (helplessness) = high risk
+        
+        
         double baseRisk = ((1 - valence) * 0.6 + (1 - dominance) * 0.4) * 8;
 
-        // Add crisis keyword boost
+        
         if (crisisKeywordCount == 1) {
             baseRisk = Math.min(10, baseRisk + 3);
         }
@@ -185,9 +185,9 @@ public class VADLexiconService {
         return (int) Math.round(Math.min(10, Math.max(0, baseRisk)));
     }
 
-    /**
-     * Returns detected crisis keywords from text.
-     */
+    
+
+
     public List<String> detectCrisisKeywords(String text) {
         if (text == null || text.isBlank()) {
             return Collections.emptyList();
@@ -197,22 +197,22 @@ public class VADLexiconService {
         List<String> detected = new ArrayList<>();
 
         for (int i = 0; i < crisisPatterns.size(); i++) {
-            // We iterate patterns and keywords in sync since we built them same order?
-            // Actually map/set iteration order isn't guaranteed sync if we just iterate
-            // separately.
-            // Let's use the keyword set but we need the patterns.
-            // Better approach: Re-iterate keywords and compile on fly? No, too slow.
-            // Let's rely on the patterns list matching the keywords list?
-            // Actually, 'crisisKeywords' is a Set, 'crisisPatterns' is a List.
-            // We should have built a map or pair.
-            // Let's fix this in detection loop properly.
+            
+            
+            
+            
+            
+            
+            
+            
+            
         }
 
-        // Correct implementation: Iterate regexes, if match, find which keyword it
-        // belongs to.
-        // Since we didn't map them, let's just iterate string keywords and do regex
-        // check.
-        // It's slower but accurate.
+        
+        
+        
+        
+        
 
         for (String keyword : crisisKeywords) {
             Pattern p = Pattern.compile("\\b" + Pattern.quote(keyword) + "\\b", Pattern.CASE_INSENSITIVE);
@@ -224,9 +224,9 @@ public class VADLexiconService {
         return detected;
     }
 
-    /**
-     * Returns the count of lexicon words found in text.
-     */
+    
+
+
     public int getMatchedWordCount(String text) {
         if (text == null || text.isBlank()) {
             return 0;
@@ -254,28 +254,28 @@ public class VADLexiconService {
         return defaultVAD;
     }
 
-    /**
-     * Check if the lexicon is loaded and ready.
-     */
+    
+
+
     public boolean isReady() {
         return !vadLexicon.isEmpty();
     }
 
-    /**
-     * Get lexicon size for diagnostics.
-     */
+    
+
+
     public int getLexiconSize() {
         return vadLexicon.size();
     }
 
-    /**
-     * Fallback analysis when AI fails. Returns a formatted JSON string.
-     */
+    
+
+
     public String analyzeWithoutAI(String text) {
         int riskScore = calculateRiskScore(text);
         Map<String, Double> vad = analyzeText(text);
 
-        // Simple mapping from VAD to discrete emotions
+        
         double valence = vad.getOrDefault("valence", 0.5);
         double arousal = vad.getOrDefault("arousal", 0.5);
 
@@ -283,7 +283,7 @@ public class VADLexiconService {
         int sadness = (int) ((1 - valence) * 100);
         int anger = (int) (arousal * 100);
 
-        // Normalize
+        
         int total = happiness + sadness + anger + 1;
         happiness = (happiness * 100) / total;
         sadness = (sadness * 100) / total;
@@ -316,14 +316,14 @@ public class VADLexiconService {
                         """.trim(), happiness, sadness, anger, dominant);
     }
 
-    /**
-     * Enhances low-confidence AI analysis with lexicon data.
-     */
+    
+
+
     public String enhanceAnalysis(String text,
             com.example.moodjournal.service.AIResponseValidator.ValidationResult validation) {
-        // For now, just return the fallback analysis combined with the validation note
-        // In a real implementation, we would merge the two JSONs.
-        // Returning AI fallback for simplicity and speed.
+        
+        
+        
         return analyzeWithoutAI(text);
     }
 }

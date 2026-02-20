@@ -1,4 +1,3 @@
-# Load environment variables from .env file
 Get-Content -Path "..\.env" | ForEach-Object {
     if ($_ -match '^([^#=]+)=(.*)$') {
         $name = $matches[1].Trim()
@@ -8,5 +7,4 @@ Get-Content -Path "..\.env" | ForEach-Object {
     }
 }
 
-# Run the Spring Boot application
 .\mvnw.cmd spring-boot:run

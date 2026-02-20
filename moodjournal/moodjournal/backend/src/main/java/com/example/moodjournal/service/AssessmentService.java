@@ -25,16 +25,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Service for LLM-powered psychological assessment.
- * Uses Gemini with a professional psychologist persona.
- * Caches question sets to reduce LLM calls.
- */
+
+
+
+
+
 @Service
 public class AssessmentService {
 
     private static final Logger log = LoggerFactory.getLogger(AssessmentService.class);
-    private static final int MAX_CACHED_SETS = 5; // Keep up to 5 different question sets
+    private static final int MAX_CACHED_SETS = 5; 
 
     @Autowired
     private AISecurityService securityService;
@@ -54,15 +54,15 @@ public class AssessmentService {
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    /**
-     * Generate 10 psychological assessment questions.
-     * Uses caching to avoid redundant LLM calls.
-     */
+    
+
+
+
     public List<AssessmentQuestion> generateQuestions() {
-        // Check if we have cached questions
+        
         long cachedCount = questionSetRepository.count();
 
-        // If we have enough cached sets, use one randomly
+        
         if (cachedCount >= MAX_CACHED_SETS) {
             Optional<CachedQuestionSet> cached = questionSetRepository.findRandom();
             if (cached.isPresent()) {
@@ -81,14 +81,14 @@ public class AssessmentService {
             }
         }
 
-        // Generate new questions via LLM
+        
         log.info("Generating new question set via LLM (cached: {})", cachedCount);
         return generateAndCacheQuestions();
     }
 
-    /**
-     * Generate new questions from LLM and cache them.
-     */
+    
+
+
     private List<AssessmentQuestion> generateAndCacheQuestions() {
         String prompt = """
                 You are a licensed clinical psychologist with 20 years of experience in personality assessment
@@ -133,7 +133,7 @@ public class AssessmentService {
                     new TypeReference<List<AssessmentQuestion>>() {
                     });
 
-            // Cache the new question set
+            
             CachedQuestionSet newSet = CachedQuestionSet.builder()
                     .questionsJson(cleanJson)
                     .build();
@@ -147,22 +147,22 @@ public class AssessmentService {
         }
     }
 
-    /**
-     * Analyze user's responses and derive psychological profile.
-     * Uses deterministic scoring for standardized tests.
-     * Uses Gemini for narrative insights.
-     */
+    
+
+
+
+
     public AnalyzedProfile analyzeResponses(AssessmentSubmission submission) {
         AnalyzedProfile.AnalyzedProfileBuilder builder = AnalyzedProfile.builder();
 
-        // Score PHQ-9 (Depression Screening)
+        
         if (submission.getPhq9Responses() != null && !submission.getPhq9Responses().isEmpty()) {
             int phq9Score = scorePHQ9(submission.getPhq9Responses());
             String severity = getPHQ9Severity(phq9Score);
             builder.phq9Score(phq9Score).phq9Severity(severity);
         }
 
-        // Score BFPT (Big 5) - 50 item test
+        
         if (submission.getBfptResponses() != null && !submission.getBfptResponses().isEmpty()) {
             Map<String, Integer> big5 = scoreBFPT(submission.getBfptResponses());
             builder.extraversion(big5.get("extraversion"))
@@ -172,28 +172,28 @@ public class AssessmentService {
                     .openness(big5.get("openness"));
         }
 
-        // Score Enneagram
+        
         if (submission.getEnneagramResponses() != null && !submission.getEnneagramResponses().isEmpty()) {
             int[] enneagram = scoreEnneagram(submission.getEnneagramResponses());
             builder.enneagramType(enneagram[0]).enneagramWing(String.valueOf(enneagram[1]));
         }
 
-        // Score EQ-60 (full 3-dimensional scoring)
+        
         if (submission.getEqResponses() != null && !submission.getEqResponses().isEmpty()) {
             Map<String, Integer> eq = scoreEQ60(submission.getEqResponses());
             int completionPercent = submission.getEqBatch() != null ? submission.getEqBatch() * 33 : 33;
             builder.eqScore(eq.get("total"))
                     .eqCompletionPercent(Math.min(completionPercent, 100))
-                    .cognitiveEmpathy(normalizeEQ(eq.get("cognitive"), 44, 10)) // 22 items * 2 max
-                    .affectiveEmpathy(normalizeEQ(eq.get("affective"), 12, 10)) // 6 items * 2 max
-                    .compassionateEmpathy(normalizeEQ(eq.get("compassionate"), 24, 10)); // 12 items * 2 max
+                    .cognitiveEmpathy(normalizeEQ(eq.get("cognitive"), 44, 10)) 
+                    .affectiveEmpathy(normalizeEQ(eq.get("affective"), 12, 10)) 
+                    .compassionateEmpathy(normalizeEQ(eq.get("compassionate"), 24, 10)); 
         }
 
-        // Generate narrative insights via Gemini
+        
         String insights = generateInsights(submission);
         builder.insights(insights);
 
-        // Set defaults for legacy fields if not computed
+        
         AnalyzedProfile profile = builder.build();
         if (profile.getExtraversion() == null)
             profile.setExtraversion(4);
@@ -221,30 +221,30 @@ public class AssessmentService {
         return profile;
     }
 
-    /**
-     * PHQ-9 scoring: Sum all responses (0-27).
-     */
+    
+
+
     private int scorePHQ9(Map<Integer, Integer> responses) {
         if (responses == null || responses.isEmpty()) {
-            return 0; // Treat as 0 risk if empty/null instead of crashing
+            return 0; 
         }
 
         int sum = responses.values().stream()
                 .filter(java.util.Objects::nonNull)
                 .mapToInt(v -> {
                     if (v < 0 || v > 3)
-                        return 0; // Ignore invalid values
+                        return 0; 
                     return v;
                 })
                 .sum();
 
-        // Max possible score is 27 (9 items * 3)
+        
         return Math.min(27, Math.max(0, sum));
     }
 
-    /**
-     * PHQ-9 severity interpretation.
-     */
+    
+
+
     private String getPHQ9Severity(int score) {
         if (score <= 4)
             return "None-minimal";
@@ -257,25 +257,25 @@ public class AssessmentService {
         return "Severe";
     }
 
-    /**
-     * PHQ-9 Item 9 Suicide Risk Detection.
-     * 
-     * CLINICAL REFERENCE: PHQ-9 Item 9 asks:
-     * "Thoughts that you would be better off dead or of hurting yourself"
-     * 
-     * Per APA guidelines, ANY non-zero response requires crisis intervention:
-     * - Score 1: "Several days" - MODERATE risk
-     * - Score 2-3: "More than half the days" / "Nearly every day" - HIGH risk
-     * 
-     * @param phq9Responses Map of item index (0-8) to score (0-3)
-     * @return CrisisFlag with triggered status and crisis resources
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
+
     public CrisisFlag checkPHQ9SuicideRisk(Map<Integer, Integer> phq9Responses) {
         if (phq9Responses == null || phq9Responses.isEmpty()) {
             return CrisisFlag.none();
         }
 
-        // Item 9 is index 8 (0-indexed)
+        
         Integer item9Score = phq9Responses.get(8);
 
         if (item9Score == null || item9Score <= 0) {
@@ -286,22 +286,22 @@ public class AssessmentService {
         return CrisisFlag.triggered(item9Score);
     }
 
-    /**
-     * BFPT scoring: Calculate Big 5 traits using official 50-item formulas.
-     * Each trait (0-40 raw) is normalized to 1-7 scale for display.
-     * 
-     * Formulas from https://openpsychometrics.org:
-     * E = 20 + (1) - (6) + (11) - (16) + (21) - (26) + (31) - (36) + (41) - (46)
-     * A = 14 - (2) + (7) - (12) + (17) - (22) + (27) - (32) + (37) + (42) + (47)
-     * C = 14 + (3) - (8) + (13) - (18) + (23) - (28) + (33) - (38) + (43) + (48)
-     * N = 38 - (4) + (9) - (14) + (19) - (24) - (29) - (34) - (39) - (44) - (49)
-     * O = 8 + (5) - (10) + (15) - (20) + (25) - (30) + (35) + (40) + (45) + (50)
-     */
+    
+
+
+
+
+
+
+
+
+
+
     private Map<String, Integer> scoreBFPT(Map<Integer, Integer> r) {
-        // Get response or default to 3 (neutral)
+        
         java.util.function.Function<Integer, Integer> get = id -> r.getOrDefault(id, 3);
 
-        // Calculate raw scores (0-40)
+        
         int rawE = 20 + get.apply(1) - get.apply(6) + get.apply(11) - get.apply(16)
                 + get.apply(21) - get.apply(26) + get.apply(31) - get.apply(36)
                 + get.apply(41) - get.apply(46);
@@ -314,7 +314,7 @@ public class AssessmentService {
                 + get.apply(23) - get.apply(28) + get.apply(33) - get.apply(38)
                 + get.apply(43) + get.apply(48);
 
-        // Neuroticism - we invert to get Emotional Stability
+        
         int rawN = 38 - get.apply(4) + get.apply(9) - get.apply(14) + get.apply(19)
                 - get.apply(24) - get.apply(29) - get.apply(34) - get.apply(39)
                 - get.apply(44) - get.apply(49);
@@ -323,8 +323,8 @@ public class AssessmentService {
                 + get.apply(25) - get.apply(30) + get.apply(35) + get.apply(40)
                 + get.apply(45) + get.apply(50);
 
-        // Normalize to 1-7 scale (raw 0-40 -> 1-7)
-        // High N means low emotional stability, so we invert it
+        
+        
         int emotionalStability = 8 - normalize(rawN, 0, 40, 1, 7);
 
         return Map.of(
@@ -335,18 +335,18 @@ public class AssessmentService {
                 "openness", normalize(rawO, 0, 40, 1, 7));
     }
 
-    /**
-     * Normalize a value from one range to another.
-     */
+    
+
+
     private int normalize(int value, int oldMin, int oldMax, int newMin, int newMax) {
         value = Math.max(oldMin, Math.min(oldMax, value));
         double ratio = (double) (value - oldMin) / (oldMax - oldMin);
         return (int) Math.round(newMin + ratio * (newMax - newMin));
     }
 
-    /**
-     * Normalize EQ category score to 1-10 scale for UI display.
-     */
+    
+
+
     private int normalizeEQ(int raw, int maxRaw, int maxScale) {
         if (raw <= 0)
             return 1;
@@ -354,48 +354,48 @@ public class AssessmentService {
         return Math.max(1, Math.min(maxScale, (int) Math.round(ratio * maxScale)));
     }
 
-    /**
-     * Enneagram scoring: Count type frequencies, return dominant type and wing.
-     */
+    
+
+
     private int[] scoreEnneagram(Map<Integer, String> responses) {
-        // Map of question -> type for A and B choices
-        int[] typeCounts = new int[10]; // types 1-9, index 0 unused
+        
+        int[] typeCounts = new int[10]; 
 
-        // Simplified: each A/B choice contributes to a type
-        // This is a simplified scoring that counts type mentions
+        
+        
         for (var entry : responses.entrySet()) {
-            // New logic: Use the scale mapping from the question if available
-            // Since we don't have the question metadata here easily (it's in the frontend
-            // or DB),
-            // and we rely on the specific question set ID to know which mapping to use.
-            // Wait - the 'responses' map keys are Question IDs.
-            // S2 Fix: We cannot blindly assume ID % 9.
-            // Ideally, we should fetch the question definition to see its 'scale'.
-            // However, AssessmentSubmission doesn't carry that meta.
-            // For now, to close the loop without major DB refactor, we will rely on the
-            // FACT that we are asking for ordered generation in the prompt,
-            // OR we'd need to store the scale in the submission.
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 
-            // Temporary Logic Closure: The Prompt now explicitly asks for Types.
-            // We'll assume the LLM follows the 1..9 ordering convention if we ask for it.
-            // BUT, for a true fix, we should be saving the 'scale' in the CachedQuestionSet
-            // and using it here.
-            // Given the constraints, we will improve the mapping by assuming ID 1 = Type 1.
+            
+            
+            
+            
+            
 
-            // Score based on strict Prompt contract: ID 1 = Type 1, ..., ID 9 = Type 9.
-            // ID % 9 logic: 1%9=1, 9%9=0 -> need to map 0 to 9.
+            
+            
             int id = entry.getKey();
             int type = id % 9;
             if (type == 0)
                 type = 9;
 
-            // Safety: Ensure type is within 1-9 range
+            
             if (type >= 1 && type <= 9) {
                 typeCounts[type]++;
             }
         }
 
-        // Find dominant type
+        
         int maxType = 1;
         int maxCount = typeCounts[1];
         for (int i = 2; i <= 9; i++) {
@@ -405,7 +405,7 @@ public class AssessmentService {
             }
         }
 
-        // Wing is adjacent type with higher count
+        
         int leftWing = maxType == 1 ? 9 : maxType - 1;
         int rightWing = maxType == 9 ? 1 : maxType + 1;
         int wing = typeCounts[leftWing] >= typeCounts[rightWing] ? leftWing : rightWing;
@@ -413,29 +413,29 @@ public class AssessmentService {
         return new int[] { maxType, wing };
     }
 
-    /**
-     * EQ scoring: Sum empathy items (exclude control items).
-     * Scoring: Strongly Agree=2, Slightly Agree=1, Disagree=0.
-     */
-    /**
-     * EQ-60 scoring: Calculate 3-dimensional empathy scores (Cognitive, Affective,
-     * Compassionate).
-     * Returns Map with keys: "cognitive", "affective", "compassionate", "total"
-     * 
-     * Scoring rules:
-     * - POSITIVE type: Strongly Agree = 2, Slightly Agree = 1
-     * - NEGATIVE type: Strongly Disagree = 2, Slightly Disagree = 1
-     * - DISTRACTOR: Ignored (0 points)
-     * 
-     * Max scores: Cognitive=44 (22 items), Affective=12 (6 items), Compassionate=24
-     * (12 items), Total=80
-     */
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
     private Map<String, Integer> scoreEQ60(Map<Integer, String> responses) {
         int cognitive = 0, affective = 0, compassionate = 0;
 
-        // Question metadata: id -> {category, type}
-        // Categories: C=COGNITIVE, A=AFFECTIVE, P=COMPASSIONATE, D=DISTRACTOR
-        // Types: +=POSITIVE, -=NEGATIVE
+        
+        
+        
         Map<Integer, String[]> questionMeta = Map.ofEntries(
                 Map.entry(1, new String[] { "C", "+" }), Map.entry(2, new String[] { "D", "" }),
                 Map.entry(3, new String[] { "D", "" }),
@@ -484,26 +484,26 @@ public class AssessmentService {
             String[] meta = questionMeta.get(questionId);
 
             if (meta == null || "D".equals(meta[0]))
-                continue; // Skip distractors
+                continue; 
 
             int points = 0;
             boolean isPositive = "+".equals(meta[1]);
 
             if (isPositive) {
-                // POSITIVE: Agree = points
+                
                 if ("strongly_agree".equals(response))
                     points = 2;
                 else if ("slightly_agree".equals(response))
                     points = 1;
             } else {
-                // NEGATIVE: Disagree = points
+                
                 if ("strongly_disagree".equals(response))
                     points = 2;
                 else if ("slightly_disagree".equals(response))
                     points = 1;
             }
 
-            // Add to appropriate category
+            
             switch (meta[0]) {
                 case "C" -> cognitive += points;
                 case "A" -> affective += points;
@@ -518,9 +518,9 @@ public class AssessmentService {
                 "total", cognitive + affective + compassionate);
     }
 
-    /**
-     * Generate narrative insights via Gemini.
-     */
+    
+
+
     private String generateInsights(AssessmentSubmission submission) {
         StringBuilder context = new StringBuilder();
 
@@ -544,7 +544,7 @@ public class AssessmentService {
             for (var pr : submission.getPersonalizedResponses()) {
                 context.append("Q: ").append(pr.getQuestion()).append("\n");
 
-                // SECURITY CHECK: Sanitize User Answer
+                
                 String safeAnswer = "Redacted";
                 try {
                     safeAnswer = securityService.securePrompt(pr.getAnswer());
@@ -580,7 +580,7 @@ public class AssessmentService {
         }
     }
 
-    // Helper methods
+    
     private Integer getInt(Map<String, Object> map, String key, int defaultVal) {
         Object val = map.get(key);
         if (val instanceof Number)
@@ -642,29 +642,29 @@ public class AssessmentService {
                 .build();
     }
 
-    /**
-     * Transactional save of assessment results.
-     * Includes IDEMPOTENCY check to prevent duplicate submissions.
-     * Uses SERIALIZABLE isolation to prevent race conditions during the
-     * check-then-act.
-     */
+    
+
+
+
+
+
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW, isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public AssessmentSession saveAssessmentResults(User user, AssessmentSubmission submission,
             AnalyzedProfile profile) {
 
-        // IDEMPOTENCY CHECK: Ensure no recent submission (within last 60 seconds)
+        
         Optional<AssessmentSession> lastSession = sessionRepository.findTopByUserIdOrderByCompletedAtDesc(user.getId());
         if (lastSession.isPresent()) {
             java.time.Instant now = java.time.Instant.now();
             java.time.Instant lastTime = lastSession.get().getCompletedAt();
-            // If less than 60 seconds ago
+            
             if (lastTime != null && lastTime.plusSeconds(60).isAfter(now)) {
                 log.warn("Duplicate assessment submission avoided for user {}", user.getId());
                 return lastSession.get();
             }
         }
 
-        // Create new session
+        
         AssessmentSession session = AssessmentSession.builder()
                 .user(user)
                 .extraversion(profile.getExtraversion())
@@ -689,7 +689,7 @@ public class AssessmentService {
                 .insights(profile.getInsights())
                 .build();
 
-        // Add all Q&A pairs
+        
         if (submission.getResponses() != null) {
             for (var qa : submission.getResponses()) {
                 AssessmentResponseItem item = AssessmentResponseItem.builder()
@@ -703,7 +703,7 @@ public class AssessmentService {
 
         AssessmentSession savedSession = sessionRepository.save(session);
 
-        // Update User Profile
+        
         updateUserProfile(user.getId(), profile);
 
         return savedSession;
@@ -728,7 +728,7 @@ public class AssessmentService {
             profileDTO.setCurrentStressors(new java.util.HashSet<>(analyzed.getDetectedStressors()));
         }
 
-        // Ensure backend calculated fields are set if missing
+        
         if (profileDTO.getIsComplete() == null) {
             profileDTO.setIsComplete(true);
         }

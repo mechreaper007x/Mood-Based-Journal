@@ -6,21 +6,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
-/**
- * Response from Gemini emotion analysis - contains emotion percentages
- */
+
+
+
 @Data
 public class EmotionBreakdown {
 
     @JsonProperty("emotions")
-    private Map<String, Integer> emotions; // e.g. {"anger": 50, "happy": 10, "sadness": 25}
+    private Map<String, Integer> emotions; 
 
     @JsonProperty("dominant_emotion")
-    private String dominantEmotion; // The emotion with highest percentage
+    private String dominantEmotion; 
 
     @JsonProperty("dominant_percentage")
-    private Integer dominantPercentage; // Percentage of dominant emotion
+    private Integer dominantPercentage; 
 
     @JsonProperty("summary")
-    private String summary; // Brief neutral analysis
+    private String summary; 
 }

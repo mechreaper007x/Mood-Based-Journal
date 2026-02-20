@@ -8,34 +8,34 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Result of profile-aware psychological analysis of a journal entry.
- */
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EntryAnalysisResult {
 
-    // ISEAR (Primary Emotion)
+    
     private String primaryEmotion;
 
-    // GoEmotions (Nuance Tags)
+    
     private List<String> nuanceTags;
 
-    // EmoBank (VAD Scores)
+    
     private VADScores vadScores;
 
-    // Derived Risk Score (1-10) - Calculated from Valence/Arousal
+    
     private Integer riskScore;
 
-    // Legacy/Compatible fields (can be derived or removed later)
+    
     private Map<String, Integer> emotionBreakdown;
     private List<String> cognitiveDistortions;
     private String emotionalTrajectory;
     private List<String> personalizedSuggestions;
 
-    private String narrativeInsight; // The "insight" from new prompt
+    private String narrativeInsight; 
 
     @Data
     @Builder

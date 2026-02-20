@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Get API base URL
+
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:9092';
 
 const STRESSORS = [
@@ -33,23 +33,23 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Form State - Stripped to essentials
+  
   const [profile, setProfile] = useState({
-    // Demographics
+    
     gender: '',
     employmentStatus: '',
     relationshipStatus: '',
     livingArrangement: '',
-    // Life Context
+    
     currentStressors: [],
     baselineStressLevel: 5,
     baselineEnergyLevel: 5,
     sleepQuality: 5,
     interests: [],
-    // Beliefs (optional)
+    
     coreBeliefs: '',
     lifeValues: '',
-    // Trauma (optional)
+    
     hasReportedTrauma: false,
     traumaContext: '',
   });
@@ -372,12 +372,10 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-dark-bg p-4 md:p-8 relative overflow-hidden">
-      {/* Background glow */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-DEFAULT/10 rounded-full blur-[150px]" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[150px]" />
 
       <div className="max-w-2xl mx-auto relative z-10">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Star className="text-primary-DEFAULT" size={32} />
@@ -388,7 +386,6 @@ const Onboarding = () => {
 
         <StepIndicator />
 
-        {/* Main Card */}
         <div className="bg-dark-card backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
           {error && <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-3 mb-4">{error}</div>}
           
@@ -396,7 +393,6 @@ const Onboarding = () => {
             {renderStep()}
           </AnimatePresence>
 
-          {/* Navigation */}
           <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
             <button
               onClick={prevStep}

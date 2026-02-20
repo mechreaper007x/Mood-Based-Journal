@@ -13,33 +13,33 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * A/B Testing Framework for prompt variants and AI vs. static questions.
- * 
- * Provides:
- * - Consistent user hashing for variant assignment
- * - Basic logging of variant exposure
- * - Conversion tracking capability
- * 
- * This is a lightweight MVP - for production, consider:
- * - External feature flag service (LaunchDarkly, Optimizely)
- * - Statistical significance calculation
- * - Automated winner selection
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
 @Service
 public class ABTestingService {
 
     private static final Logger log = LoggerFactory.getLogger(ABTestingService.class);
 
-    /** Active experiments */
+    
     private final Map<String, Experiment> experiments = new ConcurrentHashMap<>();
 
-    /** User variant assignments (cached) */
+    
     private final Map<String, Map<String, String>> userAssignments = new ConcurrentHashMap<>();
 
-    /**
-     * Register an experiment.
-     */
+    
+
+
     public void registerExperiment(String experimentId, String... variants) {
         if (variants.length < 2) {
             throw new IllegalArgumentException("Experiment must have at least 2 variants");
@@ -54,17 +54,17 @@ public class ABTestingService {
         log.info("Registered A/B experiment: {} with variants: {}", experimentId, String.join(", ", variants));
     }
 
-    /**
-     * Get variant for user.
-     * Uses consistent hashing to ensure user always sees same variant.
-     */
+    
+
+
+
     public String getVariant(UUID userId, String experimentId) {
         Experiment experiment = experiments.get(experimentId);
         if (experiment == null || !experiment.isEnabled()) {
-            return "control"; // Default to control if experiment not found
+            return "control"; 
         }
 
-        // Check cached assignment
+        
         String userIdStr = userId.toString();
         Map<String, String> userExperiments = userAssignments.computeIfAbsent(userIdStr,
                 k -> new ConcurrentHashMap<>());
@@ -73,7 +73,7 @@ public class ABTestingService {
             return userExperiments.get(experimentId);
         }
 
-        // Consistent hash-based assignment
+        
         int hash = Math.abs((userIdStr + experimentId).hashCode());
         String variant = experiment.getVariants()[hash % experiment.getVariants().length];
 
@@ -83,18 +83,18 @@ public class ABTestingService {
         return variant;
     }
 
-    /**
-     * Track conversion event for experiment.
-     */
+    
+
+
     public void trackConversion(UUID userId, String experimentId) {
         String variant = getVariant(userId, experimentId);
         log.info("CONVERSION tracked: experiment={}, variant={}, userId={}", experimentId, variant, userId);
-        // In production: persist to analytics DB or send to analytics service
+        
     }
 
-    /**
-     * Disable an experiment (forces control variant).
-     */
+    
+
+
     public void disableExperiment(String experimentId) {
         Experiment experiment = experiments.get(experimentId);
         if (experiment != null) {

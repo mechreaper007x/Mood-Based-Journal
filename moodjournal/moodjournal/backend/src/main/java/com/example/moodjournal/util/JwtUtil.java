@@ -16,22 +16,23 @@ import java.util.function.Function;
 public class JwtUtil {
 
     private final SecretKey key;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; 
+    private static final String TOKEN_ISSUER = "moodjournal-api";
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    /**
-     * Generate token with default empty claims.
-     */
+    
+
+
     public String generateToken(String username) {
         return generateToken(username, new HashMap<>());
     }
 
-    /**
-     * Generate token with custom claims (for fingerprinting, etc.)
-     */
+    
+
+
     public String generateToken(String username, Map<String, Object> claims) {
         return createToken(claims, username);
     }
@@ -40,6 +41,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
+                .issuer(TOKEN_ISSUER)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key)
@@ -73,13 +75,19 @@ public class JwtUtil {
 
     public Boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        final String issuer = extractClaim(token, Claims::getIssuer);
+        final Date issuedAt = extractClaim(token, Claims::getIssuedAt);
+        boolean issuedAtValid = issuedAt == null || !issuedAt.after(new Date(System.currentTimeMillis() + 60_000));
+        return extractedUsername.equals(username)
+                && !isTokenExpired(token)
+                && TOKEN_ISSUER.equals(issuer)
+                && issuedAtValid;
     }
 
-    /**
-     * Get time remaining until token expires (in milliseconds).
-     * Returns 0 if token is already expired.
-     */
+    
+
+
+
     public long getTimeToExpiry(String token) {
         try {
             Date expiration = extractExpiration(token);
@@ -90,20 +98,20 @@ public class JwtUtil {
         }
     }
 
-    /**
-     * Check if token should be rotated based on age.
-     * 
-     * @param token           The JWT token
-     * @param rotationMinutes Rotation threshold in minutes
-     * @return true if token is older than rotationMinutes
-     */
+    
+
+
+
+
+
+
     public boolean shouldRotate(String token, int rotationMinutes) {
         try {
             Claims claims = extractAllClaims(token);
             Long issuedAtMs = claims.get("iat_ms", Long.class);
 
             if (issuedAtMs == null) {
-                // Fallback to standard iat claim
+                
                 Date issuedAt = claims.getIssuedAt();
                 if (issuedAt == null)
                     return false;

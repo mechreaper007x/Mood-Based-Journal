@@ -21,10 +21,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Represents a completed deep psychological assessment session.
- * Contains all Q&A pairs and the analyzed results.
- */
+
+
+
+
 @Entity
 @Table(name = "assessment_session")
 @Data
@@ -44,7 +44,7 @@ public class AssessmentSession {
 
     private Instant completedAt;
 
-    // Analyzed results stored for quick access
+    
     private Integer extraversion;
     private Integer agreeableness;
     private Integer conscientiousness;
@@ -58,25 +58,25 @@ public class AssessmentSession {
     private Integer affectiveEmpathy;
     private Integer compassionateEmpathy;
 
-    // PHQ-9 Depression Screening
+    
     private Integer phq9Score;
     private String phq9Severity;
 
-    // Enneagram Type
+    
     private Integer enneagramType;
     private String enneagramWing;
 
-    // EQ-60 Empathy Quotient
+    
     private Integer eqScore;
     private Integer eqCompletionPercent;
 
     @Column(length = 500)
-    private String detectedStressors; // Comma-separated
+    private String detectedStressors; 
 
     @Column(columnDefinition = "TEXT")
     private String insights;
 
-    // All Q&A pairs from this session
+    
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<AssessmentResponseItem> responses = new ArrayList<>();

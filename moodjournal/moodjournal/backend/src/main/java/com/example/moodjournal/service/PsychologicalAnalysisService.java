@@ -19,14 +19,14 @@ import com.example.moodjournal.repository.JournalEntryRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Service for profile-aware psychological analysis of journal entries.
- * Uses user's psychological profile to provide personalized insights,
- * detect cognitive distortions, and generate tailored suggestions.
- * 
- * Enhanced with RAG (Retrieval-Augmented Generation) to ground insights in
- * clinical data.
- */
+
+
+
+
+
+
+
+
 @Service
 public class PsychologicalAnalysisService {
 
@@ -42,21 +42,21 @@ public class PsychologicalAnalysisService {
     private JournalEntryRepository journalEntryRepository;
 
     @Autowired
-    private AISecurityService aiSecurityService; // Security Gate
+    private AISecurityService aiSecurityService; 
 
     @Autowired
-    private RAGService ragService; // RAG Integration
+    private RAGService ragService; 
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Analyze a journal entry with full profile context and RAG support.
-     */
+    
+
+
     public EntryAnalysisResult analyzeWithProfile(java.util.UUID userId, JournalEntry entry) {
         log.info(">>> Starting profile-aware analysis for userId={}", userId);
 
-        // <<< SECURITY CHECKPOINT >>>
-        // Sanitize and validate content through the 5-layer security gate FIRST.
+        
+        
         String safeContent;
         try {
             safeContent = aiSecurityService.securePrompt(entry.getContent());
@@ -64,21 +64,21 @@ public class PsychologicalAnalysisService {
             log.warn("SECURITY BLOCK: Content rejected by AISecurityService: {}", e.getMessage());
             EntryAnalysisResult blockedResult = getDefaultResult();
             blockedResult.setNarrativeInsight("Entry flagged by security system: " + e.getMessage());
-            blockedResult.setRiskScore(1); // Not a mental health risk, a security risk.
-            return blockedResult; // Early exit, bypassing AI call entirely.
+            blockedResult.setRiskScore(1); 
+            return blockedResult; 
         }
 
-        // 1. DETERMINISTIC SAFETY CHECK (The "Red Line")
+        
         boolean hasCrisisKeywords = checkCrisisKeywords(safeContent);
         if (hasCrisisKeywords) {
             log.warn("!!! CRISIS KEYWORDS DETECTED for userId={} !!!", userId);
         }
 
-        // Get user's profile
+        
         Optional<UserProfileDTO> profileOpt = userProfileService.getProfileByUserId(userId);
         log.info(">>> Profile found: {}", profileOpt.isPresent());
 
-        // Build the prompt with the already-sanitized content
+        
         String prompt = buildAnalysisPrompt(profileOpt.orElse(null), userId, entry, safeContent);
         log.info(">>> Prompt length: {} chars", prompt.length());
 
@@ -92,7 +92,7 @@ public class PsychologicalAnalysisService {
 
             EntryAnalysisResult result = parseAnalysisResult(cleanJson);
 
-            // OVERRIDE: If keywords were found, enforce minimum risk score
+            
             if (hasCrisisKeywords && (result.getRiskScore() == null || result.getRiskScore() < 9)) {
                 log.warn(">>> Overriding AI Risk Score ({} -> 9) due to keyword detection.", result.getRiskScore());
                 result.setRiskScore(9);
@@ -125,18 +125,18 @@ public class PsychologicalAnalysisService {
         return CRISIS_KEYWORDS.stream().anyMatch(lower::contains);
     }
 
-    /**
-     * Build a comprehensive analysis prompt with profile context AND RAG examples.
-     */
+    
+
+
     private String buildAnalysisPrompt(UserProfileDTO profile, java.util.UUID userId, JournalEntry entry,
             String safeContent) {
         StringBuilder prompt = new StringBuilder();
 
-        // 1. Role Definition
+        
         prompt.append("You are an advanced psychological analysis engine using the Ensemble Risk Engine model.\n");
         prompt.append("Your task is to analyze the following journal entry for emotional nuance and latent risk.\n\n");
 
-        // 2. Profile Context (with Empathy Profile)
+        
         if (profile != null) {
             prompt.append("=== USER PROFILE ===\n");
             prompt.append(String.format("Big Five Traits: O=%d, C=%d, E=%d, A=%d, N=%d\n",
@@ -149,7 +149,7 @@ public class PsychologicalAnalysisService {
                     profile.getPrimaryArchetype() != null ? profile.getPrimaryArchetype() : "unknown",
                     profile.getSecondaryArchetype() != null ? profile.getSecondaryArchetype() : "unknown"));
 
-            // Empathy Profile (The good stuff you wanted)
+            
             prompt.append("Empathy Profile:\n");
             prompt.append(String.format("  - Cognitive Empathy: %d/10 (Understanding others' minds)\n",
                     profile.getCognitiveEmpathy() != null ? profile.getCognitiveEmpathy() : 5));
@@ -163,10 +163,10 @@ public class PsychologicalAnalysisService {
             }
         }
 
-        // 3. Add recent emotional trajectory
+        
         prompt.append(buildRecentHistoryContext(userId));
 
-        // 4. RAG CONTEXT INJECTION (New)
+        
         log.info(">>> Consulting RAG Knowledge Base for clinical grounding...");
         List<RAGDocument> similarDocs = ragService.findSimilarDocuments(safeContent, 3);
         if (!similarDocs.isEmpty()) {
@@ -186,7 +186,7 @@ public class PsychologicalAnalysisService {
             log.info(">>> RAG: No matching clinical examples found. Proceeding without grounding.");
         }
 
-        // 5. Add current entry details
+        
         prompt.append("=== CURRENT JOURNAL ENTRY ===\n");
         prompt.append(String.format("Title: %s\n", entry.getTitle()));
 
@@ -205,9 +205,9 @@ public class PsychologicalAnalysisService {
         if (entry.getTriggerDescription() != null && !entry.getTriggerDescription().isBlank()) {
             prompt.append(String.format("Trigger: %s\n", entry.getTriggerDescription()));
         }
-        prompt.append(String.format("\nContent:\n%s\n\n", safeContent)); // Use SANITIZED content passed as argument
+        prompt.append(String.format("\nContent:\n%s\n\n", safeContent)); 
 
-        // 6. MERGED Output Format
+        
         prompt.append(
                 """
                         === ANALYSIS INSTRUCTIONS ===
@@ -255,9 +255,6 @@ public class PsychologicalAnalysisService {
         return prompt.toString();
     }
 
-    /**
-     * Build context from recent journal entries for trajectory analysis.
-     */
     private String buildRecentHistoryContext(java.util.UUID userId) {
         StringBuilder context = new StringBuilder();
         context.append("=== RECENT EMOTIONAL HISTORY ===\n");
@@ -284,18 +281,13 @@ public class PsychologicalAnalysisService {
         return context.toString();
     }
 
-    /**
-     * Parse the JSON response into EntryAnalysisResult.
-     */
     private EntryAnalysisResult parseAnalysisResult(String json) {
         try {
             Map<String, Object> result = objectMapper.readValue(
                     json, new TypeReference<Map<String, Object>>() {
                     });
 
-            // Parse VAD Scores (new field)
             EntryAnalysisResult.VADScores vad = new EntryAnalysisResult.VADScores(0.5, 0.5, 0.5);
-            // V8 Fix: Defensive Null Check
             if (result.get("vadScores") instanceof Map && result.get("vadScores") != null) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> vadMap = (Map<String, Object>) result.get("vadScores");
@@ -306,24 +298,23 @@ public class PsychologicalAnalysisService {
                         .build();
             }
 
-            // Get AI's risk score (but we can validate/override with VAD later)
             int aiRiskScore = getInt(result, "riskScore", 3);
 
-            // Calculate VAD-based risk as backup/validation
+            
             double vadCalculatedRisk = (1.0 - vad.getValence()) * vad.getArousal() * 10.0;
             int vadRiskScore = Math.max(1, Math.min(10, (int) Math.round(vadCalculatedRisk)));
 
-            // Ensemble: Use higher of AI risk or VAD risk (safety first)
+            
             int finalRiskScore = Math.max(aiRiskScore, vadRiskScore);
 
             return EntryAnalysisResult.builder()
-                    // Scientific fields from new prompt
+                    
                     .primaryEmotion(getString(result, "primaryEmotion",
                             getString(result, "dominantEmotion", "NEUTRAL")))
                     .nuanceTags(getStringList(result, "nuanceTags"))
                     .vadScores(vad)
 
-                    // Legacy/compatible fields
+                    
                     .emotionBreakdown(parseEmotionBreakdown(result))
                     .cognitiveDistortions(getStringList(result, "cognitiveDistortions"))
                     .emotionalTrajectory(getString(result, "emotionalTrajectory", "stable"))
@@ -361,15 +352,15 @@ public class PsychologicalAnalysisService {
         return defaultVal;
     }
 
-    // Legacy: Map new "PRIMARY_EMOTION" to old "dominantEmotion" (lowercase)
+    
     private String convertPrimaryToDominant(String primary) {
         return primary != null ? primary.toLowerCase() : "neutral";
     }
 
-    // Legacy: Generate fake breakdown map for frontend compatibility
+    
     private Map<String, Integer> generateLegacyBreakdown(String primary, EntryAnalysisResult.VADScores vad) {
         Map<String, Integer> map = new HashMap<>();
-        // Simple logic: Give 70% to primary, distribute rest
+        
         String key = primary != null ? primary.toLowerCase() : "neutral";
         map.put(key, 70);
         map.put("other", 30);

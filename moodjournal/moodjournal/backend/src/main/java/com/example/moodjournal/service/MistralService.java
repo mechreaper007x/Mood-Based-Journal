@@ -18,10 +18,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Service for generating personalized assessment questions using Mistral AI.
- * Analyzes user's journal entries to create tailored psychological questions.
- */
+
+
+
+
 @Service
 public class MistralService {
 
@@ -42,10 +42,10 @@ public class MistralService {
     @org.springframework.beans.factory.annotation.Autowired
     private AISecurityService securityService;
 
-    /**
-     * Generate 3 personalized psychological questions based on journal entries.
-     * Questions focus on: Big 5 traits, Shadow/Enneagram insights, Personal growth.
-     */
+    
+
+
+
     public List<Map<String, Object>> generatePersonalizedQuestions(List<JournalEntry> recentEntries) {
         log.info("═══════════════════════════════════════════════════════════");
         log.info("🎯 generatePersonalizedQuestions called");
@@ -63,14 +63,14 @@ public class MistralService {
             return getFallbackQuestions();
         }
 
-        // Build journal context securely
+        
         StringBuilder journalContext = new StringBuilder();
         int safeEntryCount = 0;
 
         for (int i = 0; i < Math.min(5, recentEntries.size()); i++) {
             JournalEntry entry = recentEntries.get(i);
             try {
-                // SECURITY CHECK: Sanitize content before sending to AI
+                
                 String safeContent = securityService.securePrompt(entry.getContent());
 
                 journalContext.append("Entry ").append(i + 1).append(": ")
@@ -79,7 +79,7 @@ public class MistralService {
                 safeEntryCount++;
             } catch (Exception e) {
                 log.warn("🚨 BLOCKED MALICIOUS JOURNAL ENTRY during Mistral call: {}", e.getMessage());
-                // Skip this entry but continue with others
+                
                 journalContext.append("Entry ").append(i + 1)
                         .append(": [CONTENT REDACTED DUE TO SECURITY VIOLATION]\n");
             }
@@ -143,11 +143,11 @@ public class MistralService {
             long duration = System.currentTimeMillis() - startTime;
             log.info("⏱️  API Response Time: {}ms", duration);
 
-            // Parse response
+            
             JsonNode root = objectMapper.readTree(response);
             String content = root.path("choices").get(0).path("message").path("content").asText();
 
-            // Clean and parse JSON
+            
             String cleanJson = content.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
             List<Map<String, Object>> questions = objectMapper.readValue(
                     cleanJson, new TypeReference<List<Map<String, Object>>>() {

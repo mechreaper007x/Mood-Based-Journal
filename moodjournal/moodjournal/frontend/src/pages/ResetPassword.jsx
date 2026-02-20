@@ -20,7 +20,7 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Password strength calculation
+  
   const getPasswordStrength = (pwd) => {
     let strength = 0;
     if (pwd.length >= 8) strength++;
@@ -35,7 +35,6 @@ const ResetPassword = () => {
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
   const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
 
-  // Validate token on mount
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
@@ -91,7 +90,6 @@ const ResetPassword = () => {
     }
   };
 
-  // Loading state while validating token
   if (validating) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg">
@@ -107,7 +105,6 @@ const ResetPassword = () => {
     );
   }
 
-  // Invalid token state
   if (!tokenValid && !success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
@@ -137,7 +134,6 @@ const ResetPassword = () => {
     );
   }
 
-  // Success state
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
@@ -169,7 +165,6 @@ const ResetPassword = () => {
     );
   }
 
-  // Reset password form
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-DEFAULT/20 rounded-full blur-[120px]" />
@@ -226,7 +221,6 @@ const ResetPassword = () => {
               </button>
             </div>
             
-            {/* Password Strength Indicator */}
             {password && (
               <div className="mt-3">
                 <div className="flex gap-1 mb-1">

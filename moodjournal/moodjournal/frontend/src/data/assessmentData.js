@@ -1,10 +1,10 @@
-/**
- * Static assessment question data for standardized psychological tests.
- * Each test follows its official format and scoring rubric.
- */
 
-// PHQ-9: Patient Health Questionnaire for Depression Screening
-// 9 questions, scored 0-3 each (total 0-27)
+
+
+
+
+
+
 export const PHQ9_QUESTIONS = [
   { id: 1, text: "Little interest or pleasure in doing things" },
   { id: 2, text: "Feeling down, depressed, or hopeless" },
@@ -24,11 +24,11 @@ export const PHQ9_OPTIONS = [
   { value: 3, label: "Nearly every day" },
 ];
 
-// BFPT: Big Five Personality Test (50-item)
-// Scored 1-5 each, with some items reversed
-// https://openpsychometrics.org/printable/big-five-personality-test.pdf
+
+
+
 export const BFPT_QUESTIONS = [
-  // Extraversion: 1, 6R, 11, 16R, 21, 26R, 31, 36R, 41, 46R
+  
   { id: 1, text: "Am the life of the party", trait: "extraversion", reversed: false },
   { id: 6, text: "Don't talk a lot", trait: "extraversion", reversed: true },
   { id: 11, text: "Feel comfortable around people", trait: "extraversion", reversed: false },
@@ -40,7 +40,7 @@ export const BFPT_QUESTIONS = [
   { id: 41, text: "Don't mind being the center of attention", trait: "extraversion", reversed: false },
   { id: 46, text: "Am quiet around strangers", trait: "extraversion", reversed: true },
   
-  // Agreeableness: 2R, 7, 12R, 17, 22R, 27, 32R, 37, 42, 47
+  
   { id: 2, text: "Feel little concern for others", trait: "agreeableness", reversed: true },
   { id: 7, text: "Am interested in people", trait: "agreeableness", reversed: false },
   { id: 12, text: "Insult people", trait: "agreeableness", reversed: true },
@@ -52,7 +52,7 @@ export const BFPT_QUESTIONS = [
   { id: 42, text: "Feel others' emotions", trait: "agreeableness", reversed: false },
   { id: 47, text: "Make people feel at ease", trait: "agreeableness", reversed: false },
   
-  // Conscientiousness: 3, 8R, 13, 18R, 23, 28R, 33, 38R, 43, 48
+  
   { id: 3, text: "Am always prepared", trait: "conscientiousness", reversed: false },
   { id: 8, text: "Leave my belongings around", trait: "conscientiousness", reversed: true },
   { id: 13, text: "Pay attention to details", trait: "conscientiousness", reversed: false },
@@ -64,7 +64,7 @@ export const BFPT_QUESTIONS = [
   { id: 43, text: "Follow a schedule", trait: "conscientiousness", reversed: false },
   { id: 48, text: "Am exacting in my work", trait: "conscientiousness", reversed: false },
   
-  // Neuroticism (reverse = emotionalStability): 4, 9R, 14, 19R, 24, 29, 34, 39, 44, 49
+  
   { id: 4, text: "Get stressed out easily", trait: "neuroticism", reversed: false },
   { id: 9, text: "Am relaxed most of the time", trait: "neuroticism", reversed: true },
   { id: 14, text: "Worry about things", trait: "neuroticism", reversed: false },
@@ -76,7 +76,7 @@ export const BFPT_QUESTIONS = [
   { id: 44, text: "Get irritated easily", trait: "neuroticism", reversed: false },
   { id: 49, text: "Often feel blue", trait: "neuroticism", reversed: false },
   
-  // Openness: 5, 10R, 15, 20R, 25, 30R, 35, 40, 45, 50
+  
   { id: 5, text: "Have a rich vocabulary", trait: "openness", reversed: false },
   { id: 10, text: "Have difficulty understanding abstract ideas", trait: "openness", reversed: true },
   { id: 15, text: "Have a vivid imagination", trait: "openness", reversed: false },
@@ -89,7 +89,7 @@ export const BFPT_QUESTIONS = [
   { id: 50, text: "Am full of ideas", trait: "openness", reversed: false },
 ];
 
-// Sort by ID for display
+
 export const BFPT_QUESTIONS_SORTED = [...BFPT_QUESTIONS].sort((a, b) => a.id - b.id);
 
 export const BFPT_OPTIONS = [
@@ -100,8 +100,8 @@ export const BFPT_OPTIONS = [
   { value: 5, label: "Agree" },
 ];
 
-// ENNEAGRAM: RHETI Sampler (36 paired statements)
-// Forced choice between two options per question
+
+
 export const ENNEAGRAM_QUESTIONS = [
   { id: 1, optionA: { text: "I have been friendly and outgoing", type: 7 }, optionB: { text: "I have been shy and quiet", type: 5 } },
   { id: 2, optionA: { text: "I have been a leader among people", type: 8 }, optionB: { text: "I have been a follower who works well with others", type: 6 } },
@@ -141,13 +141,13 @@ export const ENNEAGRAM_QUESTIONS = [
   { id: 36, optionA: { text: "I have been intense and serious", type: 4 }, optionB: { text: "I have been light-hearted and fun", type: 7 } },
 ];
 
-// EQ-60: Empathy Quotient (60 questions, presented in 3 batches of 20)
-// Scored on 4-point Likert: Strongly Agree, Slightly Agree, Slightly Disagree, Strongly Disagree
-// 40 empathy items + 20 control items (distractors not scored)
-// Categories: COGNITIVE (22 items), AFFECTIVE (6 items), COMPASSIONATE (12 items), DISTRACTOR (20 items)
-// Type: POSITIVE (agree = points), NEGATIVE (disagree = points), NONE (distractors)
+
+
+
+
+
 export const EQ60_QUESTIONS = [
-  // Batch 1 (Questions 1-20)
+  
   { id: 1, text: "I can easily tell if someone else wants to enter a conversation", batch: 1, category: "COGNITIVE", type: "POSITIVE" },
   { id: 2, text: "I prefer animals to humans", batch: 1, category: "DISTRACTOR", type: "NONE" },
   { id: 3, text: "I try to keep up with the current trends and fashions", batch: 1, category: "DISTRACTOR", type: "NONE" },
@@ -169,7 +169,7 @@ export const EQ60_QUESTIONS = [
   { id: 19, text: "I can pick up quickly if someone says one thing but means another", batch: 1, category: "COGNITIVE", type: "POSITIVE" },
   { id: 20, text: "I tend to have very strong opinions about morality", batch: 1, category: "DISTRACTOR", type: "NONE" },
   
-  // Batch 2 (Questions 21-40)
+  
   { id: 21, text: "It is hard for me to see why some things upset people so much", batch: 2, category: "AFFECTIVE", type: "NEGATIVE" },
   { id: 22, text: "I find it easy to put myself in somebody else's shoes", batch: 2, category: "COGNITIVE", type: "POSITIVE" },
   { id: 23, text: "I think that good manners are the most important thing a parent can teach their child", batch: 2, category: "DISTRACTOR", type: "NONE" },
@@ -191,7 +191,7 @@ export const EQ60_QUESTIONS = [
   { id: 39, text: "I am able to make decisions without being influenced by people's feelings", batch: 2, category: "AFFECTIVE", type: "NEGATIVE" },
   { id: 40, text: "I can't relax until I have done everything I had planned to do that day", batch: 2, category: "DISTRACTOR", type: "NONE" },
   
-  // Batch 3 (Questions 41-60)
+  
   { id: 41, text: "I can easily tell if someone else is interested or bored with what I am saying", batch: 3, category: "COGNITIVE", type: "POSITIVE" },
   { id: 42, text: "I get upset if I see people suffering on news programs", batch: 3, category: "AFFECTIVE", type: "POSITIVE" },
   { id: 43, text: "Friends usually talk to me about their problems as they say that I am very understanding", batch: 3, category: "COMPASSIONATE", type: "POSITIVE" },
@@ -221,12 +221,12 @@ export const EQ60_OPTIONS = [
   { value: "strongly_disagree", label: "Strongly Disagree" },
 ];
 
-// Helper function to get EQ questions by batch
+
 export const getEQBatch = (batchNumber) => {
   return EQ60_QUESTIONS.filter(q => q.batch === batchNumber);
 };
 
-// Section metadata for UI
+
 export const ASSESSMENT_SECTIONS = [
   { 
     id: 'phq9', 
@@ -253,7 +253,7 @@ export const ASSESSMENT_SECTIONS = [
     id: 'eq', 
     name: 'Empathy Style', 
     description: 'How much do you agree with each statement?',
-    questionCount: 20, // per batch
+    questionCount: 20, 
     type: 'likert'
   },
   { 

@@ -32,7 +32,7 @@ public class AlertController {
     @Autowired
     private UserService userService;
 
-    // Helper to get User ID
+    
     private java.util.UUID getUserId(UserDetails userDetails) {
         if (userDetails == null) {
             throw new IllegalStateException("Not authenticated");
@@ -45,9 +45,9 @@ public class AlertController {
                 .getId();
     }
 
-    /**
-     * Get all alerts for the current user.
-     */
+    
+
+
     @GetMapping
     public ResponseEntity<?> getAlerts(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -60,17 +60,17 @@ public class AlertController {
         }
     }
 
-    /**
-     * Get unread alerts only.
-     */
+    
+
+
     @GetMapping("/unread")
     public ResponseEntity<List<Alert>> getUnreadAlerts(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(alertService.getUnreadAlerts(getUserId(userDetails)));
     }
 
-    /**
-     * Get unread count for badge display.
-     */
+    
+
+
     @GetMapping("/unread-count")
     public ResponseEntity<?> getUnreadCount(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -80,13 +80,13 @@ public class AlertController {
             return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             log.error("Error fetching unread count: {}", e.getMessage(), e);
-            return ResponseEntity.ok(Map.of("count", 0L)); // Return 0 on error to prevent UI issues
+            return ResponseEntity.ok(Map.of("count", 0L)); 
         }
     }
 
-    /**
-     * Mark a specific alert as read.
-     */
+    
+
+
     @PutMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long id,
@@ -95,9 +95,9 @@ public class AlertController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Mark all alerts as read.
-     */
+    
+
+
     @PutMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead(@AuthenticationPrincipal UserDetails userDetails) {
         alertService.markAllAsRead(getUserId(userDetails));

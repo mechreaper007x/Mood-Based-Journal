@@ -39,12 +39,12 @@ public class PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Creates a password reset token for the given email and sends a reset email.
-     * Returns true if the email exists (for internal use), but the API should
-     * always
-     * return success to prevent user enumeration.
-     */
+    
+
+
+
+
+
     @Transactional
     public boolean createPasswordResetToken(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
@@ -56,40 +56,40 @@ public class PasswordResetService {
 
         User user = userOptional.get();
 
-        // Delete any existing tokens for this user
+        
         tokenRepository.deleteByUser(user);
 
-        // Generate new token
+        
         String token = UUID.randomUUID().toString();
         PasswordResetToken resetToken = new PasswordResetToken(token, user);
         tokenRepository.save(resetToken);
 
         log.info("Created password reset token for user: {}", email);
 
-        // Send email (or log to console in dev mode)
+        
         emailService.sendPasswordResetEmail(email, token);
 
         return true;
     }
 
-    /**
-     * Validates a password reset token.
-     * Returns the associated user if the token is valid.
-     * 
-     * SECURITY (V13 FIX): Constant-time validation to prevent timing attacks.
-     * - Always fetches all non-expired tokens (consistent DB operation)
-     * - Uses MessageDigest.isEqual() for constant-time byte comparison
-     * - Timing is identical regardless of token validity
-     */
+    
+
+
+
+
+
+
+
+
     public Optional<User> validateToken(String token) {
-        // CONSTANT-TIME FIX: Always fetch all non-expired tokens
-        // This ensures DB query time is consistent regardless of input token
+        
+        
         List<PasswordResetToken> allTokens = tokenRepository.findAllNonExpired();
 
         PasswordResetToken matchedToken = null;
         boolean foundMatch = false;
 
-        // Edge case: handle null/empty input
+        
         if (token == null || token.isEmpty()) {
             log.warn("Empty token validation attempt");
             return Optional.empty();
@@ -97,18 +97,18 @@ public class PasswordResetService {
 
         byte[] inputBytes = token.getBytes(StandardCharsets.UTF_8);
 
-        // Iterate ALL tokens for constant-time behavior
-        // MessageDigest.isEqual() is cryptographically constant-time
+        
+        
         for (PasswordResetToken t : allTokens) {
             byte[] storedBytes = t.getToken().getBytes(StandardCharsets.UTF_8);
             if (MessageDigest.isEqual(inputBytes, storedBytes)) {
                 matchedToken = t;
                 foundMatch = true;
-                // Don't break - iterate all for constant time
+                
             }
         }
 
-        // Validate matched token (always runs regardless of match)
+        
         boolean isValid = foundMatch && matchedToken != null && matchedToken.isValid();
 
         if (!isValid) {
@@ -119,14 +119,14 @@ public class PasswordResetService {
         return Optional.of(matchedToken.getUser());
     }
 
-    /**
-     * Resets the user's password using the provided token.
-     * Returns true if successful.
-     */
-    /**
-     * Resets the user's password using the provided token.
-     * Returns true if successful.
-     */
+    
+
+
+
+    
+
+
+
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> tokenOptional = tokenRepository.findByToken(token);
@@ -143,12 +143,12 @@ public class PasswordResetService {
             return false;
         }
 
-        // Update password
+        
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        // Mark token as used
+        
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
 
@@ -156,9 +156,9 @@ public class PasswordResetService {
         return true;
     }
 
-    /**
-     * Cleans up expired tokens. Can be scheduled to run periodically.
-     */
+    
+
+
     @Transactional
     public void cleanupExpiredTokens() {
         tokenRepository.deleteExpiredTokens(java.time.LocalDateTime.now());

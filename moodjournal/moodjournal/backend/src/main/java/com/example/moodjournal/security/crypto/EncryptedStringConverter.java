@@ -10,7 +10,7 @@ public class EncryptedStringConverter implements AttributeConverter<String, Stri
 
     private final EncryptionService encryptionService;
 
-    // Spring will inject the bean here
+    
     public EncryptedStringConverter(EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
     }

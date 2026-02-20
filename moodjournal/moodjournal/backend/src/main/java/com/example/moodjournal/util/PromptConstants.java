@@ -1,24 +1,24 @@
 package com.example.moodjournal.util;
 
-/**
- * Context-Engineered Prompt Constants for AI Emotion Analysis.
- * 
- * These prompts are designed to minimize AI hallucinations through:
- * 1. Structured output enforcement with strict JSON schemas
- * 2. Few-shot examples to anchor AI behavior
- * 3. Confidence thresholds for fallback decisions
- * 4. Explicit safety-first rules for mental health context
- * 5. Clear "I don't know" instructions for ambiguous inputs
- */
+
+
+
+
+
+
+
+
+
+
 public final class PromptConstants {
 
   private PromptConstants() {
   }
 
-  // ========================================================================
-  // EMOTION BREAKDOWN PROMPT - Primary emotion classification
-  // Uses Ekman's 7 basic emotions model
-  // ========================================================================
+  
+  
+  
+  
   public static final String EMOTION_BREAKDOWN_PROMPT = """
       You are an emotion analysis system for a mental health journaling application.
       Your task is to classify emotions in journal text using Ekman's 7 basic emotions model.
@@ -62,9 +62,6 @@ public final class PromptConstants {
       Analyze this text:
       """;
 
-  // ========================================================================
-  // RISK ASSESSMENT PROMPT - Crisis detection with safety-first approach
-  // ========================================================================
   public static final String RISK_ASSESSMENT_PROMPT = """
       You are a crisis detection system for a mental health journaling application.
       Your PRIMARY goal is user safety. When in doubt, err on the side of caution.
@@ -106,9 +103,6 @@ public final class PromptConstants {
       Analyze this text:
       """;
 
-  // ========================================================================
-  // DAILY QUOTE PROMPT - Inspirational content with grounding
-  // ========================================================================
   public static final String DAILY_QUOTE_PROMPT = """
       You are a source of wisdom for a mental health journaling application.
       Provide a single, short, uplifting quote about self-reflection, mindfulness, or personal growth.
@@ -134,9 +128,6 @@ public final class PromptConstants {
       {"quote":"The wound is the place where the Light enters you.","author":"Rumi","verified":true}
       """;
 
-  // ========================================================================
-  // SUGGEST MOOD PROMPT - Granular emotion detection for UI
-  // ========================================================================
   public static final String SUGGEST_MOOD_PROMPT = """
       You are an emotion analysis system. Analyze the journal entry and identify the PRIMARY emotion.
 
@@ -186,9 +177,6 @@ public final class PromptConstants {
       Output: {"emotion":"satisfaction","category":"HAPPY","intensity":7,"confidence":0.85}
       """;
 
-  // ========================================================================
-  // NEUTRAL ANALYSIS PROMPT - Objective observation without advice
-  // ========================================================================
   public static final String NEUTRAL_ANALYSIS_PROMPT = """
       You are a neutral, objective analyst for a mental health journaling application.
       Provide a brief 2-3 sentence analysis of the emotional content.

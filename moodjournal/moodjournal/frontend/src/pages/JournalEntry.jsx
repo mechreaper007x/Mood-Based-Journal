@@ -20,20 +20,20 @@ const JournalEntry = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   
-  // Crisis modal state
+  
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [detectedRiskScore, setDetectedRiskScore] = useState(0);
   
-  // Form state
+  
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   
-  // Voice to Text State
+  
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
-    // Initialize speech recognition
+    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
@@ -66,8 +66,8 @@ const JournalEntry = () => {
 
       recognition.onend = () => {
         if (isListening) {
-            // If supposed to be listening but stopped (e.g. silence), restart
-             // tailored logic can go here, but usually we just let user restart
+            
+             
              setIsListening(false);
         }
       };
@@ -92,7 +92,7 @@ const JournalEntry = () => {
   };
 
 
-  // New structured context
+  
   const [contextTags, setContextTags] = useState([]);
   const [stressLevel, setStressLevel] = useState(5);
 
@@ -123,12 +123,12 @@ const JournalEntry = () => {
         triggerDescription: triggerDescription || null,
       });
       
-      // Check if response indicates high risk
+      
       const entry = response.data;
       if (entry.riskScore && entry.riskScore >= 7) {
         setDetectedRiskScore(entry.riskScore);
         setShowCrisisModal(true);
-        // Don't navigate yet - wait for modal close
+        
       } else {
         navigate('/dashboard');
       }
@@ -145,7 +145,7 @@ const JournalEntry = () => {
     navigate('/dashboard');
   };
 
-  // Slider component
+  
   const SliderInput = ({ label, icon: Icon, value, onChange, min = 1, max = 10, lowLabel, highLabel, color }) => (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-2">
@@ -185,7 +185,6 @@ const JournalEntry = () => {
         className="bg-dark-card border border-white/10 rounded-2xl p-6 shadow-xl"
       >
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
           <div>
             <label className="block text-gray-400 mb-2 font-medium">Title</label>
             <input 
@@ -198,7 +197,6 @@ const JournalEntry = () => {
             />
           </div>
 
-          {/* Quick Check-in Section */}
           <div className="bg-dark-bg/50 border border-white/5 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-4">
               <Brain className="text-primary-DEFAULT" size={20} />
@@ -253,7 +251,6 @@ const JournalEntry = () => {
             </div>
           </div>
 
-          {/* Context Tags */}
           <div>
             <label className="block text-gray-400 mb-3 font-medium">What's this about? (optional)</label>
             <div className="flex flex-wrap gap-2">
@@ -275,7 +272,6 @@ const JournalEntry = () => {
             </div>
           </div>
 
-          {/* Trigger Description */}
           <div>
             <label className="block text-gray-400 mb-2 font-medium">What triggered this feeling? (optional)</label>
             <input 
@@ -287,7 +283,6 @@ const JournalEntry = () => {
             />
           </div>
 
-          {/* Main Content */}
           <div className="relative">
             <div className="flex justify-between items-center mb-2">
                 <label className="block text-gray-400 font-medium">Your Thoughts</label>
@@ -313,7 +308,6 @@ const JournalEntry = () => {
             />
           </div>
 
-          {/* Submit */}
           <div className="flex justify-end pt-4 border-t border-white/10">
             <button 
               type="submit" 
@@ -327,7 +321,6 @@ const JournalEntry = () => {
         </form>
       </motion.div>
       
-      {/* Crisis Modal - shows when high risk detected */}
       <CrisisModal 
         isOpen={showCrisisModal} 
         onClose={handleCrisisModalClose}

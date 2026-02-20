@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 
-/**
- * Email service for sending password reset and other notification emails.
- * 
- * Uses JavaMailSender to send emails via SMTP (Resend).
- * Email functionality is optional - app will start without mail config.
- */
+
+
+
+
+
+
 @Service
 public class EmailService {
 
@@ -54,16 +54,16 @@ public class EmailService {
         log.info("╚══════════════════════════════════════════════════════════════╝");
     }
 
-    /**
-     * Sends a password reset email to the user.
-     * 
-     * @param toEmail    The recipient's email address
-     * @param resetToken The password reset token
-     */
+    
+
+
+
+
+
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
 
-        // Development mode: Always log to console first!
+        
         log.info("╔══════════════════════════════════════════════════════════════╗");
         log.info("║           PASSWORD RESET EMAIL (Dev Log)                     ║");
         log.info("╠══════════════════════════════════════════════════════════════╣");
@@ -80,8 +80,8 @@ public class EmailService {
             }
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
-                // IMPORTANT: Resend free tier ONLY allows sending from 'onboarding@resend.dev'
-                // until you verify a custom domain.
+                
+                
                 message.setFrom("onboarding@resend.dev");
                 message.setTo(toEmail);
                 message.setSubject("Reset Your Mood Journal Password");
@@ -107,9 +107,9 @@ public class EmailService {
         }
     }
 
-    /**
-     * Returns the password reset link for testing purposes.
-     */
+    
+
+
     public String getResetLink(String resetToken) {
         return frontendUrl + "/reset-password?token=" + resetToken;
     }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../lib/axios';
 
-// Mood color mapping
+
 const moodColors = {
   HAPPY: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   SAD: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -42,7 +42,7 @@ const History = () => {
         console.log('[History] Fetching entries...');
         const res = await api.get('/journal/me');
         console.log('[History] Response:', res.data);
-        // Sort by createdAt descending (newest first)
+        
         const sorted = (res.data || []).sort((a, b) => 
           new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -72,7 +72,7 @@ const History = () => {
   const handleReanalyze = async (id) => {
     try {
       const res = await api.post(`/journal/${id}/reanalyze`);
-      // Update the entry in state with new mood
+      
       setEntries(entries.map(e => e.id === id ? res.data : e));
       console.log('Reanalyzed entry:', res.data);
     } catch (error) {
@@ -125,7 +125,6 @@ const History = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -142,9 +141,7 @@ const History = () => {
         </Link>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
           <input
@@ -156,7 +153,6 @@ const History = () => {
           />
         </div>
         
-        {/* Mood Filter */}
         <select
           value={filterMood}
           onChange={(e) => setFilterMood(e.target.value)}
@@ -169,7 +165,6 @@ const History = () => {
         </select>
       </div>
 
-      {/* Entries List */}
       {filteredEntries.length === 0 ? (
         <div className="bg-dark-card border border-white/5 rounded-2xl p-12 text-center">
           <BookOpen className="mx-auto text-gray-600 mb-4" size={48} />
@@ -199,7 +194,6 @@ const History = () => {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  {/* Title & Mood Badge */}
                   <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="text-xl font-semibold text-white truncate">{entry.title}</h3>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium border ${moodColors[entry.mood] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
@@ -212,20 +206,16 @@ const History = () => {
                     )}
                   </div>
                   
-                  {/* Date */}
                   <div className="flex items-center gap-2 text-gray-500 text-sm mt-2">
                     <Calendar size={14} />
                     <span>{formatDate(entry.createdAt)}</span>
                   </div>
                   
-                  {/* Content Preview */}
                   <p className="text-gray-400 mt-3 line-clamp-2">{entry.content}</p>
 
-                  {/* Analysis Section */}
                   {(entry.detailedAnalysis || entry.cognitiveDistortions || entry.riskScore) && (
                     <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
                       
-                      {/* Risk Score & Trajectory */}
                       {(entry.riskScore || entry.emotionalTrajectory) && (
                         <div className="flex items-center gap-3 flex-wrap">
                           {entry.riskScore && (
@@ -249,7 +239,6 @@ const History = () => {
                         </div>
                       )}
 
-                      {/* NEW: Primary Emotion (ISEAR) & Nuance Tags (GoEmotions) */}
                       {(entry.primaryEmotion || entry.nuanceTags) && (
                         <div className="flex items-center gap-2 flex-wrap">
                           {entry.primaryEmotion && (
@@ -272,7 +261,6 @@ const History = () => {
                         </div>
                       )}
 
-                      {/* NEW: VAD Scores (EmoBank) */}
                       {entry.vadScores && (
                         <div className="flex items-center gap-4 text-xs">
                           <span className="text-gray-500">VAD:</span>
@@ -299,7 +287,6 @@ const History = () => {
                         </div>
                       )}
 
-                      {/* Cognitive Distortions */}
                       {entry.cognitiveDistortions && (
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs text-gray-500">Distortions:</span>
@@ -311,7 +298,6 @@ const History = () => {
                         </div>
                       )}
 
-                      {/* Suggestions */}
                       {entry.suggestions && (
                         <div className="bg-primary-DEFAULT/5 rounded-lg p-3 border-l-2 border-primary-DEFAULT/50">
                           <span className="text-xs text-primary-DEFAULT font-medium block mb-1">💡 Suggestions</span>
@@ -326,7 +312,6 @@ const History = () => {
                         </div>
                       )}
                       
-                      {/* Detailed Analysis / Narrative Insight */}
                       {entry.detailedAnalysis && (
                         <p className="text-sm text-gray-300 italic bg-white/5 rounded-lg p-3 border-l-2 border-gray-500/50">
                           {entry.detailedAnalysis}
@@ -336,7 +321,6 @@ const History = () => {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleReanalyze(entry.id)}

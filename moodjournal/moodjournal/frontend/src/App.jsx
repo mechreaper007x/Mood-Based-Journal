@@ -17,7 +17,7 @@ import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import ViewEntry from './pages/ViewEntry';
 
-// Protected Route Component - redirects to onboarding if profile incomplete
+
 const ProtectedRoute = () => {
   const { user, loading, profileComplete } = useAuth();
   
@@ -25,13 +25,13 @@ const ProtectedRoute = () => {
   
   if (!user) return <Navigate to="/login" replace />;
   
-  // If profile status is known and incomplete, redirect to onboarding
+  
   if (profileComplete === false) return <Navigate to="/onboarding" replace />;
   
   return <Layout><Outlet /></Layout>;
 };
 
-// Onboarding Route - only accessible if profile is incomplete
+
 const OnboardingRoute = () => {
   const { user, loading, profileComplete } = useAuth();
   
@@ -39,7 +39,7 @@ const OnboardingRoute = () => {
   
   if (!user) return <Navigate to="/login" replace />;
   
-  // If profile is already complete, redirect to dashboard
+  
   if (profileComplete === true) return <Navigate to="/dashboard" replace />;
   
   return <Onboarding />;
@@ -51,16 +51,13 @@ function App() {
       <DisclaimerModal />
       <BrowserRouter>
         <Routes>
-          {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
-          {/* Onboarding Route */}
           <Route path="/onboarding" element={<OnboardingRoute />} />
           
-          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/entry" element={<JournalEntry />} />

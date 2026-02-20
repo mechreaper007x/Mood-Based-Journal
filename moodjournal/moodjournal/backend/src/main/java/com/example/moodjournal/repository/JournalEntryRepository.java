@@ -10,7 +10,7 @@ import com.example.moodjournal.model.JournalEntry;
 import com.example.moodjournal.model.Mood;
 import com.example.moodjournal.model.Visibility;
 
-// This interface defines the repository for JournalEntry entities.
+
 public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long> {
     List<JournalEntry> findByUserId(java.util.UUID userId);
 
@@ -21,18 +21,18 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Long
     @Query("SELECT new com.example.moodjournal.dto.MoodCount(j.mood, COUNT(j)) FROM JournalEntry j WHERE j.user.id = :userId GROUP BY j.mood")
     List<com.example.moodjournal.dto.MoodCount> countMoodsByUserId(java.util.UUID userId);
 
-    // Get recent entries for emotional trajectory analysis
+    
     List<JournalEntry> findTop5ByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
-    // Get top 10 for trajectory calculation
+    
     List<JournalEntry> findTop10ByUserIdOrderByCreatedAtDesc(java.util.UUID userId);
 
-    // Get entries after a certain date for analytics
+    
     List<JournalEntry> findByUserIdAndCreatedAtAfterOrderByCreatedAtAsc(java.util.UUID userId, Instant since);
 
-  // For ML training - get recent entries
+  
   List<JournalEntry> findTop100ByOrderByCreatedAtDesc();
 
-  // Larger sample for model training and anti-poisoning filtering
+  
   List<JournalEntry> findTop500ByOrderByCreatedAtDesc();
 }

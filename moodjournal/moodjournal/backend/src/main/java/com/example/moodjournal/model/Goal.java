@@ -20,9 +20,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Mental health goals for users to track their progress.
- */
+
+
+
 @Entity
 @Table(name = "goal")
 @Data
@@ -52,7 +52,7 @@ public class Goal {
     private LocalDate targetDate;
 
     @Builder.Default
-    private Integer progress = 0; // 0-100
+    private Integer progress = 0; 
 
     @Builder.Default
     private Boolean isCompleted = false;
@@ -66,11 +66,11 @@ public class Goal {
     }
 
     public enum GoalCategory {
-        JOURNALING, // e.g., "Write 3 entries this week"
-        MOOD, // e.g., "Have more happy days"
-        SLEEP, // e.g., "Improve sleep quality"
-        STRESS, // e.g., "Reduce average stress level"
-        MINDFULNESS, // e.g., "Practice daily gratitude"
-        GENERAL // Custom goals
+        JOURNALING, 
+        MOOD, 
+        SLEEP, 
+        STRESS, 
+        MINDFULNESS, 
+        GENERAL 
     }
 }

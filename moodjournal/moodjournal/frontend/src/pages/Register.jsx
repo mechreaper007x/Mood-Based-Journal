@@ -15,7 +15,7 @@ const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Password strength calculation
+  
   const getPasswordStrength = (pwd) => {
     let strength = 0;
     if (pwd.length >= 8) strength++;
@@ -38,7 +38,6 @@ const Register = () => {
       await register(username, email, password, age);
       navigate('/login'); 
     } catch (err) {
-      // Extract specific error message from backend if available
       const msg = err.response?.data?.error || 'Registration failed. Please try again.';
       setError(msg);
     } finally {
@@ -89,7 +88,6 @@ const Register = () => {
                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                    {/* Password Strength Indicator */}
                     {password && (
                         <div className="mt-2">
                             <div className="flex gap-1 mb-1">

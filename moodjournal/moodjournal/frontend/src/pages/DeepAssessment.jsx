@@ -14,7 +14,7 @@ import {
 } from '../data/assessmentData';
 import api from '../lib/axios';
 
-// Test cards metadata
+
 const TEST_CARDS = [
   {
     id: 'phq9',
@@ -60,7 +60,7 @@ const TEST_CARDS = [
 
 const DeepAssessment = () => {
   const navigate = useNavigate();
-  const [activeTest, setActiveTest] = useState(null); // null = show grid, otherwise = test id
+  const [activeTest, setActiveTest] = useState(null); 
   const [answers, setAnswers] = useState({
     phq9: {},
     bfpt: {},
@@ -85,7 +85,7 @@ const DeepAssessment = () => {
       setPersonalizedQuestions(res.data || []);
     } catch (err) {
       console.error('Failed to fetch personalized questions:', err);
-      // Themed fallback questions when Mistral unavailable
+      
       setPersonalizedQuestions([
         { id: 1, question: "How do you typically respond when under social pressure?", focus: "personality" },
         { id: 2, question: "What fears or anxieties seem to drive your behavior most often?", focus: "shadow" },
@@ -166,7 +166,7 @@ const DeepAssessment = () => {
     }
   };
 
-  // ===== RESULTS VIEW =====
+  
   if (result) {
     return (
       <div className="max-w-3xl mx-auto space-y-6">
@@ -268,7 +268,7 @@ const DeepAssessment = () => {
     );
   }
 
-  // ===== ACTIVE TEST VIEW =====
+  
   if (activeTest) {
     const testCard = TEST_CARDS.find(c => c.id === activeTest);
     const { questions, options, type } = getTestQuestions(activeTest);
@@ -276,7 +276,6 @@ const DeepAssessment = () => {
 
     return (
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header with back button */}
         <div className="flex items-center gap-4">
           <button onClick={() => setActiveTest(null)} className="p-2 hover:bg-white/10 rounded-lg transition-all">
             <ArrowLeft className="text-gray-400" size={24} />
@@ -290,7 +289,6 @@ const DeepAssessment = () => {
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="bg-dark-card border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-400">{progress.answered} of {progress.total} answered</span>
@@ -301,7 +299,6 @@ const DeepAssessment = () => {
           </div>
         </div>
 
-        {/* Questions */}
         <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-2">
           {type === 'paired' ? (
             questions.map((q, idx) => (
@@ -357,7 +354,6 @@ const DeepAssessment = () => {
           )}
         </div>
 
-        {/* Done button */}
         <button
           onClick={() => setActiveTest(null)}
           className={`w-full py-3 rounded-xl font-bold transition-all ${
@@ -372,12 +368,11 @@ const DeepAssessment = () => {
     );
   }
 
-  // ===== TEST SELECTOR GRID (Main View) =====
+  
   const completedCount = TEST_CARDS.filter(c => isTestComplete(c.id)).length;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold bg-primary-gradient bg-clip-text text-transparent mb-2">
           Deep Psychological Assessment
@@ -389,7 +384,6 @@ const DeepAssessment = () => {
         <div className="bg-red-500/20 border border-red-500 text-red-400 rounded-lg p-3">{error}</div>
       )}
 
-      {/* 2x2 Test Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {TEST_CARDS.map((card, idx) => {
           const progress = getTestProgress(card.id);
@@ -405,7 +399,6 @@ const DeepAssessment = () => {
               onClick={() => setActiveTest(card.id)}
               className={`relative bg-gradient-to-br ${card.color} border ${complete ? 'border-green-500' : card.borderColor} rounded-2xl p-6 text-left hover:scale-[1.02] transition-all group`}
             >
-              {/* Complete badge */}
               {complete && (
                 <div className="absolute top-3 right-3">
                   <CheckCircle className="text-green-500" size={24} />
@@ -416,7 +409,6 @@ const DeepAssessment = () => {
               <h3 className="text-xl font-bold text-white mb-1">{card.name}</h3>
               <p className="text-sm text-gray-400 mb-4">{card.subtitle}</p>
 
-              {/* Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">{progress.answered}/{progress.total} answered</span>
@@ -460,7 +452,6 @@ const DeepAssessment = () => {
                   </div>
                 ))}
                 
-                {/* Save Reflections Button */}
                 <button
                   onClick={handleSubmitAll}
                   disabled={submitting || Object.keys(answers.personalized).length === 0}
@@ -488,7 +479,6 @@ const DeepAssessment = () => {
         </div>
       </motion.div>
 
-      {/* Submit Button */}
       <button
         onClick={handleSubmitAll}
         disabled={submitting || completedCount < 2}

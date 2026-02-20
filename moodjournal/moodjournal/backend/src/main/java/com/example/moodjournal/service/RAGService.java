@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 import com.example.moodjournal.model.RAGDocument;
 import jakarta.annotation.PostConstruct;
 
-/**
- * Service for Simple RAG (Retrieval-Augmented Generation).
- * Uses TF-IDF style keyword matching to find semantically relevant documents.
- * No external API calls are needed for retrieval - fast and free.
- */
+
+
+
+
+
 @Service
 public class RAGService {
 
@@ -24,7 +24,7 @@ public class RAGService {
 
     private final List<RAGDocument> documents = new ArrayList<>();
 
-    // IDF (Inverse Document Frequency) cache for all terms
+    
     private final Map<String, Double> idfCache = new HashMap<>();
 
     @PostConstruct
@@ -39,43 +39,43 @@ public class RAGService {
         }
     }
 
-    /**
-     * Tokenize text: lowercase, split on non-word chars, filter short words.
-     */
+    
+
+
     private Set<String> tokenize(String text) {
         if (text == null || text.isBlank())
             return Collections.emptySet();
         return Arrays.stream(text.toLowerCase().split("\\W+"))
-                .filter(w -> w.length() > 2) // Skip very short words
+                .filter(w -> w.length() > 2) 
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Build IDF cache from all documents.
-     * IDF = log(N / df) where N is total docs and df is document frequency.
-     */
+    
+
+
+
     private void buildIdfCache() {
         int N = documents.size();
         Map<String, Integer> termDocCounts = new HashMap<>();
 
         for (RAGDocument doc : documents) {
             Set<String> tokens = tokenize(doc.getText() + " " + doc.getCategory() + " " + doc.getSubtype());
-            doc.setTokens(tokens); // Cache tokens on document for fast lookup
+            doc.setTokens(tokens); 
             for (String token : tokens) {
                 termDocCounts.merge(token, 1, Integer::sum);
             }
         }
 
         for (Map.Entry<String, Integer> entry : termDocCounts.entrySet()) {
-            // Add 1 to prevent division by zero
+            
             double idf = Math.log((double) N / (entry.getValue() + 1));
             idfCache.put(entry.getKey(), idf);
         }
     }
 
-    /**
-     * Calculate TF-IDF score for a query against a document.
-     */
+    
+
+
     private double calculateTfIdfScore(Set<String> queryTokens, RAGDocument doc) {
         if (doc.getTokens() == null || doc.getTokens().isEmpty())
             return 0.0;
@@ -83,7 +83,7 @@ public class RAGService {
         double score = 0.0;
         for (String queryTerm : queryTokens) {
             if (doc.getTokens().contains(queryTerm)) {
-                // TF = 1 (binary for simplicity), IDF from cache
+                
                 double idf = idfCache.getOrDefault(queryTerm, 0.0);
                 score += idf;
             }
@@ -91,10 +91,10 @@ public class RAGService {
         return score;
     }
 
-    /**
-     * Find documents relevant to the query using TF-IDF keyword matching.
-     * This is the "Simple RAG" - no embeddings, no external API calls.
-     */
+    
+
+
+
     public List<RAGDocument> findSimilarDocuments(String query, int limit) {
         if (query == null || query.isBlank()) {
             log.debug("[RAG] Empty query, skipping search.");
@@ -140,9 +140,9 @@ public class RAGService {
         return scored.stream().map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
-    // ========================================================================
-    // CSV LOADING (Same as before)
-    // ========================================================================
+    
+    
+    
 
     private void loadFromCSV() {
         documents.clear();

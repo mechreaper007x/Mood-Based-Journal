@@ -10,34 +10,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * AI Response Validator - Validates AI responses before they're used.
- * 
- * This service acts as a guardrail against AI hallucinations by:
- * 1. Validating JSON structure matches expected schema
- * 2. Checking confidence thresholds for fallback decisions
- * 3. Verifying emotional percentages sum correctly
- * 4. Ensuring risk levels match defined categories
- * 5. Logging validation failures for audit/improvement
- */
+
+
+
+
+
+
+
+
+
+
 @Service
 public class AIResponseValidator {
 
     private static final Logger logger = LoggerFactory.getLogger(AIResponseValidator.class);
     private final ObjectMapper objectMapper;
 
-    // Confidence threshold below which we fall back to lexicon
+    
     public static final double CONFIDENCE_THRESHOLD = 0.5;
 
-    // Valid emotions for Ekman's 7 basic emotions model
+    
     private static final Set<String> VALID_EMOTIONS = Set.of(
             "happiness", "sadness", "anger", "fear", "surprise", "disgust", "contempt");
 
-    // Valid risk levels
+    
     private static final Set<String> VALID_RISK_LEVELS = Set.of(
             "LOW", "MEDIUM", "HIGH", "CRISIS");
 
-    // Valid mood categories
+    
     private static final Set<String> VALID_MOOD_CATEGORIES = Set.of(
             "HAPPY", "SAD", "ANXIOUS", "ANGRY", "CALM", "NEUTRAL");
 
@@ -45,10 +45,10 @@ public class AIResponseValidator {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Validates emotion breakdown response from AI.
-     * Checks: JSON structure, percentage sum, confidence values, valid emotions.
-     */
+    
+
+
+
     public ValidationResult validateEmotionBreakdown(String jsonResponse) {
         try {
             if (jsonResponse == null || jsonResponse.isBlank()) {
@@ -57,7 +57,7 @@ public class AIResponseValidator {
 
             JsonNode root = objectMapper.readTree(jsonResponse);
 
-            // Check required fields
+            
             if (!root.has("emotions") || !root.has("dominantEmotion") || !root.has("overallConfidence")) {
                 return ValidationResult.invalid("Missing required fields");
             }
@@ -66,13 +66,13 @@ public class AIResponseValidator {
             String dominantEmotion = root.get("dominantEmotion").asText().toLowerCase();
             double overallConfidence = root.get("overallConfidence").asDouble();
 
-            // Validate dominant emotion is in allowed list
+            
             if (!VALID_EMOTIONS.contains(dominantEmotion)) {
                 logger.warn("Invalid dominant emotion: {}", dominantEmotion);
                 return ValidationResult.invalid("Invalid dominant emotion: " + dominantEmotion);
             }
 
-            // Validate all 7 emotions are present
+            
             int totalPercentage = 0;
             int highestPercentage = -1;
             String calculatedDominant = null;
@@ -92,7 +92,7 @@ public class AIResponseValidator {
                 int percentage = emotionNode.get("percentage").asInt();
                 double confidence = emotionNode.get("confidence").asDouble();
 
-                // Validate ranges
+                
                 if (percentage < 0 || percentage > 100) {
                     return ValidationResult.invalid("Invalid percentage for " + emotion + ": " + percentage);
                 }
@@ -113,28 +113,28 @@ public class AIResponseValidator {
                 return ValidationResult.invalid("Missing emotions: " + missingEmotions);
             }
 
-            // Validate percentages sum to 100 (with tolerance)
-            // V9 Fix: Normalize instead of rejecting if within tolerance
+            
+            
             if (Math.abs(totalPercentage - 100) > 0) {
                 if (Math.abs(totalPercentage - 100) > 5) {
                     logger.warn("Percentages sum to {} instead of 100 (outside tolerance)", totalPercentage);
                     return ValidationResult.invalid("Percentages sum to " + totalPercentage + " (expected 100)");
                 } else {
                     logger.info("Percentages sum to {} - normalizing", totalPercentage);
-                    // We accept it, as normalization will happen in frontend or can be ignored for
-                    // now.
-                    // Ideally, we would re-scale here, but acceptance is sufficient to prevent
-                    // Logic Leak.
+                    
+                    
+                    
+                    
                 }
             }
 
-            // Warn if dominant emotion doesn't match highest percentage (but don't fail)
+            
             if (calculatedDominant != null && !calculatedDominant.equals(dominantEmotion)) {
                 logger.warn("Dominant emotion mismatch: declared={}, calculated={}", dominantEmotion,
                         calculatedDominant);
             }
 
-            // Validate overall confidence
+            
             if (overallConfidence < 0.0 || overallConfidence > 1.0) {
                 return ValidationResult.invalid("Invalid overall confidence: " + overallConfidence);
             }
@@ -147,10 +147,10 @@ public class AIResponseValidator {
         }
     }
 
-    /**
-     * Validates risk assessment response from AI.
-     * Checks: JSON structure, valid risk levels, crisis indicators.
-     */
+    
+
+
+
     public ValidationResult validateRiskAssessment(String jsonResponse) {
         try {
             if (jsonResponse == null || jsonResponse.isBlank()) {
@@ -159,7 +159,7 @@ public class AIResponseValidator {
 
             JsonNode root = objectMapper.readTree(jsonResponse);
 
-            // Check required fields
+            
             if (!root.has("riskScore") || !root.has("riskLevel") || !root.has("confidence")) {
                 return ValidationResult.invalid("Missing required fields");
             }
@@ -168,25 +168,25 @@ public class AIResponseValidator {
             String riskLevel = root.get("riskLevel").asText().toUpperCase();
             double confidence = root.get("confidence").asDouble();
 
-            // Validate risk score range
+            
             if (riskScore < 0 || riskScore > 10) {
                 return ValidationResult.invalid("Invalid risk score: " + riskScore);
             }
 
-            // Validate risk level
+            
             if (!VALID_RISK_LEVELS.contains(riskLevel)) {
                 return ValidationResult.invalid("Invalid risk level: " + riskLevel);
             }
 
-            // Validate risk level matches score
+            
             String expectedLevel = mapScoreToRiskLevel(riskScore);
             if (!expectedLevel.equals(riskLevel)) {
                 logger.warn("Risk level mismatch: score={} suggests {}, AI returned {}",
                         riskScore, expectedLevel, riskLevel);
-                // Don't fail, just warn - AI might have context we don't
+                
             }
 
-            // Validate confidence
+            
             if (confidence < 0.0 || confidence > 1.0) {
                 return ValidationResult.invalid("Invalid confidence: " + confidence);
             }
@@ -199,9 +199,9 @@ public class AIResponseValidator {
         }
     }
 
-    /**
-     * Validates mood suggestion response from AI.
-     */
+    
+
+
     public ValidationResult validateMoodSuggestion(String jsonResponse) {
         try {
             if (jsonResponse == null || jsonResponse.isBlank()) {
@@ -210,7 +210,7 @@ public class AIResponseValidator {
 
             JsonNode root = objectMapper.readTree(jsonResponse);
 
-            // Check required fields
+            
             if (!root.has("emotion") || !root.has("category") || !root.has("intensity")) {
                 return ValidationResult.invalid("Missing required fields");
             }
@@ -219,12 +219,12 @@ public class AIResponseValidator {
             int intensity = root.get("intensity").asInt();
             double confidence = root.has("confidence") ? root.get("confidence").asDouble() : 0.7;
 
-            // Validate category
+            
             if (!VALID_MOOD_CATEGORIES.contains(category)) {
                 return ValidationResult.invalid("Invalid mood category: " + category);
             }
 
-            // Validate intensity
+            
             if (intensity < 1 || intensity > 10) {
                 return ValidationResult.invalid("Invalid intensity: " + intensity);
             }
@@ -237,9 +237,9 @@ public class AIResponseValidator {
         }
     }
 
-    /**
-     * Validates daily quote response from AI.
-     */
+    
+
+
     public ValidationResult validateDailyQuote(String jsonResponse) {
         try {
             if (jsonResponse == null || jsonResponse.isBlank()) {
@@ -259,7 +259,7 @@ public class AIResponseValidator {
                 return ValidationResult.invalid("Empty quote or author");
             }
 
-            // Quote should be reasonable length
+            
             if (quote.length() > 500) {
                 logger.warn("Quote unusually long: {} chars", quote.length());
             }
@@ -273,16 +273,16 @@ public class AIResponseValidator {
         }
     }
 
-    /**
-     * Check if confidence is below threshold, suggesting fallback to lexicon.
-     */
+    
+
+
     public boolean shouldFallbackToLexicon(double confidence) {
         return confidence < CONFIDENCE_THRESHOLD;
     }
 
-    /**
-     * Maps risk score to expected risk level.
-     */
+    
+
+
     private String mapScoreToRiskLevel(int score) {
         if (score >= 9)
             return "CRISIS";
@@ -293,9 +293,9 @@ public class AIResponseValidator {
         return "LOW";
     }
 
-    /**
-     * Validation result containing validity status, confidence, and failure reason.
-     */
+    
+
+
     public static class ValidationResult {
         private final boolean valid;
         private final double confidence;

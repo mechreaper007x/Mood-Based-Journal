@@ -24,14 +24,13 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Close sidebar on route change (mobile)
+  
   if (sidebarOpen && window.innerWidth < 1024) {
-      // Just a check to ensure we don't lock it open
+      
   }
 
   return (
     <div className="min-h-screen bg-dark-bg text-white relative flex overflow-hidden">
-      {/* Mobile Menu Button */}
       <button 
         onClick={() => setSidebarOpen(true)}
         className="lg:hidden absolute top-6 left-6 z-50 text-gray-400 hover:text-white"
@@ -39,7 +38,6 @@ const Layout = ({ children }) => {
         <Menu size={28} />
       </button>
 
-      {/* Sidebar Overlay for Mobile */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div 
@@ -52,7 +50,6 @@ const Layout = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.aside
         className={`fixed lg:relative z-40 h-full w-72 bg-[#16181d] border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out ${
              sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -94,7 +91,6 @@ const Layout = ({ children }) => {
           />
         </nav>
         
-        {/* Profile, Analytics & Goals Links - Above user info */}
         <div className="px-4 mb-2 space-y-1">
           <Link
             to="/analytics"
@@ -146,14 +142,11 @@ const Layout = ({ children }) => {
         </div>
       </motion.aside>
 
-      {/* Main Content */}
       <main className="flex-1 h-screen overflow-y-auto w-full p-6 lg:p-10 relative">
-        {/* Mobile header with notification */}
         <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
           <NotificationBell />
         </div>
         <div className="max-w-6xl mx-auto pt-12 lg:pt-0"> 
-             {/* Added pt-12 for mobile menu spacing */}
           {children}
         </div>
       </main>

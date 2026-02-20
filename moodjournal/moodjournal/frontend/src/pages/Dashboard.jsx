@@ -16,27 +16,27 @@ import MoodCalendar from '../components/MoodCalendar';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/axios';
 
-// Register ChartJS components
+
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState([]);
-  const [entries, setEntries] = useState([]); // State for all entries
+  const [entries, setEntries] = useState([]); 
   const [quote, setQuote] = useState({ text: "Loading inspiration...", author: "Gemini" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Use Promise.allSettled so one failure doesn't break everything
+        
         const [statsRes, quoteRes, entriesRes] = await Promise.allSettled([
             api.get('/journal/stats'),
             api.get('/ai/daily-quote'),
             api.get('/journal')
         ]);
         
-        // Handle each result independently
+        
         if (statsRes.status === 'fulfilled') {
           setStats(statsRes.value.data);
         }
@@ -63,11 +63,11 @@ const Dashboard = () => {
       {
         data: stats.map(s => s.count),
         backgroundColor: [
-          'rgba(142, 45, 226, 0.7)', // Primary
-          'rgba(74, 0, 224, 0.7)',   // Secondary
-          'rgba(52, 211, 153, 0.7)', // Green
-          'rgba(251, 113, 133, 0.7)', // Red
-          'rgba(250, 204, 21, 0.7)',  // Yellow
+          'rgba(142, 45, 226, 0.7)', 
+          'rgba(74, 0, 224, 0.7)',   
+          'rgba(52, 211, 153, 0.7)', 
+          'rgba(251, 113, 133, 0.7)', 
+          'rgba(250, 204, 21, 0.7)',  
         ],
         borderColor: [
           '#8E2DE2',
@@ -89,19 +89,19 @@ const Dashboard = () => {
     }
   };
 
-  // Mood colors for bar chart
+  
   const moodBarColors = {
-    HAPPY: 'rgba(96, 165, 250, 0.8)',    // Blue
-    SAD: 'rgba(156, 163, 175, 0.8)',     // Gray
-    ANXIOUS: 'rgba(248, 113, 113, 0.8)', // Red/Pink
-    ANGRY: 'rgba(239, 68, 68, 0.8)',     // Red
-    CALM: 'rgba(52, 211, 153, 0.8)',     // Green
-    NEUTRAL: 'rgba(167, 139, 250, 0.8)', // Purple
-    JOYFUL: 'rgba(96, 165, 250, 0.8)',   // Blue
-    PRODUCTIVE: 'rgba(167, 139, 250, 0.8)', // Purple
+    HAPPY: 'rgba(96, 165, 250, 0.8)',    
+    SAD: 'rgba(156, 163, 175, 0.8)',     
+    ANXIOUS: 'rgba(248, 113, 113, 0.8)', 
+    ANGRY: 'rgba(239, 68, 68, 0.8)',     
+    CALM: 'rgba(52, 211, 153, 0.8)',     
+    NEUTRAL: 'rgba(167, 139, 250, 0.8)', 
+    JOYFUL: 'rgba(96, 165, 250, 0.8)',   
+    PRODUCTIVE: 'rgba(167, 139, 250, 0.8)', 
   };
 
-  // Calculate percentage for each mood
+  
   const totalEntries = stats.reduce((acc, curr) => acc + curr.count, 0);
   
   const barData = {
@@ -118,7 +118,7 @@ const Dashboard = () => {
   };
 
   const barOptions = {
-    indexAxis: 'y', // Horizontal bar chart
+    indexAxis: 'y', 
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -162,7 +162,6 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Stat Card 1 */}
         <motion.div 
           whileHover={{ y: -5 }}
           className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
@@ -176,7 +175,6 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Stat Card 2 */}
         <motion.div 
           whileHover={{ y: -5 }}
           className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
@@ -192,7 +190,6 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Stat Card 3 */}
         <motion.div 
           whileHover={{ y: -5 }}
           className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
@@ -207,11 +204,9 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Mood Calendar Section - New Feature */}
       <MoodCalendar entries={entries} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Chart Section */}
         <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl min-h-[400px]">
           <h3 className="text-xl font-semibold mb-6">Mood Distribution</h3>
           {stats.length > 0 ? (
@@ -226,7 +221,6 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Recent Insights / AI Section */}
         <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl">
           <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
             <span className="text-primary-DEFAULT">✨</span> Daily Wisdom
@@ -240,7 +234,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Mood Analysis Bar Chart - Full Width */}
       <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl">
         <h3 className="text-xl font-semibold mb-6">Your Mood Analysis</h3>
         {stats.length > 0 ? (

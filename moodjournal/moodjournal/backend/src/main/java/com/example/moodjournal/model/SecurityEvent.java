@@ -13,13 +13,13 @@ public class SecurityEvent {
     private UUID id;
 
     @Column(columnDefinition = "TEXT")
-    private String content; // The malicious payload
+    private String content; 
 
     @Column(name = "violation_type")
-    private String violationType; // e.g., "LAYER_2_REGEX", "LAYER_5_ENTROPY", "LAYER_3_AI"
+    private String violationType; 
 
     @Column(name = "risk_score")
-    private Double riskScore; // AI's confidence or severity
+    private Double riskScore; 
 
     private LocalDateTime timestamp;
 
@@ -35,7 +35,7 @@ public class SecurityEvent {
         this.timestamp = LocalDateTime.now();
     }
 
-    // Getters and Setters
+    
     public UUID getId() {
         return id;
     }

@@ -13,14 +13,14 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Empirical tests for VADLexiconService using the master dataset.
- * 
- * Tests validate:
- * - Crisis keyword detection accuracy
- * - VAD scoring determinism
- * - Risk score correlation with dataset categories
- */
+
+
+
+
+
+
+
+
 class VADLexiconServiceTest {
 
     private VADLexiconService vadService;
@@ -35,19 +35,19 @@ class VADLexiconServiceTest {
             System.out.println("Categories: " + datasetLoader.getCountByCategory());
         } catch (IOException e) {
             System.err.println("Warning: Could not load dataset - " + e.getMessage());
-            // Tests will use synthetic data instead
+            
         }
     }
 
     @BeforeEach
     void setUp() {
         vadService = new VADLexiconService();
-        vadService.init(); // Manually initialize since not using Spring context
+        vadService.init(); 
     }
 
-    // ========================================================================
-    // DETERMINISM TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("VAD Scoring Determinism")
@@ -92,9 +92,9 @@ class VADLexiconServiceTest {
         }
     }
 
-    // ========================================================================
-    // CRISIS KEYWORD DETECTION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Crisis Keyword Detection")
@@ -103,13 +103,13 @@ class VADLexiconServiceTest {
         @Test
         @DisplayName("Detects crisis keywords in Dark_Reality text")
         void detectCrisisKeywords_darkReality_findsKeywords() {
-            // Dark_Reality entries often contain crisis language
+            
             String darkRealityText = "I want to disappear. The void is calling me. " +
                     "I don't want to exist anymore. Everything is pointless.";
 
             List<String> keywords = vadService.detectCrisisKeywords(darkRealityText);
 
-            // Should detect at least some crisis language
+            
             System.out.println("Detected crisis keywords: " + keywords);
         }
 
@@ -139,9 +139,9 @@ class VADLexiconServiceTest {
         }
     }
 
-    // ========================================================================
-    // RISK SCORE VALIDATION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Risk Score Calculation")
@@ -176,9 +176,9 @@ class VADLexiconServiceTest {
         @DisplayName("Risk score is bounded 0-10")
         void riskScore_alwaysBounded() {
             String[] extremeTexts = {
-                    "", // Empty
-                    "death suicide kill end pain hopeless worthless die", // All negative
-                    "happy joy love peace wonderful amazing beautiful" // All positive
+                    "", 
+                    "death suicide kill end pain hopeless worthless die", 
+                    "happy joy love peace wonderful amazing beautiful" 
             };
 
             for (String text : extremeTexts) {
@@ -189,9 +189,9 @@ class VADLexiconServiceTest {
         }
     }
 
-    // ========================================================================
-    // VAD DIMENSION TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("VAD Dimension Analysis")
@@ -208,7 +208,7 @@ class VADLexiconServiceTest {
             assertNotNull(vad.get("valence"));
             assertNotNull(vad.get("arousal"));
 
-            // Fear should have low valence (negative emotion) and high arousal
+            
             if (vad.get("valence") != null && vad.get("arousal") != null) {
                 System.out.println("Fear text VAD: valence=" + vad.get("valence") +
                         ", arousal=" + vad.get("arousal"));
@@ -243,9 +243,9 @@ class VADLexiconServiceTest {
         }
     }
 
-    // ========================================================================
-    // EMPIRICAL DATASET TESTS
-    // ========================================================================
+    
+    
+    
 
     @Nested
     @DisplayName("Empirical Dataset Validation")

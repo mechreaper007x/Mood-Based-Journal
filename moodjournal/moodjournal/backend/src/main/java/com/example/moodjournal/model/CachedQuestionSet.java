@@ -14,10 +14,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Cached set of assessment questions.
- * Stores JSON array of questions to avoid regenerating every time.
- */
+
+
+
+
 @Entity
 @Table(name = "cached_question_set")
 @Data
@@ -31,9 +31,9 @@ public class CachedQuestionSet {
     private Long id;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String questionsJson; // JSON array of questions
+    private String questionsJson; 
 
-    private Integer usageCount; // How many times this set has been used
+    private Integer usageCount; 
 
     private Instant createdAt;
 

@@ -19,14 +19,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
-/**
- * ML Security Trainer - The "Gym" where the defense system learns.
- * Runs periodic training using:
- * 1. Gradient Descent on attack/legit classification
- * 2. Genetic Algorithm on threshold optimization
- * 
- * This is the heart of the Neuroevolution System.
- */
+
+
+
+
+
+
+
+
 @Service
 public class MLSecurityTrainer {
 
@@ -79,9 +79,9 @@ public class MLSecurityTrainer {
         this.securityRuleRepository = securityRuleRepository;
     }
 
-    /**
-     * Load the currently active model on startup.
-     */
+    
+
+
     @jakarta.annotation.PostConstruct
     public void loadActiveModel() {
         Optional<MLModelParameters> activeGD = modelRepository.findByModelTypeAndIsActiveTrue("GRADIENT_DESCENT");
@@ -91,16 +91,16 @@ public class MLSecurityTrainer {
         });
     }
 
-    /**
-     * Run training every 4 hours (or on demand).
-     * Learns from blocked attacks and legitimate journal entries.
-     */
-    @Scheduled(fixedDelay = 14400000) // 4 hours
+    
+
+
+
+    @Scheduled(fixedDelay = 14400000) 
     @Transactional
     public void runTraining() {
         log.info(">>> [ML TRAINING] Starting Neuroevolution Cycle...");
 
-        // 1. Gather training data
+        
         List<String> attackSamples = new ArrayList<>(gatherAttackSamples());
         List<String> legitSamples = new ArrayList<>(gatherLegitSamples());
 
@@ -110,7 +110,7 @@ public class MLSecurityTrainer {
             return;
         }
 
-        // Prevent heavy class imbalance from poisoning the learner.
+        
         Collections.shuffle(attackSamples, new Random(42));
         Collections.shuffle(legitSamples, new Random(84));
         if (attackSamples.size() > MAX_ATTACK_SAMPLES) {
@@ -132,15 +132,15 @@ public class MLSecurityTrainer {
         log.info(">>> [ML TRAINING] Training data: {} attacks, {} legit",
                 split.trainingAttacks().size(), split.trainingLegit().size());
 
-        // Snapshot existing model in case candidate fails validation.
+        
         double[] previousWeights = gdClassifier.getWeights();
         double previousBias = gdClassifier.getBias();
 
-        // 2. Train Gradient Descent Classifier
+        
         log.info(">>> [ML TRAINING] Phase 1: Gradient Descent Training...");
         Map<String, Double> gdMetrics = gdClassifier.train(split.trainingAttacks(), split.trainingLegit(), GD_EPOCHS);
 
-        // 3. Extract features for GA from training split only.
+        
         List<double[]> attackFeatures = split.trainingAttacks().stream()
                 .map(gdClassifier::extractFeatures)
                 .collect(Collectors.toList());
@@ -148,13 +148,13 @@ public class MLSecurityTrainer {
                 .map(gdClassifier::extractFeatures)
                 .collect(Collectors.toList());
 
-        // 4. Run Genetic Algorithm to evolve thresholds
+        
         log.info(">>> [ML TRAINING] Phase 2: Genetic Algorithm Evolution...");
         var fitnessFunction = gaEvolver.createFitnessFunction(attackFeatures, legitFeatures, gdClassifier);
         GeneticThresholdEvolver.Chromosome bestChromosome = gaEvolver.evolve(fitnessFunction, GA_GENERATIONS);
         bestChromosome.genes[3] = clamp(bestChromosome.genes[3], MIN_DECISION_THRESHOLD, MAX_DECISION_THRESHOLD);
 
-        // 5. Validate candidate before promotion to resist model poisoning.
+        
         ValidationMetrics validation = evaluateCandidate(split.validationAttacks(), split.validationLegit(),
                 bestChromosome.genes[3]);
         log.info(">>> [ML TRAINING] Validation: precision={}% recall={}% f1={} fpr={} (threshold={})",
@@ -170,12 +170,12 @@ public class MLSecurityTrainer {
             return;
         }
 
-        // 6. Phase 3: Auto-Immune Pattern Discovery (Dynamic Rules)
+        
         log.info(">>> [ML TRAINING] Phase 3: Auto-Immune System (Pattern Discovery)...");
         List<String> newPatterns = patternEngine.discoverNewPatterns(split.trainingAttacks(), split.trainingLegit());
         addNewDynamicRules(newPatterns);
 
-        // 7. Save the new model
+        
         saveTrainedModel(gdMetrics, bestChromosome, split.trainingAttacks().size() + split.trainingLegit().size());
 
         log.info(">>> [ML TRAINING] Neuroevolution Cycle Complete!");
@@ -204,7 +204,7 @@ public class MLSecurityTrainer {
                         normalizedPattern,
                         "Auto-Immune Generated Rule (shadow): " + normalizedPattern,
                         true,
-                        true // Start in SHADOW MODE for safety
+                        true 
                 );
                 securityRuleRepository.save(rule);
                 log.info("[AUTO-IMMUNE] NEW VACCINE CREATED (shadow mode): Rule '{}'", normalizedPattern);
@@ -269,28 +269,28 @@ public class MLSecurityTrainer {
     void saveTrainedModel(Map<String, Double> gdMetrics,
             GeneticThresholdEvolver.Chromosome gaResult,
             int trainingSize) {
-        // Deactivate previous models
+        
         List<MLModelParameters> activeModels = modelRepository.findByIsActiveTrue();
         for (MLModelParameters model : activeModels) {
             model.setActive(false);
             modelRepository.save(model);
         }
 
-        // Get next version number
+        
         List<MLModelParameters> previousModels = modelRepository
                 .findByModelTypeOrderByModelVersionDesc("GRADIENT_DESCENT");
         int nextVersion = previousModels.isEmpty() ? 1 : previousModels.get(0).getModelVersion() + 1;
 
-        // Create new model
+        
         MLModelParameters newModel = new MLModelParameters();
         newModel.setModelType("GRADIENT_DESCENT");
         newModel.setModelVersion(nextVersion);
 
-        // Set GD weights
+        
         newModel.setWeightsFromArray(gdClassifier.getWeights());
         newModel.setBias(gdClassifier.getBias());
 
-        // Set GA thresholds
+        
         double[] safeThresholds = gaResult.genes.clone();
         for (int i = 0; i < safeThresholds.length; i++) {
             safeThresholds[i] = clamp(safeThresholds[i], 0.0, 1.0);
@@ -298,7 +298,7 @@ public class MLSecurityTrainer {
         safeThresholds[3] = clamp(safeThresholds[3], MIN_DECISION_THRESHOLD, MAX_DECISION_THRESHOLD);
         newModel.setThresholdsFromArray(safeThresholds);
 
-        // Set metrics
+        
         newModel.setAccuracy(gdMetrics.getOrDefault("accuracy", 0.0));
         newModel.setPrecision(gdMetrics.getOrDefault("precision", 0.0));
         newModel.setRecall(gdMetrics.getOrDefault("recall", 0.0));
@@ -317,17 +317,17 @@ public class MLSecurityTrainer {
                 String.format("%.2f", newModel.getThresholdAnomaly()));
     }
 
-    /**
-     * Get current ML prediction for an input.
-     * Can be used by AISecurityService as Layer 6.
-     */
+    
+
+
+
     public double getAttackProbability(String input) {
         return gdClassifier.predict(input);
     }
 
-    /**
-     * Force immediate training (for testing/admin).
-     */
+    
+
+
     public void forceTraining() {
         runTraining();
     }

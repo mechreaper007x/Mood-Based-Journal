@@ -19,8 +19,8 @@ const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
-      // AuthContext now has profileComplete status, redirect accordingly
-      // The ProtectedRoute will also handle this, but this provides immediate feedback
+      
+      
       navigate('/dashboard');
     } catch (err) {
       setError('Invalid credentials. Please try again.');
@@ -31,7 +31,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-bg p-4 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-DEFAULT/20 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-[#4A00E0]/20 rounded-full blur-[100px]" />
 
