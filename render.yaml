@@ -35,6 +35,11 @@ services:
         generateValue: true
       - key: PORT
         value: 9092
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: frontend
+          property: url
 
   # React Frontend
   - type: web
