@@ -29,7 +29,28 @@ public class SecurityConfig {
 
         @Bean
         public PasswordEncoder passwordEncoder() {
-                return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+                return new PasswordEncoder() {
+                        private final PasswordEncoder bcrypt = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+                        private final PasswordEncoder argon2 = org.springframework.security.crypto.argon2.Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+
+                        @Override
+                        public String encode(CharSequence rawPassword) {
+                                return bcrypt.encode(rawPassword);
+                        }
+
+                        @Override
+                        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                                if (encodedPassword != null && encodedPassword.startsWith("$argon2")) {
+                                        return argon2.matches(rawPassword, encodedPassword);
+                                }
+                                return bcrypt.matches(rawPassword, encodedPassword);
+                        }
+                        
+                        @Override
+                        public boolean upgradeEncoding(String encodedPassword) {
+                                return encodedPassword != null && encodedPassword.startsWith("$argon2");
+                        }
+                };
         }
 
         @Bean
