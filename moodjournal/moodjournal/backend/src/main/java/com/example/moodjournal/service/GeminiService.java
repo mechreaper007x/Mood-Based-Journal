@@ -35,6 +35,10 @@ public class GeminiService {
   @Value("${google.api.key}")
   private String geminiApiKey;
 
+  @Value("${HF_TOKEN:}")
+  private String hfToken;
+
+
   private final Client client;
   private final AIResponseValidator validator;
   private final VADLexiconService lexiconService;
@@ -310,7 +314,64 @@ public class GeminiService {
 
     String errorMessage = lastException != null ? lastException.getMessage() : "Unknown error";
     log.error("All {} models exhausted. Last error: {}", modelCount, errorMessage);
+
+    // Fallback to Hugging Face free Serverless Inference API
+    try {
+      log.info("Attempting fallback to Hugging Face Serverless Inference API...");
+      return callHuggingFaceAPI(prompt);
+    } catch (Exception hfEx) {
+      log.error("Hugging Face fallback also failed: {}", hfEx.getMessage());
+    }
+
     throw new RuntimeException("All Gemini models exhausted: " + errorMessage, lastException);
+  }
+
+  private String callHuggingFaceAPI(String prompt) {
+    if (hfToken == null || hfToken.isBlank()) {
+      log.warn("HF_TOKEN is not configured. Cannot call Hugging Face Inference API.");
+      throw new RuntimeException("HF_TOKEN is blank");
+    }
+
+    // List of models to try in rotation
+    List<String> hfModels = List.of(
+        "Qwen/Qwen2.5-72B-Instruct",
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "google/gemma-2-9b-it"
+    );
+
+    for (String model : hfModels) {
+      String url = "https://api-inference.huggingface.co/models/" + model + "/v1/chat/completions";
+      log.info("Attempting Hugging Face Serverless API call with model: {}", model);
+      try {
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(hfToken);
+
+        java.util.Map<String, Object> message = java.util.Map.of("role", "user", "content", prompt);
+        java.util.Map<String, Object> body = java.util.Map.of(
+            "model", model,
+            "messages", List.of(message),
+            "temperature", 0.7,
+            "max_tokens", 800
+        );
+
+        org.springframework.http.HttpEntity<java.util.Map<String, Object>> request = 
+            new org.springframework.http.HttpEntity<>(body, headers);
+
+        String response = restTemplate.postForObject(url, request, String.class);
+        if (response != null) {
+          com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(response);
+          String content = root.path("choices").get(0).path("message").path("content").asText();
+          if (content != null && !content.isBlank()) {
+            log.info("Successfully got response from Hugging Face model: {}", model);
+            return content.trim();
+          }
+        }
+      } catch (Exception e) {
+        log.warn("Error calling Hugging Face model {}: {}", model, e.getMessage());
+      }
+    }
+    throw new RuntimeException("All Hugging Face models exhausted");
   }
 
   public float[] getEmbedding(String text) {
