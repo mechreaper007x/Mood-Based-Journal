@@ -13,7 +13,8 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",
                         "http://127.0.0.1:3000",
-                        "https://mood-based-journal-1.onrender.com")
+                        "https://mood-based-journal-1.onrender.com",
+                        "https://mechreaper007x-mood-journal-frontend.hf.space")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false)
