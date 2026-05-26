@@ -332,15 +332,16 @@ public class GeminiService {
       throw new RuntimeException("HF_TOKEN is blank");
     }
 
-    // List of models to try in rotation
+    // List of models to try in rotation (non-gated, free models on HF router)
     List<String> hfModels = List.of(
-        "Qwen/Qwen2.5-72B-Instruct",
-        "meta-llama/Llama-3.3-70B-Instruct",
-        "google/gemma-2-9b-it"
+        "Qwen/Qwen2.5-72B-Instruct:fastest",
+        "Qwen/Qwen2.5-14B-Instruct:fastest",
+        "mistralai/Mistral-7B-Instruct-v0.3:fastest"
     );
 
+    String url = "https://router.huggingface.co/v1/chat/completions";
+
     for (String model : hfModels) {
-      String url = "https://api-inference.huggingface.co/models/" + model + "/v1/chat/completions";
       log.info("Attempting Hugging Face Serverless API call with model: {}", model);
       try {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
