@@ -5,3 +5,4 @@ run_app_local.bat
 *.db
 *.trace.db
 *.md
+!README.md

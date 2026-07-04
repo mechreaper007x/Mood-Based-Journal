@@ -1,0 +1,8 @@
+target/
+.git/
+*.log
+*.dat
+rag_cache.dat
+src/main/resources/static/node_modules/
+src/test/
+.agent/
