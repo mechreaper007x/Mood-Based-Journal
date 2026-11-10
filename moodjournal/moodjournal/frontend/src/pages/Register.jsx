@@ -26,6 +26,13 @@ const Register = () => {
     return strength;
   };
 
+  const passwordMeetsPolicy = password.length >= 8
+    && /[0-9]/.test(password)
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /[@#$%^&+=]/.test(password)
+    && !/\\s/.test(password);
+
   const passwordStrength = getPasswordStrength(password);
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
   const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
@@ -35,10 +42,21 @@ const Register = () => {
     setError('');
     setLoading(true);
     try {
-      await register(username, email, password, age);
-      navigate('/login'); 
+      if (!passwordMeetsPolicy) {
+        setError('Password must be at least 8 characters and include uppercase, lowercase, a number, and one of: @ # $ % ^ & + =. Spaces are not allowed.');
+        return;
+      }
+      await register(username.trim(), email.trim().toLowerCase(), password, age === '' ? null : Number(age));
+      navigate('/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.error || 'Registration failed. Please try again.';
+      const data = err.response?.data;
+      const validationMessage = Array.isArray(data?.errors)
+        ? data.errors.map(item => item.defaultMessage || item.message).filter(Boolean).join(' ')
+        : null;
+      const msg = data?.error || data?.message || validationMessage
+        || (!err.response
+          ? 'Unable to reach the registration server. Please check your connection and try again.'
+          : `Registration failed (HTTP ${err.response.status}). Please review your details and try again.`);
       setError(msg);
     } finally {
       setLoading(false);
