@@ -1,4 +1,4 @@
-import { BookOpen, ChartNoAxesCombined, Compass, LayoutDashboard, LogOut, Menu, PenLine, Target, X, UserRound } from 'lucide-react';
+import { BookOpen, BarChart3, Compass, LayoutDashboard, LogOut, Menu, PenLine, Target, X, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,7 @@ const navigation = [
   { label: 'My journal', to: '/journal', icon: BookOpen },
 ];
 const explore = [
-  { label: 'Patterns', to: '/analytics', icon: ChartNoAxesCombined },
+  { label: 'Patterns', to: '/analytics', icon: BarChart3 },
   { label: 'Personal growth', to: '/assessment', icon: Compass },
   { label: 'Goals', to: '/goals', icon: Target },
   { label: 'My profile', to: '/profile', icon: UserRound },
