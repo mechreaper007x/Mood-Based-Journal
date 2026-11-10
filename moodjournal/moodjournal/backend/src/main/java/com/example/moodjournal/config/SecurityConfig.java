@@ -68,6 +68,7 @@ public class SecurityConfig {
                                 }))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                                                 .requestMatchers(
                                                                 "/",
                                                                 "/*.html",
@@ -96,15 +97,11 @@ public class SecurityConfig {
                                                                 org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
                                                 .contentSecurityPolicy(csp -> csp
                                                                 .policyDirectives("default-src 'self'; " +
-                                                                                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; "
-                                                                                +
-                                                                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                                                                                +
+                                                                                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; " +
+                                                                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                                                                                 "img-src 'self' data: https:; " +
-                                                                                "font-src 'self' https://fonts.gstatic.com; "
-                                                                                +
-                                                                                "connect-src 'self' http://localhost:5173 https://mood-based-journal-1.onrender.com; "
-                                                                                +
+                                                                                "font-src 'self' https://fonts.gstatic.com; " +
+                                                                                "connect-src 'self' http://localhost:5173 https://mood-based-journal-1.onrender.com https://mood-based-journal.onrender.com; " +
                                                                                 "frame-ancestors 'none';"))
                                                 .httpStrictTransportSecurity(hsts -> hsts
                                                                 .includeSubDomains(true)

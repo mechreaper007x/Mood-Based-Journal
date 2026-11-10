@@ -5,15 +5,14 @@ databases:
     plan: free
 
 services:
-  # Spring Boot Backend
   - type: web
-    name: backend
+    name: moodjournal-backend
     runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder relative to repo root
     rootDir: moodjournal/moodjournal/backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: free
+    healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
         fromDatabase:
@@ -27,32 +26,31 @@ services:
         fromDatabase:
           name: moodjournal-db
           property: password
-      - key: NLP_SERVICE_URL
-        value: http://nlp-service:5001
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
       - key: GOOGLE_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: PORT
-        value: 9092
+      - key: APP_ENCRYPTION_KEY
+        sync: false
+      - key: SPRING_MAIL_PASSWORD
+        sync: false
+      - key: APP_EMAIL_ENABLED
+        value: "false"
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: frontend
-          property: url
+        value: https://mood-based-journal-1.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://mood-based-journal-1.onrender.com
 
-  # React Frontend
   - type: web
-    name: frontend
-    runtime: docker
-    # ERROR FIX: Pointing to the correct nested folder
+    name: moodjournal-frontend
+    runtime: static
     rootDir: moodjournal/moodjournal/frontend
-    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     envVars:
-      - key: PORT
-        value: 80
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: backend
-          property: url
+        value: https://mood-based-journal.onrender.com/api
