@@ -18,12 +18,18 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      
-      
+      await login(email.trim().toLowerCase(), password);
       navigate('/dashboard');
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      const status = err.response?.status;
+      const serverMessage = err.response?.data?.error || err.response?.data?.message;
+      if (!err.response) {
+        setError('Unable to reach the authentication server. Please try again in a moment.');
+      } else if (status === 401) {
+        setError('That email and password combination was not accepted. If registration failed, your account may not have been created yet.');
+      } else {
+        setError(serverMessage || `Sign-in failed (HTTP ${status || 'unknown'}). Please try again.`);
+      }
     } finally {
       setLoading(false);
     }
