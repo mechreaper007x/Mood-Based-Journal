@@ -1,255 +1,113 @@
-import {
-    ArcElement,
-    BarElement,
-    CategoryScale,
-    Chart as ChartJS,
-    Legend,
-    LinearScale,
-    Title,
-    Tooltip
-} from 'chart.js';
-import { motion } from 'framer-motion';
-import { BrainCircuit, Calendar, Loader2, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Bar, Pie } from 'react-chartjs-2';
-import MoodCalendar from '../components/MoodCalendar';
+import { ArrowUpRight, BookOpen, CalendarDays, PenLine } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/axios';
 
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+const moodTone = {
+  HAPPY: '#d2a84f', JOYFUL: '#d2a84f', EXCITED: '#d2a84f',
+  CALM: '#78977a', CONTENT: '#78977a', NEUTRAL: '#a4a397',
+  SAD: '#8297ad', ANXIOUS: '#c68d6c', ANGRY: '#bc786b',
+  ENERGETIC: '#b58b9e', PRODUCTIVE: '#8b9c79',
+};
+const formatDate = (value) => {
+  if (!value) return new Date();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+};
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState([]);
-  const [entries, setEntries] = useState([]); 
-  const [quote, setQuote] = useState({ text: "Loading inspiration...", author: "Gemini" });
+  const [entries, setEntries] = useState([]);
+  const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const fetchData = async () => {
-      try {
-        
-        const [statsRes, quoteRes, entriesRes] = await Promise.allSettled([
-            api.get('/journal/stats'),
-            api.get('/ai/daily-quote'),
-            api.get('/journal')
-        ]);
-        
-        
-        if (statsRes.status === 'fulfilled') {
-          setStats(statsRes.value.data);
-        }
-        if (quoteRes.status === 'fulfilled' && quoteRes.value.data) {
-          setQuote(quoteRes.value.data);
-        } else {
-          setQuote({ text: "Reflect on your journey today.", author: "Inner Wisdom" });
-        }
-        if (entriesRes.status === 'fulfilled') {
-          setEntries(entriesRes.value.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
+      const [statsRes, quoteRes, entriesRes] = await Promise.allSettled([
+        api.get('/journal/stats'), api.get('/ai/daily-quote'), api.get('/journal')
+      ]);
+      if (!mounted) return;
+      if (statsRes.status === 'fulfilled') setStats(Array.isArray(statsRes.value.data) ? statsRes.value.data : []);
+      if (quoteRes.status === 'fulfilled' && quoteRes.value.data) setQuote(quoteRes.value.data);
+      if (entriesRes.status === 'fulfilled') setEntries(Array.isArray(entriesRes.value.data) ? entriesRes.value.data : []);
+      setLoading(false);
     };
     fetchData();
+    return () => { mounted = false; };
   }, []);
 
-  const pieData = {
-    labels: stats.map(s => s.mood),
-    datasets: [
-      {
-        data: stats.map(s => s.count),
-        backgroundColor: [
-          'rgba(142, 45, 226, 0.7)', 
-          'rgba(74, 0, 224, 0.7)',   
-          'rgba(52, 211, 153, 0.7)', 
-          'rgba(251, 113, 133, 0.7)', 
-          'rgba(250, 204, 21, 0.7)',  
-        ],
-        borderColor: [
-          '#8E2DE2',
-          '#4A00E0',
-          '#34d399',
-          '#fb7185',
-          '#facc15',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    plugins: {
-      legend: {
-        labels: { color: '#E0E0E0', font: { family: 'Inter' } }
-      }
-    }
-  };
-
-  
-  const moodBarColors = {
-    HAPPY: 'rgba(96, 165, 250, 0.8)',    
-    SAD: 'rgba(156, 163, 175, 0.8)',     
-    ANXIOUS: 'rgba(248, 113, 113, 0.8)', 
-    ANGRY: 'rgba(239, 68, 68, 0.8)',     
-    CALM: 'rgba(52, 211, 153, 0.8)',     
-    NEUTRAL: 'rgba(167, 139, 250, 0.8)', 
-    JOYFUL: 'rgba(96, 165, 250, 0.8)',   
-    PRODUCTIVE: 'rgba(167, 139, 250, 0.8)', 
-  };
-
-  
-  const totalEntries = stats.reduce((acc, curr) => acc + curr.count, 0);
-  
-  const barData = {
-    labels: stats.map(s => s.mood),
-    datasets: [
-      {
-        label: 'Mood Score',
-        data: stats.map(s => Math.round((s.count / totalEntries) * 100) || 0),
-        backgroundColor: stats.map(s => moodBarColors[s.mood] || 'rgba(167, 139, 250, 0.8)'),
-        borderRadius: 6,
-        barThickness: 30,
-      },
-    ],
-  };
-
-  const barOptions = {
-    indexAxis: 'y', 
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      x: {
-        min: 0,
-        max: 100,
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { 
-          color: '#9CA3AF', 
-          font: { family: 'Inter' },
-          callback: (value) => value + '%'
-        },
-      },
-      y: {
-        grid: { display: false },
-        ticks: { 
-          color: '#E0E0E0', 
-          font: { family: 'Inter', size: 14 } 
-        },
-      },
-    },
-  };
-
-  if (loading) {
-    return <div className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-primary-DEFAULT" size={40} /></div>;
-  }
+  const totalEntries = useMemo(() => stats.reduce((sum, item) => sum + (Number(item.count) || 0), 0), [stats]);
+  const leadingMood = useMemo(() => stats.length ? [...stats].sort((a,b) => b.count-a.count)[0].mood : '—', [stats]);
+  const recentEntries = useMemo(() => [...entries].sort((a,b) => formatDate(b.createdAt)-formatDate(a.createdAt)).slice(0,3), [entries]);
+  const quoteText = quote?.quote || quote?.text || quote?.content || 'You do not have to make sense of everything today. Some days are just for noticing.';
+  const firstName = user?.username?.split(/[\s@]/)[0] || 'there';
+  const today = new Date();
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-white">Dashboard</h2>
-          <p className="text-gray-400">Your emotional landscape overview</p>
+    <div>
+      <div className="welcome-row">
+        <div><div className="page-kicker">Your journal · {today.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</div>
+          <h1 className="page-title">A little space to<br/>check in, {firstName}.</h1>
+          <p className="page-intro">A softer place to land at the end of a day.</p>
         </div>
-        <div className="text-right hidden sm:block">
-          <p className="text-sm text-gray-400">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
-        >
-          <div className="p-3 bg-primary-DEFAULT/10 rounded-xl text-primary-DEFAULT">
-            <BrainCircuit size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Total Entries</p>
-            <p className="text-2xl font-bold text-white">{stats.reduce((acc, curr) => acc + curr.count, 0)}</p>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
-        >
-          <div className="p-3 bg-green-500/10 rounded-xl text-green-400">
-            <TrendingUp size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Dominant Mood</p>
-            <p className="text-2xl font-bold text-white">
-              {stats.length > 0 ? stats.reduce((a, b) => a.count > b.count ? a : b).mood : 'N/A'}
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="bg-dark-card border border-white/5 p-6 rounded-2xl shadow-xl flex items-center gap-4"
-        >
-          <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
-            <Calendar size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Streak</p>
-            <p className="text-2xl font-bold text-white">3 Days</p>
-          </div>
-        </motion.div>
-      </div>
-
-      <MoodCalendar entries={entries} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl min-h-[400px]">
-          <h3 className="text-xl font-semibold mb-6">Mood Distribution</h3>
-          {stats.length > 0 ? (
-            <div className="h-64 flex items-center justify-center">
-              <Pie data={pieData} options={chartOptions} />
-            </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-500">
-              <p>No enough data yet.</p>
-              <p className="text-sm">Start journaling to see analysis!</p>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl">
-          <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <span className="text-primary-DEFAULT">✨</span> Daily Wisdom
-          </h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-white/5 rounded-xl border-l-4 border-primary-DEFAULT min-h-[120px] flex flex-col justify-center">
-              <p className="text-gray-300 italic text-lg leading-relaxed">"{quote.quote || quote.text || quote.content}"</p>
-              <p className="text-sm text-primary-DEFAULT/80 mt-4 text-right font-medium">- {quote.author || 'AI Companion'}</p>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/journal" className="secondary-action"><BookOpen size={15}/> Browse notes</Link>
+          <Link to="/entry" className="primary-action"><PenLine size={15}/> Write an entry</Link>
         </div>
       </div>
 
-      <div className="bg-dark-card border border-white/5 p-8 rounded-2xl shadow-xl">
-        <h3 className="text-xl font-semibold mb-6">Your Mood Analysis</h3>
-        {stats.length > 0 ? (
-          <div className="h-64">
-            <Bar data={barData} options={barOptions} />
-          </div>
-        ) : (
-          <div className="h-64 flex flex-col items-center justify-center text-gray-500">
-            <p>No mood data yet.</p>
-            <p className="text-sm">Start journaling to see your mood spectrum!</p>
-          </div>
-        )}
+      <section className="paper-card checkin-card">
+        <div className="checkin-copy">
+          <div className="card-eyebrow">A moment for yourself</div>
+          <h2 className="checkin-title">What's taking up space<br/>in your mind today?</h2>
+          <p>It doesn't need to be profound, polished, or even complete. Start wherever you are.</p>
+          <Link to="/entry" className="primary-action">Start writing <ArrowUpRight size={15}/></Link>
+        </div>
+      </section>
+
+      <section className="stat-strip" aria-label="Journal summary">
+        <div className="stat-card"><div className="stat-label">Pages written</div><div className="stat-value">{loading ? '—' : totalEntries}</div><div className="stat-foot">Every entry counts</div></div>
+        <div className="stat-card"><div className="stat-label">Most visited feeling</div><div className="stat-value text-[20px] capitalize">{loading ? '—' : leadingMood.toLowerCase()}</div><div className="stat-foot">A pattern, not a label</div></div>
+        <div className="stat-card"><div className="stat-label">This month</div><div className="stat-value">{loading ? '—' : entries.filter(e => { const d = formatDate(e.createdAt); return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear(); }).length}</div><div className="stat-foot">Moments you made time for</div></div>
+      </section>
+
+      <div className="dashboard-grid">
+        <section className="paper-card">
+          <div className="section-row"><div><div className="card-eyebrow">Looking back</div><h3 className="card-heading">Your recent pages</h3></div><Link to="/journal" className="text-link">All entries <ArrowUpRight size={12} className="inline"/></Link></div>
+          {loading ? <div className="empty-note">Gathering your pages…</div> : recentEntries.length ? <div className="entry-list">
+            {recentEntries.map((entry) => { const date = formatDate(entry.createdAt); return <Link to={`/entry/${entry.id}`} key={entry.id} className="entry-preview no-underline text-inherit">
+              <div className="entry-date"><strong>{date.getDate()}</strong><span>{date.toLocaleDateString('en-US',{month:'short'})}</span></div>
+              <div className="entry-info"><strong>{entry.title || 'Untitled reflection'}</strong><span>{date.toLocaleDateString('en-US',{weekday:'long',year:'numeric'})}</span></div>
+              {entry.mood && <span className="mood-pill" style={{background:`${moodTone[entry.mood] || '#8b9c79'}22`,color:moodTone[entry.mood] || '#60745e'}}>{entry.mood.toLowerCase()}</span>}
+            </Link>; })}
+          </div> : <div className="empty-note">Your first page is waiting. It can be just one sentence.</div>}
+        </section>
+
+        <section className="paper-card quote-card">
+          <div className="card-eyebrow">A thought to keep</div>
+          <div className="quote-mark">“</div>
+          <p className="quote-text">{quoteText}</p>
+          <div className="quote-author">{quote?.author || 'A note for today'}</div>
+        </section>
+      </div>
+
+      <div className="dashboard-grid mt-[18px]">
+        <section className="paper-card">
+          <div className="card-eyebrow">A gentle pattern</div><h3 className="card-heading">Feelings you've noted</h3>
+          {stats.length ? <div className="mood-list">{[...stats].sort((a,b)=>b.count-a.count).slice(0,5).map(item => <div className="mood-row" key={item.mood}>
+            <span className="capitalize">{String(item.mood).toLowerCase()}</span><div className="mood-track"><div className="mood-fill" style={{width:`${Math.max(3,(item.count/Math.max(totalEntries,1))*100)}%`,background:moodTone[item.mood] || '#78977a'}}/></div><span className="text-right">{item.count}</span>
+          </div>)}</div> : <div className="empty-note">As you write, your patterns will gently take shape here.</div>}
+        </section>
+        <section className="paper-card flex flex-col justify-between">
+          <div><div className="card-eyebrow">Make room for a thought</div><h3 className="card-heading">You don't have to carry it all in your head.</h3><p className="text-[12px] leading-6 text-stone-500 mt-3">A few honest lines can be enough for today. Your journal is yours; there is no score to chase.</p></div>
+          <Link to="/entry" className="secondary-action self-start mt-6"><CalendarDays size={15}/> Make a note</Link>
+        </section>
       </div>
     </div>
   );
 };
 
 export default Dashboard;
-
