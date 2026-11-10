@@ -1,4 +1,4 @@
-import { BookOpen, Brain, CalendarDays, ChartNoAxesCombined, Compass, LayoutDashboard, LogOut, Menu, PenLine, Target, X, UserRound } from 'lucide-react';
+import { BookOpen, ChartNoAxesCombined, Compass, LayoutDashboard, LogOut, Menu, PenLine, Target, X, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
       <aside className={`app-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="brand-lockup">
           <div className="brand-mark">m</div>
-          <div><div className="brand-name">morrow</div><div className="brand-subtitle">a little space for you</div></div>
+          <div><div className="brand-name">MoodJournal</div><div className="brand-subtitle">a little space for you</div></div>
           <button className="ml-auto lg:hidden text-stone-500" onClick={() => setSidebarOpen(false)} aria-label="Close menu"><X size={19}/></button>
         </div>
 
